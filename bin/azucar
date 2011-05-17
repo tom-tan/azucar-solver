@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 ##
-## This program is a part of Sugar software package (a SAT-based Constraint Solver).
+## This program is a part of Azucar software package (a SAT-based Constraint Solver).
 ## http;//bach.istc.kobe-u.ac.jp/sugar/
 ## (C) Naoyuki Tamura, Tomoya Tanjo, and Mutsunori Banbara
 ##
@@ -10,12 +10,12 @@ use IPC::Open2;
 use strict;
 $| = 1;
 
-my $version = "v1-14-7";
+my $version = "v0.000";
 my $java = "java";
-my $jar = "/usr/local/lib/sugar/sugar-$version.jar";
+my $jar = "/usr/local/lib/sugar/azucar-$version.jar";
 my $solver0 = "minisat";
 my $solver0_inc = "minisat-inc";
-my $tmp = "/tmp/sugar$$";
+my $tmp = "/tmp/azucar$$";
 
 my ($showversion, $help, $debug, $verbose, $veryverbose, $option);
 my ($java_opt1, $java_opt2, $solver, $competition, $keep, $incremental, $prof);
@@ -67,7 +67,7 @@ if (! $java_opt2) {
 }
 
 if ($showversion) {
-    print "Sugar $version + $solver\n";
+    print "Azucar $version + $solver\n";
     exit(1);
 }
 if (@ARGV != 1 || $help) {
@@ -264,7 +264,7 @@ sub main {
     $SIG{'TERM'} = \&handler;
     eval {
 	$result = "";
-	&log("Sugar $version + $solver");
+	&log("Azucar $version + $solver");
 	&log("BEGIN", scalar(localtime));
 	if ($veryverbose) {
 	    &log("PID", $$);

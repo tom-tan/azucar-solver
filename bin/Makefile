@@ -1,7 +1,7 @@
-VER = v1-14-7
-VERSION = 1.14.7
+VER = v0.000
+VERSION = 0.000
 
-APP0 = sugar
+APP0 = azucar
 BINDIR = /usr/local/bin
 LIBDIR = /usr/local/lib/$(APP0)
 
@@ -9,11 +9,11 @@ APP = $(APP0)-$(VER)
 JAR = $(APP).jar
 ZIP = $(APP).zip
 
-WEBPAGE = http://bach.istc.kobe-u.ac.jp/sugar/
-WEBTITLE = Sugar: A SAT-based Constraint Solver
+#WEBPAGE = http://bach.istc.kobe-u.ac.jp/sugar/
+WEBTITLE = Azucar: A SAT-based Constraint Solver
 PACKAGE = jp.ac.kobe_u.cs.sugar
 
-DOCTITLE = Sugar version $(VERSION) Core API Specification
+DOCTITLE = Azucar version $(VERSION) Core API Specification
 JAVADOC  = javadoc -locale en_US \
 	-windowtitle '$(DOCTITLE)' -doctitle '$(DOCTITLE)' \
 	-header '<em><b>$(DOCTITLE)</b></em><br>' \
