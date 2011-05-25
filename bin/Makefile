@@ -22,7 +22,7 @@ JAVADOC  = javadoc -locale en_US \
 	-classpath ../classes -sourcepath ../src -subpackages $(PACKAGE) \
 	-public -d ../docs/api
 
-all: build jar javadoc zip
+all: build jar #javadoc zip
 
 build:
 	mkdir -p ../classes ../docs ../examples ../tools

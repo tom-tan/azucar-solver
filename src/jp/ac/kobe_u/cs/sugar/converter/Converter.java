@@ -613,10 +613,6 @@ public class Converter {
 		if (e.size() <= 3) {
 			return e;
 		}
-		IntegerVariable var = e.getLargestDomainVariable();
-		if (! e.isDomainLargerThanExcept(MAX_LINEARSUM_SIZE, var)) {
-			return e;
-		}
 		IntegerVariable[] vs = e.getVariablesSorted();
 		LinearSum e1 = new LinearSum(0);
 		for (int i = 2; i < vs.length; i++) {
@@ -652,8 +648,7 @@ public class Converter {
 				return e;
 			}
 		} else {
-			if (e.size() <= 1 || ! e.isDomainLargerThan(MAX_LINEARSUM_SIZE)) {
-			// if (e.size() <= 1 || ! e.isDomainLargerThanExcept(MAX_LINEARSUM_SIZE)) {
+			if (e.size() <= 1) {
 				return e;
 			}
 		}
@@ -701,19 +696,9 @@ public class Converter {
 		}
 		if (NEW_VARIABLE && e.size() > 3) {
 			if (ESTIMATE_SATSIZE) {
-				if (! e.satSizeLE(MAX_LINEARSUM_SIZE)) {
-					e = simplifyLinearExpression(e, true);
-				}
+				e = simplifyLinearExpression(e, true);
 			} else {
-				// if (e.isDomainLargerThan(MAX_LINEARSUM_SIZE)) {
-				if (e.isDomainLargerThanExcept(MAX_LINEARSUM_SIZE)) {
-					// XXX simplifyLinearExpression is better
-					if (false) {
-						e = simplifyLinearSum(e);
-					} else {
-						e = simplifyLinearExpression(e, true);
-					}
-				}
+				e = simplifyLinearExpression(e, true);
 			}
 		}
 		clauses.add(new Clause(new LinearLiteral(e)));
