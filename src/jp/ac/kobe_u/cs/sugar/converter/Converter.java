@@ -25,7 +25,6 @@ import jp.ac.kobe_u.cs.sugar.expression.*;
 public class Converter {
 	public static int MAX_EQUIVMAP_SIZE = 1000;
 	public static long MAX_LINEARSUM_SIZE = 1024L;
-	// public static long MAX_LINEARSUM_SIZE = 2048L;
 	public static boolean expandABS = true;
 	public static boolean OPT_PIGEON = true;
 	public static boolean INCREMENTAL_PROPAGATE = true;
@@ -52,7 +51,6 @@ public class Converter {
 	}
 	
 	private CSP csp;
-	// private List<Expression> expressions;
 	private Map<String,IntegerDomain> domainMap;
 	private Map<String,IntegerVariable> intMap;
 	private Map<String,BooleanVariable> boolMap;
@@ -361,30 +359,6 @@ public class Converter {
 		} else {
 			return convertMUL((Sequence)x2.mul(x1));
 		}
-		/*
-		if (true) {
-			throw new SugarException("Unsupported " + seq);
-		}
-		IntegerVariable v;
-		IntegerVariable v1 = toIntegerVariable(e1, x1);
-		IntegerVariable v2 = toIntegerVariable(e2, x2);
-		if (v1.equals(v2)) {
-			IntegerDomain d = d1.pow(2);
-			v = newIntegerVariable(d, seq);
-			// TODO Clause clause = new Clause(new PowerLiteral(v, v1, 2));
-			Clause clause = new Clause(new ProductLiteral(v, v1, v2));
-			clause.setComment(v.getName() + " == " + seq);
-			csp.add(clause);
-		} else {
-			IntegerDomain d = d1.mul(d2);
-			v = newIntegerVariable(d, seq);
-			Clause clause = new Clause(new ProductLiteral(v, v1, v2));
-			clause.setComment(v.getName() + " == " + seq);
-			csp.add(clause);
-		}
-		addEquivalence(v, seq);
-		return new LinearSum(v);
-		*/
 	}
 	
 	private LinearSum convertDIV(Sequence seq) throws SugarException {
@@ -494,7 +468,6 @@ public class Converter {
 	private LinearSum convertPOW(Sequence seq) throws SugarException {
 		// TODO pow
 		throw new SugarException("Unsupported " + seq);
-		// return null;
 	}
 	
 	private LinearSum convertMIN(Sequence seq) throws SugarException {
@@ -865,16 +838,6 @@ public class Converter {
 						continue;
 					}
 					if (expandABS) {
-//						if (seq.get(1).isSequence(Expression.ABS) &&
-//								seq.get(2).isSequence(Expression.ABS)) {
-//							Expression a1 = ((Sequence)seq.get(1)).get(1);
-//							Expression a2 = ((Sequence)seq.get(2)).get(1);
-//							// abs(a1) <= abs(a2)
-//							Expression x1 = (a1.le(Expression.ZERO)).or(a1.le(a2)).or(a1.le(a2.neg()));
-//							Expression x2 = (a1.ge(Expression.ZERO)).or(a1.ge(a2)).or(a1.ge(a2.neg()));
-//							x = x1.and(x2);
-//							continue;
-//						}
 						if (seq.get(1).isSequence(Expression.ABS)) {
 							Expression a1 = ((Sequence)seq.get(1)).get(1);
 							Expression x2 = seq.get(2);
@@ -912,16 +875,6 @@ public class Converter {
 						continue;
 					}
 					if (expandABS) {
-//						if (seq.get(1).isSequence(Expression.ABS) &&
-//								seq.get(2).isSequence(Expression.ABS)) {
-//							Expression a1 = ((Sequence)seq.get(1)).get(1);
-//							Expression a2 = ((Sequence)seq.get(2)).get(1);
-//							// abs(a1) < abs(a2)
-//							Expression x1 = (a1.lt(Expression.ZERO)).or(a1.lt(a2)).or(a1.lt(a2.neg()));
-//							Expression x2 = (a1.gt(Expression.ZERO)).or(a1.gt(a2)).or(a1.gt(a2.neg()));
-//							x = x1.and(x2);
-//							continue;
-//						}
 						if (seq.get(1).isSequence(Expression.ABS)) {
 							Expression a1 = ((Sequence)seq.get(1)).get(1);
 							Expression x2 = seq.get(2);
@@ -964,16 +917,6 @@ public class Converter {
 						continue;
 					}
 					if (expandABS) {
-//						if (seq.get(1).isSequence(Expression.ABS) &&
-//								seq.get(2).isSequence(Expression.ABS)) {
-//							Expression a1 = ((Sequence)seq.get(1)).get(1);
-//							Expression a2 = ((Sequence)seq.get(2)).get(1);
-//							// abs(a1) >= abs(a2)
-//							Expression x1 = (a2.le(Expression.ZERO)).or(a2.le(a1)).or(a2.le(a1.neg()));
-//							Expression x2 = (a2.ge(Expression.ZERO)).or(a2.ge(a1)).or(a2.ge(a1.neg()));
-//							x = x1.and(x2);
-//							continue;
-//						}
 						if (seq.get(1).isSequence(Expression.ABS)) {
 							Expression a1 = ((Sequence)seq.get(1)).get(1);
 							Expression x2 = seq.get(2);
@@ -1011,16 +954,6 @@ public class Converter {
 						continue;
 					}
 					if (expandABS) {
-//						if (seq.get(1).isSequence(Expression.ABS) &&
-//						seq.get(2).isSequence(Expression.ABS)) {
-//						Expression a1 = ((Sequence)seq.get(1)).get(1);
-//						Expression a2 = ((Sequence)seq.get(2)).get(1);
-//						// abs(a1) > abs(a2)
-//						Expression x1 = (a2.lt(Expression.ZERO)).or(a2.lt(a1)).or(a2.lt(a1.neg()));
-//						Expression x2 = (a2.gt(Expression.ZERO)).or(a2.gt(a1)).or(a2.gt(a1.neg()));
-//						x = x1.and(x2);
-//						continue;
-//						}
 						if (seq.get(1).isSequence(Expression.ABS)) {
 							Expression a1 = ((Sequence)seq.get(1)).get(1);
 							Expression x2 = seq.get(2);
@@ -1069,52 +1002,8 @@ public class Converter {
 		return clauses;
 	}
 
-	/* TODO
-	private List<Clause> simplify(Clause clause) throws SugarException {
-		List<Literal> literals = clause.getLiterals();
-		List<Clause> newClauses = new ArrayList<Clause>();
-		clause = new Clause();
-		int complex = 0;
-		for (Literal literal : literals) {
-			if (literal.isSimple()) {
-				clause.add(literal);
-			} else {
-				complex++;
-				if (complex == 1) {
-					clause.add(literal);
-				} else {
-					BooleanVariable p = new BooleanVariable();
-					csp.add(p);
-					Literal posLiteral = new BooleanLiteral(p, false);
-					Literal negLiteral = new BooleanLiteral(p, true);
-					Clause newClause = new Clause();
-					newClause.add(negLiteral);
-					newClause.add(literal);
-					newClauses.add(newClause);
-					clause.add(posLiteral);
-				}
-			}
-		}
-		newClauses.add(clause);
-		return newClauses;
-	}
-	
-	private List<Clause> simplify(List<Clause> clauses) throws SugarException {
-		List<Clause> newClauses = new ArrayList<Clause>();
-		for (Clause clause : clauses) {
-			if (clause.isSimple()) {
-				newClauses.add(clause);
-			} else {
-				newClauses.addAll(simplify(clause));
-			}
-		}
-		return newClauses;
-	}
-	*/
-
 	private void convertConstraint(Expression x) throws SugarException {
 		List<Clause> clauses = convertConstraint(x, false);
-		// clauses = simplify(clauses);
 		if (clauses.size() > 0) {
 			if (x.getComment() == null) {
 				clauses.get(0).setComment(x.toString());
