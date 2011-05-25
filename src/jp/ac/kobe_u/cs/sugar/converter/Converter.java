@@ -613,42 +613,11 @@ public class Converter {
 		if (e.size() <= 3) {
 			return e;
 		}
-		/*
-		if (! e.isDomainLargerThan(MAX_LINEARSUM_SIZE)) {
-			return e;
-		}
-		*/
 		IntegerVariable var = e.getLargestDomainVariable();
 		if (! e.isDomainLargerThanExcept(MAX_LINEARSUM_SIZE, var)) {
 			return e;
 		}
 		IntegerVariable[] vs = e.getVariablesSorted();
-		/*
-		LinearSum e0 = new LinearSum(e.getB());
-		int domainSize = 1;
-		int i = 0;
-		for (i = 0; i < vs.length - 2 && domainSize <= MAX_LINEARSUM_SIZE; i++) {
-			e0.setA(e.getA(vs[i]), vs[i]);
-			domainSize *= vs[i].getDomain().size();
-		}
-		LinearSum e1 = new LinearSum(0);
-		for (int j = i; j < vs.length; j++) {
-			e1.setA(e.getA(vs[j]), vs[j]);
-		}
-		int factor = e1.factor();
-		if (factor > 1) {
-			e1.divide(factor);
-		}
-		IntegerVariable v = new IntegerVariable(e1.getDomain());
-		v.setComment(v.getName() + " : " + e1);
-		csp.add(v);
-		Expression x = Expression.create(v.getName());
-		Expression ex = e1.toExpression();
-		Expression eq = x.eq(ex);
-		extra.add(eq);
-		e0.setA(factor, v);
-		return e0;
-		*/
 		LinearSum e1 = new LinearSum(0);
 		for (int i = 2; i < vs.length; i++) {
 			e1.setA(e.getA(vs[i]), vs[i]);
