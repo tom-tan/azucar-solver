@@ -254,6 +254,10 @@ public class CSP {
 
 	public void compact() throws SugarException {
 		throw new SugarException("Unimplemented method compact()");
+    int m, base;
+    this.to3CSP();
+    this.toRCSP();
+    this.toCCSP(m, base);
 		/*
 		int n = integerVariables.size();
 		for (int i = 0; i < n; i++) {
@@ -271,6 +275,19 @@ public class CSP {
 		clauses = newClauses;
 		*/
 	}
+
+  public void to3CSP() throws SugarException {
+    
+  }
+
+  public void toRCSP() throws SugarException {
+  }
+
+  public void toCCSP(int m, int base) {
+    assert(m >= 1);
+    assert(base >= 2);
+  }
+
 	
 	/**
 	 * Returns true when the CSP is satisfied.

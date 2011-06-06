@@ -116,6 +116,14 @@ public class SugarMain {
 			Logger.info("CSP is unsatisfiable after propagation");
 			Logger.println("s UNSATISFIABLE");
 		} else {
+			Logger.fine("Simplifing CSP by introducing new Boolean variables");
+			csp.simplify();
+			Logger.info("CSP : " + csp.summary());
+			if (debug > 0) {
+				csp.output(System.out, "c ");
+			}
+			Logger.status();
+
 			if (Encoder.OPT_COMPACT) {
 				Logger.fine("Compacting CSP");
 				csp.compact();
@@ -125,14 +133,7 @@ public class SugarMain {
 				}
 				Logger.status();
 			}
-			Logger.fine("Simplifing CSP by introducing new Boolean variables");
-			csp.simplify();
-			Logger.info("CSP : " + csp.summary());
-			if (debug > 0) {
-				csp.output(System.out, "c ");
-			}
-			Logger.status();
-			
+
 			parser = null;
 			converter = null;
 			expressions = null;
