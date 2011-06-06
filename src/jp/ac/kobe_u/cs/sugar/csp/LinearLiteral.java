@@ -211,29 +211,16 @@ public class LinearLiteral extends Literal {
 					ub = Math.min(ub, (-lb0-a+1)/a);
 				}
 				// XXX
-				if (true) {
-					Iterator<Integer> iter = domain.values(lb, ub); 
-					while (iter.hasNext()) {
-						int c = iter.next();
-						// vs[i]>=c -> ...
-						// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
-						clause[i] = vs[i].getCodeLE(c - 1);
-						encode(encoder, vs, i+1, s+a*c, clause);
-					}
-					clause[i] = vs[i].getCodeLE(ub);
-					encode(encoder, vs, i+1, s+a*(ub+1), clause);
-				} else {
-					for (int c = lb; c <= ub; c++) {
-						if (domain.contains(c)) {
-							// vs[i]>=c -> ...
-							// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
-							clause[i] = vs[i].getCodeLE(c - 1);
-							encode(encoder, vs, i+1, s+a*c, clause);
-						}
-					}
-					clause[i] = vs[i].getCodeLE(ub);
-					encode(encoder, vs, i+1, s+a*(ub+1), clause);
+				Iterator<Integer> iter = domain.values(lb, ub); 
+				while (iter.hasNext()) {
+					int c = iter.next();
+					// vs[i]>=c -> ...
+					// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
+					clause[i] = vs[i].getCodeLE(c - 1);
+					encode(encoder, vs, i+1, s+a*c, clause);
 				}
+				clause[i] = vs[i].getCodeLE(ub);
+				encode(encoder, vs, i+1, s+a*(ub+1), clause);
 			} else {
 				// lb = Math.max(lb, (int)Math.ceil(-(double)lb0/a));
 				if (-lb0 >= 0) {
@@ -242,26 +229,14 @@ public class LinearLiteral extends Literal {
 					lb = Math.max(lb, (-lb0+a+1)/a);
 				}
 				// XXX
-				if (true) {
-					clause[i] = Encoder.negateCode(vs[i].getCodeLE(lb - 1));
-					encode(encoder, vs, i+1, s+a*(lb-1), clause);
-					Iterator<Integer> iter = domain.values(lb, ub); 
-					while (iter.hasNext()) {
-						int c = iter.next();
-						// vs[i]<=c -> ...
-						clause[i] = Encoder.negateCode(vs[i].getCodeLE(c));
-						encode(encoder, vs, i+1, s+a*c, clause);
-					}
-				} else {
-					clause[i] = Encoder.negateCode(vs[i].getCodeLE(lb - 1));
-					encode(encoder, vs, i+1, s+a*(lb-1), clause);
-					for (int c = lb; c <= ub; c++) {
-						if (domain.contains(c)) {
-							// vs[i]<=c -> ...
-							clause[i] = Encoder.negateCode(vs[i].getCodeLE(c));
-							encode(encoder, vs, i+1, s+a*c, clause);
-						}
-					}
+				clause[i] = Encoder.negateCode(vs[i].getCodeLE(lb - 1));
+				encode(encoder, vs, i+1, s+a*(lb-1), clause);
+				Iterator<Integer> iter = domain.values(lb, ub); 
+				while (iter.hasNext()) {
+					int c = iter.next();
+					// vs[i]<=c -> ...
+					clause[i] = Encoder.negateCode(vs[i].getCodeLE(c));
+					encode(encoder, vs, i+1, s+a*c, clause);
 				}
 			}
 		}
@@ -296,11 +271,7 @@ public class LinearLiteral extends Literal {
 	 */
 	@Override
 	public String toString() {
-		if (false) {
-			return "(" + SugarConstants.LE + " " + linearSum.toString() + " 0)";
-		} else { 
-			return "(" + linearSum.toString() + " <= 0)";
-		}
+		return "(" + linearSum.toString() + " <= 0)";
 	}
 
 }

@@ -484,13 +484,6 @@ public class IntegerDomain {
 	public void appendValues(StringBuilder sb) {
 		if (domain == null) {
 			sb.append(lb + ".." + ub);
-		} else if (false) {
-			String delim = "";
-			for (int value : domain) {
-				sb.append(delim);
-				sb.append(value);
-				delim = " ";
-			}
 		} else {
 			String delim = "";
 			int value0 = Integer.MIN_VALUE;

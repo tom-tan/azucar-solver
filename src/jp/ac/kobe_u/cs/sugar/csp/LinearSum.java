@@ -235,56 +235,16 @@ public class LinearSum {
 	}
 
 	public LinearSum[] split(int m) {
-		if (true) {
-			LinearSum[] es = new LinearSum[m];
-			for (int i = 0; i < m; i++) {
-				es[i] = new LinearSum(0);
-			}
-			IntegerVariable[] vs = getVariablesSorted();
-			for (int i = 0; i < vs.length; i++) {
-				IntegerVariable v = vs[i];
-				es[i % m].setA(getA(v), v);
-			}
-			return es;
-		} else {
-			LinearSum e1 = new LinearSum(0);
-			LinearSum e2 = new LinearSum(0);
-			if (false) {
-				IntegerVariable[] vs = getVariablesSorted();
-				int n2 = vs.length - 2;
-				int i = 0;
-				for (IntegerVariable v : vs) {
-					if (i < n2) {
-						e1.setA(getA(v), v);
-					} else {
-						e2.setA(getA(v), v);
-					}
-					i++;
-				}
-			} else if (true) {
-				int i = 0;
-				for (IntegerVariable v : coef.keySet()) {
-					if (i % 2 == 0) {
-						e1.setA(getA(v), v);
-					} else {
-						e2.setA(getA(v), v);
-					}
-					i++;
-				}
-			} else {
-				int i = 0;
-				int n2 = coef.size() / 2;
-				for (IntegerVariable v : coef.keySet()) {
-					if (i < n2) {
-						e1.setA(getA(v), v);
-					} else {
-						e2.setA(getA(v), v);
-					}
-					i++;
-				}
-			}
-			return new LinearSum[] { e1, e2 };
+		LinearSum[] es = new LinearSum[m];
+		for (int i = 0; i < m; i++) {
+			es[i] = new LinearSum(0);
 		}
+		IntegerVariable[] vs = getVariablesSorted();
+		for (int i = 0; i < vs.length; i++) {
+			IntegerVariable v = vs[i];
+			es[i % m].setA(getA(v), v);
+		}
+		return es;
 	}
 
 	public IntegerVariable getLargestDomainVariable() {
@@ -303,12 +263,10 @@ public class LinearSum {
 		vs = coef.keySet().toArray(vs);
 		Arrays.sort(vs, new Comparator<IntegerVariable>() {
 			public int compare(IntegerVariable v1, IntegerVariable v2) {
-				if (true) {
-					int s1 = v1.getDomain().size();
-					int s2 = v2.getDomain().size();
-					if (s1 != s2)
-						return s1 < s2 ? -1 : 1;
-				}
+				int s1 = v1.getDomain().size();
+				int s2 = v2.getDomain().size();
+				if (s1 != s2)
+					return s1 < s2 ? -1 : 1;
 				int a1 = Math.abs(getA(v1));
 				int a2 = Math.abs(getA(v2));
 				if (a1 != a2)
