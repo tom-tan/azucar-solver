@@ -103,6 +103,9 @@ public class SugarMain {
 		converter.INCREMENTAL_PROPAGATE = propagate;
 		converter.convert(expressions);
 		Logger.fine("CSP : " + csp.summary());
+		System.out.println("============= OUT ==============");
+		System.out.println(csp);
+		System.exit(0);
 		// csp.output(System.out, "c ");
 		if (propagate) {
 			Logger.status();

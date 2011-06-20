@@ -252,7 +252,7 @@ public class Clause {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("(clause");
+		sb.append("(or");
 		for (Literal literal : literals) {
 			sb.append(" ");
 			sb.append(literal.toString());
