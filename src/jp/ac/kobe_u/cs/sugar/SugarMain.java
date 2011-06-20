@@ -103,16 +103,13 @@ public class SugarMain {
 		converter.INCREMENTAL_PROPAGATE = propagate;
 		converter.convert(expressions);
 		Logger.fine("CSP : " + csp.summary());
-		System.out.println("============= OUT ==============");
-		System.out.println(csp);
-		System.exit(0);
 		// csp.output(System.out, "c ");
-		if (propagate) {
-			Logger.status();
-			Logger.fine("Propagation in CSP");
-			csp.propagate();
-			Logger.fine("CSP : " + csp.summary());
-		}
+		// if (propagate) {
+		// 	Logger.status();
+		// 	Logger.fine("Propagation in CSP");
+		// 	csp.propagate();
+		// 	Logger.fine("CSP : " + csp.summary());
+		// }
 		// csp.output(System.out, "c ");
 		Logger.status();
 		if (csp.isUnsatisfiable()) {
@@ -121,6 +118,8 @@ public class SugarMain {
 		} else {
 			Logger.fine("Simplifing CSP by introducing new Boolean variables");
 			csp.simplify();
+      System.out.println(csp);
+      System.exit(0);
 			Logger.info("CSP : " + csp.summary());
 			if (debug > 0) {
 				csp.output(System.out, "c ");

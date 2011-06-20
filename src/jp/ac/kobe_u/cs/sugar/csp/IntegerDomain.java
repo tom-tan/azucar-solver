@@ -483,7 +483,7 @@ public class IntegerDomain {
 
 	public void appendValues(StringBuilder sb) {
 		if (domain == null) {
-			sb.append(lb + ".." + ub);
+			sb.append("(" + lb + " " + ub + ")");
 		} else {
 			String delim = "";
 			int value0 = Integer.MIN_VALUE;
@@ -498,7 +498,7 @@ public class IntegerDomain {
 					if (value0 == value1) {
 						sb.append(value0);
 					} else {
-						sb.append(value0 + ".." + value1);
+						sb.append("(" + value0 + " " + value1 + ")");
 					}
 					delim = " ";
 					value0 = value1 = value;
@@ -509,7 +509,7 @@ public class IntegerDomain {
 				if (value0 == value1) {
 					sb.append(value0);
 				} else {
-					sb.append(value0 + ".." + value1);
+					sb.append("(" + value0 + " " + value1 + ")");
 				}
 			}
 		}

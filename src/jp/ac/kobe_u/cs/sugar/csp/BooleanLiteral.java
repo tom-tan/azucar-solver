@@ -94,7 +94,7 @@ public class BooleanLiteral extends Literal {
 	public String toString() {
 		String s = getBooleanVariable().getName();
 		if (negative) {
-			s = "!" + s;
+			s = "(not " + s + ")";
 		}
 		return s;
 	}

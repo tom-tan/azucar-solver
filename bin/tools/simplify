@@ -1,0 +1,43 @@
+#!/usr/bin/ruby
+# -*- coding: utf-8 -*-
+require'optparse'
+
+JAR = '~/azucar/bin/azucar-v0.000.jar'
+Decomposer = 'jp.ac.kobe_u.cs.sugar.Simplifier'
+
+if $0 == __FILE__
+  outfile = '/dev/stdout'
+  verboseLv = 0
+  jopt = ''
+  debug = 0
+  opt = ARGV.options{ |o|
+    o.banner = "Usage: #{File.basename $0} [options] csp"
+    o.on('-o=VAL', "Output file name (Default: stdout)",
+         String) { |output| outfile = output }
+    o.on('--jopt=VAL', 'java option', String) { |opt|
+      jopt = opt
+    }
+    o.on('--debug=VAL', 'debug level', Integer) { |dbg|
+      debug = dbg
+    }
+    o.on('-v', 'verbose mode') { verboseLv = 1 }
+    o.on('-vv', 'very verbose mode') { verboseLv = 2 }
+  }
+  opt.parse!
+  unless ARGV.length == 1
+    puts opt.help
+    exit
+  end
+
+  IO.popen("java -cp #{JAR} #{Decomposer} #{ARGV.pop} #{outfile}") { |io|
+    str = io.gets
+    until str.nil?
+      if str.match /^c/
+        warn str
+      else
+        puts str
+      end
+      str = io.gets
+    end
+  }
+end

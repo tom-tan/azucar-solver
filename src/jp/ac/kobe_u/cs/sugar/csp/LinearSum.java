@@ -443,36 +443,23 @@ public class LinearSum {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
+    sb.append("(+ ");
 		for (IntegerVariable v : coef.keySet()) {
 			int c = getA(v);
 			if (c == 0) {
-			} else if (c > 0) {
-				if (sb.length() > 0) {
-					sb.append("+");
-				}
-				if (c != 1) {
-					sb.append(c);
-					sb.append("*");
-				}
-				sb.append(v.getName());
-			} else {
-				if (c == -1) {
-					sb.append("-");
-				} else {
-					sb.append(c);
-					sb.append("*");
-				}
-				sb.append(v.getName());
-			}
+			}else if(c == 1) {
+        sb.append(v.getName());
+      }else{
+        sb.append("(* ");
+        sb.append(c);
+        sb.append(" ");
+        sb.append(v.getName());
+        sb.append(")");
+      }
+      sb.append(" ");
 		}
-		if (sb.length() == 0) {
-			sb.append(b);
-		} else {
-			if (b >= 0) {
-				sb.append("+");
-			}
-			sb.append(b);
-		}
+    sb.append(b);
+    sb.append(")");
 		return sb.toString();
 	}
 
