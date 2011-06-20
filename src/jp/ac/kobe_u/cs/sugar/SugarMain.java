@@ -90,7 +90,7 @@ public class SugarMain {
 			in = new FileInputStream(cspFileName);
 		}
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-		Parser parser = new Parser(reader);
+		Parser parser = new Parser(reader, false);
 		List<Expression> expressions = parser.parse();
 		Logger.info("parsed " + expressions.size() + " expressions");
 		Logger.status();
@@ -118,8 +118,6 @@ public class SugarMain {
 		} else {
 			Logger.fine("Simplifing CSP by introducing new Boolean variables");
 			csp.simplify();
-      System.out.println(csp);
-      System.exit(0);
 			Logger.info("CSP : " + csp.summary());
 			if (debug > 0) {
 				csp.output(System.out, "c ");

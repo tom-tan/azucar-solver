@@ -28,7 +28,7 @@ class Simplifier{
 		Logger.fine("Parsing " + cspFileName);
 		InputStream in = new FileInputStream(cspFileName);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-		Parser parser = new Parser(reader);
+		Parser parser = new Parser(reader, false);
 		List<Expression> expressions = parser.parse();
 		Logger.info("parsed " + expressions.size() + " expressions");
 		Logger.status();

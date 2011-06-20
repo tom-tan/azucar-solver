@@ -47,7 +47,7 @@ public class Parser {
 	 * Constructs a new parser.
 	 * @param reader an input reader
 	 */
-	public Parser(BufferedReader reader) {
+	public Parser(BufferedReader reader, boolean permitInternal) {
 		// this.reader = reader;
 		st = new StreamTokenizer(reader);
 		st.resetSyntax();
@@ -58,11 +58,14 @@ public class Parser {
 		st.wordChars('_', '_');
 		st.wordChars('0', '9');
 		char[] chars = {
-				'+', '-', '*', '/', '%', 
+      '+', '-', '*', '/', '%',
 				'=', '<', '>', '!', '&', '|' };
 		for (char c : chars) {
 			st.wordChars(c, c);
 		}
+    if(permitInternal) {
+      st.wordChars('$', '$');
+    }
 		st.wordChars(0x000080, 0x10FFFF);
 		st.parseNumbers();
 		st.eolIsSignificant(false);
@@ -146,7 +149,7 @@ public class Parser {
 			BufferedReader reader;
 			reader = new BufferedReader(new InputStreamReader(
 					new FileInputStream(fileName), "UTF-8"));
-			Parser parser = new Parser(reader);
+			Parser parser = new Parser(reader, false);
 			List<Expression> expressions = parser.parse();
 			for (Expression x : expressions) {
 				System.out.println(x);
