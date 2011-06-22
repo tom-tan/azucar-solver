@@ -82,7 +82,7 @@ public class LinearSum {
 	 * @return true when the linear expression is simple
 	 */
 	public boolean isSimple() {
-		return coef.size() <= 1;
+		return coef.size() <= 0;
 	}
 
 	public Integer getA(IntegerVariable v) {

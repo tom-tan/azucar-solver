@@ -17,6 +17,8 @@ import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
+import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
+import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
@@ -28,7 +30,7 @@ class Simplifier{
 		Logger.fine("Parsing " + cspFileName);
 		InputStream in = new FileInputStream(cspFileName);
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-		Parser parser = new Parser(reader, false);
+		Parser parser = new Parser(reader, true);
 		List<Expression> expressions = parser.parse();
 		Logger.info("parsed " + expressions.size() + " expressions");
 		Logger.status();
@@ -41,6 +43,9 @@ class Simplifier{
 	}
 	
 	public static CSP simplify(CSP csp)throws SugarException{
+    final String pre = "simp";
+    IntegerVariable.setPrefix(pre);
+    BooleanVariable.setPrefix(pre);
     Logger.fine("Simplifing CSP by introducing new Boolean variables");
     csp.simplify();
     Logger.info("CSP : " + csp.summary());

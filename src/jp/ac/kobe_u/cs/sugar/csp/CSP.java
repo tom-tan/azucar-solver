@@ -147,6 +147,10 @@ public class CSP {
 		return clauses;
 	}
 
+  public void setClauses(List<Clause> cls) {
+		clauses = cls;
+	}
+
 	/**
 	 * Adds a clause.
 	 * @param clause the clause to be added

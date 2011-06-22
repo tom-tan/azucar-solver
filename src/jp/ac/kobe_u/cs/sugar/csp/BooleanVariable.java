@@ -11,14 +11,19 @@ import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class BooleanVariable implements Comparable<BooleanVariable> {
-	private static String AUX_NAME_PREFIX = "$B";
+	private static final String AUX_PRE = "$B";
+	private static String AUX_NAME_PREFIX = AUX_PRE;
 	private static int auxBooleanVariablesSize = 0;
 	private String name;
 	private boolean aux;
 	private String comment = null;
 	private int code;
 	private boolean value;
-	
+
+  public static void setPrefix(String pre) {
+    AUX_NAME_PREFIX = AUX_PRE + pre;
+  }
+
 	/**
 	 * Adds a new boolean variable with give name.
 	 * @param name the name of the boolean variable
