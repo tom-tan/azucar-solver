@@ -67,7 +67,11 @@ class Decomposer{
 		csp = decompose(csp);
 		File file = new File(outFileName);
 		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
-		pw.println(csp);
+    if (csp.isUnsatisfiable()) {
+      pw.println("(or)");
+    }else{
+      pw.println(csp);
+    }
     pw.close();
 	}
 }
