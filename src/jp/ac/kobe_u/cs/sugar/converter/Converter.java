@@ -616,43 +616,43 @@ public class Converter {
 	}
 	
 	private LinearSum simplifyLinearExpression(LinearSum e, boolean first) throws SugarException {
-		if (ESTIMATE_SATSIZE) {
-			if (e.satSizeLE(MAX_LINEARSUM_SIZE)) {
+		// if (ESTIMATE_SATSIZE) {
+		// 	if (e.satSizeLE(MAX_LINEARSUM_SIZE)) {
 				return e;
-			}
-		} else {
-			if (e.size() <= 1) {
-				return e;
-			}
-		}
-		int b = e.getB();
-		LinearSum[] es = e.split(first ? 3 : SPLITS);
-		e = new LinearSum(b);
-		for (int i = 0; i < es.length; i++) {
-			LinearSum ei = es[i];
-			int factor = ei.factor();
-			if (factor > 1) {
-				ei.divide(factor);
-			}
-			ei = simplifyLinearExpression(ei, false);
-			// System.out.println(es[i] + " ==> " + ei);
-			if (ei.size() > 1) {
-				IntegerVariable v = new IntegerVariable(ei.getDomain());
-				v.setComment(v.getName() + " : " + ei);
-				csp.add(v);
-				Expression x = Expression.create(v.getName());
-				Expression ex = ei.toExpression();
-				Expression eq = x.eq(ex);
-				eq.setComment(v.getName() + " == " + ei);
-				convertConstraint(eq);
-				ei = new LinearSum(v);
-			}
-			if (factor > 1) {
-				ei.multiply(factor);
-			}
-			e.add(ei);
-		}
-		return e;
+		// 	}
+		// } else {
+		// 	if (e.size() <= 1) {
+		// 		return e;
+		// 	}
+		// }
+		// int b = e.getB();
+		// LinearSum[] es = e.split(first ? 3 : SPLITS);
+		// e = new LinearSum(b);
+		// for (int i = 0; i < es.length; i++) {
+		// 	LinearSum ei = es[i];
+		// 	int factor = ei.factor();
+		// 	if (factor > 1) {
+		// 		ei.divide(factor);
+		// 	}
+		// 	ei = simplifyLinearExpression(ei, false);
+		// 	// System.out.println(es[i] + " ==> " + ei);
+		// 	if (ei.size() > 1) {
+		// 		IntegerVariable v = new IntegerVariable(ei.getDomain());
+		// 		v.setComment(v.getName() + " : " + ei);
+		// 		csp.add(v);
+		// 		Expression x = Expression.create(v.getName());
+		// 		Expression ex = ei.toExpression();
+		// 		Expression eq = x.eq(ex);
+		// 		eq.setComment(v.getName() + " == " + ei);
+		// 		convertConstraint(eq);
+		// 		ei = new LinearSum(v);
+		// 	}
+		// 	if (factor > 1) {
+		// 		ei.multiply(factor);
+		// 	}
+		// 	e.add(ei);
+		// }
+		// return e;
 	}
 	
 	private List<Clause> convertComparison(Expression x) throws SugarException {
