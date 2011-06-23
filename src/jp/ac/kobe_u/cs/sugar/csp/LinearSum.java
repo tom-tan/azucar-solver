@@ -443,14 +443,14 @@ public class LinearSum {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-    sb.append("(+ ");
+    sb.append("(add ");
 		for (IntegerVariable v : coef.keySet()) {
 			int c = getA(v);
 			if (c == 0) {
 			}else if(c == 1) {
         sb.append(v.getName());
       }else{
-        sb.append("(* ");
+        sb.append("(mul ");
         sb.append(c);
         sb.append(" ");
         sb.append(v.getName());

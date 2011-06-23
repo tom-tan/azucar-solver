@@ -62,6 +62,7 @@ class Adjuster{
         while(iter.hasNext()) {
           int i = iter.next();
           if(lst+1 != i) {
+            // prefix 設定する必要あり!
             BooleanVariable b = new BooleanVariable();
             Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, lst)));
             c1.add(new BooleanLiteral(b, true));

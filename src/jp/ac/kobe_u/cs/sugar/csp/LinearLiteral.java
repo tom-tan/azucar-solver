@@ -271,7 +271,7 @@ public class LinearLiteral extends Literal {
 	 */
 	@Override
 	public String toString() {
-		return "(<= " + linearSum.toString() + " 0)";
+		return "(le " + linearSum.toString() + " 0)";
 	}
 
 }
