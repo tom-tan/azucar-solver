@@ -290,6 +290,29 @@ public class CSP {
   public void toCCSP(int m, int base) {
     assert(m >= 1);
     assert(base >= 2);
+    List<IntegerVariable> newInts = new ArrayList<IntegerVariable>();
+    List<Clause> newClauses = new ArrayList<Clause>();
+
+    for(IntegerVariable v: integerVariables) {
+      assert(v.getDomain().isContiguous());
+      assert(v.getDomain().getLowerBound() == 0);
+      for(int i=0; i<m; i++) {
+        String n = v.getName();
+        IntegerVariable vi = new IntegerVariable(n, new IntegerDomain(0, base-1));
+        vi.isAux(v.isAux());
+        clauses.add(new Clause(new BinaryLiteral(new Atom(v),
+                                                 new Atom(v.getDomain().getUpperBound()),
+                                                 SugarConstants.LE)));
+      }
+    }
+
+    for(Clause c: clauses) {
+      newClauses.addAll(c.toCCSP(m, base, this, xx));
+    }
+
+    integerVariables = newInts;
+    clauses = newClauses;
+    integerVariableMap = null;
   }
 
 	
