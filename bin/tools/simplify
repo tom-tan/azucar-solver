@@ -3,7 +3,7 @@
 require'optparse'
 
 JAR = '~/azucar/bin/azucar-v0.000.jar'
-Decomposer = 'jp.ac.kobe_u.cs.sugar.Simplifier'
+Simplifier = 'jp.ac.kobe_u.cs.sugar.Simplifier'
 
 if $0 == __FILE__
   outfile = '/dev/stdout'
@@ -29,7 +29,7 @@ if $0 == __FILE__
     exit
   end
 
-  IO.popen("java -cp #{JAR} #{Decomposer} #{ARGV.pop} #{outfile}") { |io|
+  IO.popen("java -cp #{JAR} #{Simplifier} #{ARGV.pop} #{outfile}") { |io|
     str = io.gets
     until str.nil?
       if str.match /^c/
