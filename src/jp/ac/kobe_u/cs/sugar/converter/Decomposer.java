@@ -150,7 +150,7 @@ public class Decomposer {
     return ret;
 	}
 
-	private void decomposeObjectiveDefinition(Sequence seq) throws SugarException {
+	private List<Expression> decomposeObjectiveDefinition(Sequence seq) throws SugarException {
 		Objective objective = null;
 		String name = null;
 		if (seq.matches("WWW")) {
@@ -168,6 +168,7 @@ public class Decomposer {
 		if (v == null) {
 			throw new SugarException("Unknown objective variable " + seq);
 		}
+    return seq;
 		// csp.setObjectiveVariable(v);
 		// csp.setObjective(objective);
 	}
@@ -229,7 +230,8 @@ public class Decomposer {
                                             Expression x)
 	throws SugarException {
 		//IntegerVariable v;
-		if (e.isIntegerVariable()) {
+		// if (e.isIntegerVariable()) {
+    if (e.matches("WWI")) {
 			v = e.getCoef().firstKey();
 		} else {
 			v = newIntegerVariable(e.getDomain(), x);
@@ -374,20 +376,20 @@ public class Decomposer {
 		if (true) {
 			throw new SugarException("Unsupported " + seq);
 		}
-		IntegerVariable v2 = toIntegerVariable(e2, x2);
-		IntegerDomain pd = d1.sub(rd);
-		IntegerVariable pv = newIntegerVariable(pd, px);
-		Clause clause = new Clause(new ProductLiteral(pv, qv, v2));
-		clause.setComment(pv.getName() + " == " + px);
-		csp.add(clause);
-		Expression p = Expression.create(pv.getName());
-		Expression eq =
-			(x1.eq(p.add(r)))
-			.and((r.ge(Expression.ZERO)).and((x2.abs()).gt(r)));
-		eq.setComment(qv.getName() + " == " + seq);
-		decomposeConstraint(eq);
-		addEquivalence(qv, seq);
-		return new LinearSum(qv);
+		// IntegerVariable v2 = toIntegerVariable(e2, x2);
+		// IntegerDomain pd = d1.sub(rd);
+		// IntegerVariable pv = newIntegerVariable(pd, px);
+		// Clause clause = new Clause(new ProductLiteral(pv, qv, v2));
+		// clause.setComment(pv.getName() + " == " + px);
+		// csp.add(clause);
+		// Expression p = Expression.create(pv.getName());
+		// Expression eq =
+		// 	(x1.eq(p.add(r)))
+		// 	.and((r.ge(Expression.ZERO)).and((x2.abs()).gt(r)));
+		// eq.setComment(qv.getName() + " == " + seq);
+		// decomposeConstraint(eq);
+		// addEquivalence(qv, seq);
+		// return new LinearSum(qv);
 	}
 	
 	private LinearSum decomposeMOD(Sequence seq) throws SugarException {
@@ -423,20 +425,20 @@ public class Decomposer {
 		if (true) {
 			throw new SugarException("Unsupported " + seq);
 		}
-		IntegerVariable v2 = toIntegerVariable(e2, x2);
-		IntegerDomain pd = d1.sub(rd);
-		IntegerVariable pv = newIntegerVariable(pd, px);
-		Clause clause = new Clause(new ProductLiteral(pv, qv, v2));
-		clause.setComment(pv.getName() + " == " + px);
-		csp.add(clause);
-		Expression p = Expression.create(pv.getName());
-		Expression eq =
-			(x1.eq(p.add(r)))
-			.and((r.ge(Expression.ZERO)).and((x2.abs()).gt(r)));
-		eq.setComment(rv.getName() + " == " + seq);
-		decomposeConstraint(eq);
-		addEquivalence(rv, seq);
-		return new LinearSum(rv);
+		// IntegerVariable v2 = toIntegerVariable(e2, x2);
+		// IntegerDomain pd = d1.sub(rd);
+		// IntegerVariable pv = newIntegerVariable(pd, px);
+		// Clause clause = new Clause(new ProductLiteral(pv, qv, v2));
+		// clause.setComment(pv.getName() + " == " + px);
+		// csp.add(clause);
+		// Expression p = Expression.create(pv.getName());
+		// Expression eq =
+		// 	(x1.eq(p.add(r)))
+		// 	.and((r.ge(Expression.ZERO)).and((x2.abs()).gt(r)));
+		// eq.setComment(rv.getName() + " == " + seq);
+		// decomposeConstraint(eq);
+		// addEquivalence(rv, seq);
+		// return new LinearSum(rv);
 	}
 	
 	private LinearSum decomposePOW(Sequence seq) throws SugarException {
@@ -976,21 +978,22 @@ public class Decomposer {
 		return clauses;
 	}
 
-	private void decomposeConstraint(Expression x) throws SugarException {
-		List<Clause> clauses = decomposeConstraint(x, false);
-		if (clauses.size() > 0) {
+	private List<Expression> decomposeConstraint(Expression x) throws SugarException {
+		List<Expression> exps = decomposeConstraint(x, false);
+		if (exps.size() > 0) {
 			if (x.getComment() == null) {
-				clauses.get(0).setComment(x.toString());
+				exps.get(0).setComment(x.toString());
 			} else {
-				clauses.get(0).setComment(x.getComment());
+				exps.get(0).setComment(x.getComment());
 			}
 		}
-		for (Clause clause : clauses) {
-			csp.add(clause);
-			if (INCREMENTAL_PROPAGATE) {
-				clause.propagate();
-			}
-		}
+		// for (Expression clause : clauses) {
+		// 	csp.add(clause);
+		// 	if (INCREMENTAL_PROPAGATE) {
+		// 		clause.propagate();
+		// 	}
+		// }
+    return exps;
 	}
 
 	private List<Expression> decomposeExpression(Expression x) throws SugarException {
