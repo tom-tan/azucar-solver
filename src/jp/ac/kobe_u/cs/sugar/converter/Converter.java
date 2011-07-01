@@ -616,43 +616,43 @@ public class Converter {
 	}
 	
 	private LinearSum simplifyLinearExpression(LinearSum e, boolean first) throws SugarException {
-		// if (ESTIMATE_SATSIZE) {
-		// 	if (e.satSizeLE(MAX_LINEARSUM_SIZE)) {
+		if (ESTIMATE_SATSIZE) {
+			if (e.satSizeLE(MAX_LINEARSUM_SIZE)) {
 				return e;
-		// 	}
-		// } else {
-		// 	if (e.size() <= 1) {
-		// 		return e;
-		// 	}
-		// }
-		// int b = e.getB();
-		// LinearSum[] es = e.split(first ? 3 : SPLITS);
-		// e = new LinearSum(b);
-		// for (int i = 0; i < es.length; i++) {
-		// 	LinearSum ei = es[i];
-		// 	int factor = ei.factor();
-		// 	if (factor > 1) {
-		// 		ei.divide(factor);
-		// 	}
-		// 	ei = simplifyLinearExpression(ei, false);
-		// 	// System.out.println(es[i] + " ==> " + ei);
-		// 	if (ei.size() > 1) {
-		// 		IntegerVariable v = new IntegerVariable(ei.getDomain());
-		// 		v.setComment(v.getName() + " : " + ei);
-		// 		csp.add(v);
-		// 		Expression x = Expression.create(v.getName());
-		// 		Expression ex = ei.toExpression();
-		// 		Expression eq = x.eq(ex);
-		// 		eq.setComment(v.getName() + " == " + ei);
-		// 		convertConstraint(eq);
-		// 		ei = new LinearSum(v);
-		// 	}
-		// 	if (factor > 1) {
-		// 		ei.multiply(factor);
-		// 	}
-		// 	e.add(ei);
-		// }
-		// return e;
+			}
+		} else {
+			if (e.size() <= 1) {
+				return e;
+			}
+		}
+		int b = e.getB();
+		LinearSum[] es = e.split(first ? 3 : SPLITS);
+		e = new LinearSum(b);
+		for (int i = 0; i < es.length; i++) {
+			LinearSum ei = es[i];
+			int factor = ei.factor();
+			if (factor > 1) {
+				ei.divide(factor);
+			}
+			ei = simplifyLinearExpression(ei, false);
+			// System.out.println(es[i] + " ==> " + ei);
+			if (ei.size() > 1) {
+				IntegerVariable v = new IntegerVariable(ei.getDomain());
+				v.setComment(v.getName() + " : " + ei);
+				csp.add(v);
+				Expression x = Expression.create(v.getName());
+				Expression ex = ei.toExpression();
+				Expression eq = x.eq(ex);
+				eq.setComment(v.getName() + " == " + ei);
+				convertConstraint(eq);
+				ei = new LinearSum(v);
+			}
+			if (factor > 1) {
+				ei.multiply(factor);
+			}
+			e.add(ei);
+		}
+		return e;
 	}
 	
 	private List<Clause> convertComparison(Expression x) throws SugarException {
@@ -972,28 +972,28 @@ public class Converter {
 					clauses = convertComparison(seq.get(2).sub(seq.get(1))
 							.add(Expression.create(1)));
 					break;
-				} else if (seq.isSequence(Expression.ALLDIFFERENT) && ! negative) {
-					x = GlobalConstraints.convertAllDifferent(this, seq);
-				} else if (seq.isSequence(Expression.WEIGHTEDSUM) && ! negative) {
-					x = GlobalConstraints.convertWeightedSum(this, seq);
-				} else if (seq.isSequence(Expression.CUMULATIVE) && ! negative) {
-					x = GlobalConstraints.convertCumulative(this, seq);
-				} else if (seq.isSequence(Expression.ELEMENT) && ! negative) {
-					x = GlobalConstraints.convertElement(this, seq);
-				} else if (seq.isSequence(Expression.DISJUNCTIVE) && ! negative) {
-					x = GlobalConstraints.convertDisjunctive(this, seq);
-				} else if (seq.isSequence(Expression.LEX_LESS) && ! negative) {
-					x = GlobalConstraints.convertLex_less(this, seq);
-				} else if (seq.isSequence(Expression.LEX_LESSEQ) && ! negative) {
-					x = GlobalConstraints.convertLex_lesseq(this, seq);
-				} else if (seq.isSequence(Expression.NVALUE) && ! negative) {
-					x = GlobalConstraints.convertNvalue(this, seq);
-				} else if (seq.isSequence(Expression.COUNT) && ! negative) {
-					x = GlobalConstraints.convertCount(this, seq);
-				} else if (seq.isSequence(Expression.GLOBAL_CARDINALITY) && ! negative) {
-					x = GlobalConstraints.convertGlobal_cardinality(this, seq);
-				} else if (seq.isSequence(Expression.GLOBAL_CARDINALITY_WITH_COSTS) && ! negative) {
-					x = GlobalConstraints.convertGlobal_cardinality_with_costs(this, seq);
+				// } else if (seq.isSequence(Expression.ALLDIFFERENT) && ! negative) {
+				// 	x = GlobalConstraints.convertAllDifferent(this, seq);
+				// } else if (seq.isSequence(Expression.WEIGHTEDSUM) && ! negative) {
+				// 	x = GlobalConstraints.convertWeightedSum(this, seq);
+				// } else if (seq.isSequence(Expression.CUMULATIVE) && ! negative) {
+				// 	x = GlobalConstraints.convertCumulative(this, seq);
+				// } else if (seq.isSequence(Expression.ELEMENT) && ! negative) {
+				// 	x = GlobalConstraints.convertElement(this, seq);
+				// } else if (seq.isSequence(Expression.DISJUNCTIVE) && ! negative) {
+				// 	x = GlobalConstraints.convertDisjunctive(this, seq);
+				// } else if (seq.isSequence(Expression.LEX_LESS) && ! negative) {
+				// 	x = GlobalConstraints.convertLex_less(this, seq);
+				// } else if (seq.isSequence(Expression.LEX_LESSEQ) && ! negative) {
+				// 	x = GlobalConstraints.convertLex_lesseq(this, seq);
+				// } else if (seq.isSequence(Expression.NVALUE) && ! negative) {
+				// 	x = GlobalConstraints.convertNvalue(this, seq);
+				// } else if (seq.isSequence(Expression.COUNT) && ! negative) {
+				// 	x = GlobalConstraints.convertCount(this, seq);
+				// } else if (seq.isSequence(Expression.GLOBAL_CARDINALITY) && ! negative) {
+				// 	x = GlobalConstraints.convertGlobal_cardinality(this, seq);
+				// } else if (seq.isSequence(Expression.GLOBAL_CARDINALITY_WITH_COSTS) && ! negative) {
+				// 	x = GlobalConstraints.convertGlobal_cardinality_with_costs(this, seq);
 				} else {
 					syntaxError(x);
 				}
@@ -1020,18 +1020,19 @@ public class Converter {
 	}
 
 	private void convertExpression(Expression x) throws SugarException {
-		if (x.isSequence(Expression.DOMAIN_DEFINITION)) {
-			convertDomainDefinition((Sequence)x);
-		} else if (x.isSequence(Expression.INT_DEFINITION)) {
+		// if (x.isSequence(Expression.DOMAIN_DEFINITION)) {
+		// 	convertDomainDefinition((Sequence)x);
+		// } else 
+      if (x.isSequence(Expression.INT_DEFINITION)) {
 			convertIntDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.BOOL_DEFINITION)) {
 			convertBoolDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.OBJECTIVE_DEFINITION)) {
 			convertObjectiveDefinition((Sequence)x);
-		} else if (x.isSequence(Expression.PREDICATE_DEFINITION)) {
-			convertPredicateDefinition((Sequence)x);
-		} else if (x.isSequence(Expression.RELATION_DEFINITION)) {
-			convertRelationDefinition((Sequence)x);
+		// } else if (x.isSequence(Expression.PREDICATE_DEFINITION)) {
+		// 	convertPredicateDefinition((Sequence)x);
+		// } else if (x.isSequence(Expression.RELATION_DEFINITION)) {
+		// 	convertRelationDefinition((Sequence)x);
 		} else {
 			convertConstraint(x);
 		}

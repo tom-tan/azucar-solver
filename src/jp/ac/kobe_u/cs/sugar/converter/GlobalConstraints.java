@@ -15,7 +15,7 @@ import jp.ac.kobe_u.cs.sugar.expression.Sequence;
  */
 public class GlobalConstraints {
 	
-	protected static Expression convertAllDifferent(Converter converter, Sequence seq)
+	protected static Expression decomposeAllDifferent(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		int di = 1;
 		int n = seq.length() - 1;
@@ -32,11 +32,11 @@ public class GlobalConstraints {
 			}
 		}
 		Expression x = Expression.create(xs);
-		if (Converter.OPT_PIGEON) {
+		if (Decomposer.OPT_PIGEON) {
 			int lb = Integer.MAX_VALUE;
 			int ub = Integer.MIN_VALUE;
 			for (int i = 0; i < n; i++) {
-				IntegerDomain d = converter.convertFormula(seq.get(i+di)).getDomain();
+				IntegerDomain d = decomposer.decomposeFormula(seq.get(i+di)).getDomain();
 				lb = Math.min(lb, d.getLowerBound());
 				ub = Math.max(ub, d.getUpperBound());
 			}
@@ -54,11 +54,11 @@ public class GlobalConstraints {
 		return x;
 	}
 	
-	protected static Expression convertWeightedSum(Converter converter, Sequence seq)
+	protected static Expression decomposeWeightedSum(Decomposer decomposer, Sequence seq)
 	throws SugarException {
-		converter.checkArity(seq, 3);
+		decomposer.checkArity(seq, 3);
 		if (! seq.get(1).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Sequence seq1 = (Sequence)seq.get(1);
 		Expression x2 = seq.get(2);
@@ -67,10 +67,10 @@ public class GlobalConstraints {
 		xs1.add(Expression.ADD);
 		for (int i = 0; i < seq1.length(); i++) {
 			if (! seq1.get(i).isSequence()) {
-				converter.syntaxError(seq);
+				decomposer.syntaxError(seq);
 			}
 			Sequence seqi = (Sequence)seq1.get(i);
-			converter.checkArity(seqi, 1);
+			decomposer.checkArity(seqi, 1);
 			xs1.add(seqi.get(0).mul(seqi.get(1)));
 		}
 		List<Expression> xs = new ArrayList<Expression>();
@@ -81,11 +81,11 @@ public class GlobalConstraints {
 		return x;
 	}
 	
-	protected static Expression convertCumulative(Converter converter, Sequence seq)
+	protected static Expression decomposeCumulative(Decomposer decomposer, Sequence seq)
 	throws SugarException {
-		converter.checkArity(seq, 2);
+		decomposer.checkArity(seq, 2);
 		if (! seq.get(1).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Sequence seq1 = (Sequence)seq.get(1);
 		Expression x2 = seq.get(2);
@@ -98,7 +98,7 @@ public class GlobalConstraints {
 		int ub = Integer.MIN_VALUE;
 		for (int i = 0; i < n; i++) {
 			if (! seq1.get(i).isSequence(3)) {
-				converter.syntaxError(seq);
+				decomposer.syntaxError(seq);
 			}
 			Sequence task = (Sequence)seq1.get(i);
 			Expression origin = task.get(0);
@@ -118,8 +118,8 @@ public class GlobalConstraints {
 				t0[i] = origin;
 				t1[i] = end;
 			}
-			IntegerDomain d1 = converter.convertFormula(t0[i]).getDomain();
-			IntegerDomain d2 = converter.convertFormula(t1[i]).getDomain();
+			IntegerDomain d1 = decomposer.decomposeFormula(t0[i]).getDomain();
+			IntegerDomain d2 = decomposer.decomposeFormula(t1[i]).getDomain();
 			lb = Math.min(lb, d1.getLowerBound());
 			ub = Math.max(ub, d2.getUpperBound() - 1);
 		}
@@ -142,11 +142,11 @@ public class GlobalConstraints {
 		return x;
 	}
 	
-	protected static Expression convertElement(Converter converter, Sequence seq)
+	protected static Expression decomposeElement(Decomposer decomposer, Sequence seq)
 	throws SugarException {
-		converter.checkArity(seq, 3);
+		decomposer.checkArity(seq, 3);
 		if (! seq.get(2).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Expression x1 = seq.get(1);
 		Sequence seq2 = (Sequence)seq.get(2);
@@ -163,13 +163,13 @@ public class GlobalConstraints {
 		return x;
 	}
 	
-	protected static Expression convertDisjunctive(Converter converter, Sequence seq)
+	protected static Expression decomposeDisjunctive(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		// (disjuctive ((o1 d1) (o2 d2) ...))
 		// --> di=0 || dj=0 || (oi+di<=oj) || (oj+dj<=oi)  (for all i<j)
-		converter.checkArity(seq, 1);
+		decomposer.checkArity(seq, 1);
 		if (! seq.get(1).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Sequence seq1 = (Sequence)seq.get(1);
 		int n = seq1.length();
@@ -177,7 +177,7 @@ public class GlobalConstraints {
 		xs.add(Expression.AND);
 		for (int i = 0; i < n; i++) {
 			if (! seq1.get(i).isSequence(1)) {
-				converter.syntaxError(seq);
+				decomposer.syntaxError(seq);
 			}
 			Sequence task1 = (Sequence)seq1.get(i);
 			Expression origin1 = task1.get(0);
@@ -195,19 +195,19 @@ public class GlobalConstraints {
 		return x;
 	}
 
-	protected static Expression convertLex_less(Converter converter, Sequence seq)
+	protected static Expression decomposeLex_less(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		// (lex_less (x1 x2 x3) (y1 y2 y3))
 		// --> (x1<=y1 && (x1==y1 -> (x2<=y2 && (x2==y2 -> x3<y3))))
-		converter.checkArity(seq, 2);
+		decomposer.checkArity(seq, 2);
 		if (! seq.get(1).isSequence() || ! seq.get(2).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Sequence seq1 = (Sequence)seq.get(1);
 		Sequence seq2 = (Sequence)seq.get(2);
 		int n = seq1.length(); 
 		if (n == 0 || n != seq2.length()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Expression x = seq1.get(n - 1).lt(seq2.get(n - 1)); 
 		for (int i = n - 2; i >= 0; i--) {
@@ -218,19 +218,19 @@ public class GlobalConstraints {
 		return x;
 	}
 
-	protected static Expression convertLex_lesseq(Converter converter, Sequence seq)
+	protected static Expression decomposeLex_lesseq(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		// (lex_lesseq (x1 x2 x3) (y1 y2 y3))
 		// --> (x1<=y1 && (x1==y1 -> (x2<=y2 && (x2==y2 -> x3<=y3))))
-		converter.checkArity(seq, 2);
+		decomposer.checkArity(seq, 2);
 		if (! seq.get(1).isSequence() || ! seq.get(2).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Sequence seq1 = (Sequence)seq.get(1);
 		Sequence seq2 = (Sequence)seq.get(2);
 		int n = seq1.length(); 
 		if (n == 0 || n != seq2.length()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Expression x = seq1.get(n - 1).le(seq2.get(n - 1)); 
 		for (int i = n - 2; i >= 0; i--) {
@@ -241,13 +241,13 @@ public class GlobalConstraints {
 		return x;
 	}
 
-	protected static Expression convertNvalue(Converter converter, Sequence seq)
+	protected static Expression decomposeNvalue(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		// (nvalue s (x1 x2 x3))
 		// --> s>=1 && s<=3 && s==if(x1==x2||x1==x3,0,1)+if(x2==x3,0,1)+1
-		converter.checkArity(seq, 2);
+		decomposer.checkArity(seq, 2);
 		if (! seq.get(2).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Expression x1 = seq.get(1);
 		Sequence seq2 = (Sequence)seq.get(2);
@@ -276,12 +276,12 @@ public class GlobalConstraints {
 		return x;
 	}
 
-	protected static Expression convertCount(Converter converter, Sequence seq)
+	protected static Expression decomposeCount(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		// (count val (x1 x2 ... xn) op c)
 		// --> c>=0 && c<=n && c==if(x1 op val,1,0)+...+if(xn op val,1,0)
 		// --> if(x1==val,1,0)+...+if(xn==val,1,0) op c
-		converter.checkArity(seq, 4);
+		decomposer.checkArity(seq, 4);
 		Expression val = seq.get(1);
 		Sequence seq2 = (Sequence)seq.get(2);
 		Expression op = seq.get(3);
@@ -296,13 +296,13 @@ public class GlobalConstraints {
 		return x;
 	}
 
-	protected static Expression convertGlobal_cardinality(Converter converter, Sequence seq)
+	protected static Expression decomposeGlobal_cardinality(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		// (global_cardinality (x1 x2 x3) ((1 c1) (2 c2)))
 		// --> (count 1 (x1 x2 x3) eq c1) && (count 2 (x1 x2 x3) eq c2) && c1+c2<=3
-		converter.checkArity(seq, 2);
+		decomposer.checkArity(seq, 2);
 		if (! seq.get(1).isSequence() || ! seq.get(2).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Sequence vars = (Sequence)seq.get(1);
 		Sequence counts = (Sequence)seq.get(2);
@@ -312,7 +312,7 @@ public class GlobalConstraints {
 		sum.add(Expression.ADD);
 		for (int i = 0; i < counts.length(); i++) {
 			if (! counts.get(i).isSequence(1)) {
-				converter.syntaxError(seq);
+				decomposer.syntaxError(seq);
 			}
 			Sequence s = (Sequence)counts.get(i);
 			Expression val = s.get(0);
@@ -325,14 +325,14 @@ public class GlobalConstraints {
 		return x;
 	}
 
-	protected static Expression convertGlobal_cardinality_with_costs(Converter converter, Sequence seq)
+	protected static Expression decomposeGlobal_cardinality_with_costs(Decomposer decomposer, Sequence seq)
 	throws SugarException {
 		// (global_cardinality_with_costs (x1 x2) ((v1 c1) (v2 c2)) ((a1 b1 w1) ...) cost)
 		// --> (global_cardinality (x1 x2 x3) ((v1 c1) (v2 c2)))
 		//  && cost==if(x[a1]==v[b1],w1,0)+...
-		converter.checkArity(seq, 4);
+		decomposer.checkArity(seq, 4);
 		if (! seq.get(1).isSequence() || ! seq.get(2).isSequence() || ! seq.get(3).isSequence()) {
-			converter.syntaxError(seq);
+			decomposer.syntaxError(seq);
 		}
 		Sequence vars = (Sequence)seq.get(1);
 		Sequence counts = (Sequence)seq.get(2);
@@ -343,17 +343,17 @@ public class GlobalConstraints {
 		sum.add(Expression.ADD);
 		for (int i = 0; i < weights.length(); i++) {
 			if (! weights.get(i).isSequence(2)) {
-				converter.syntaxError(seq);
+				decomposer.syntaxError(seq);
 			}
 			Sequence ws = (Sequence)weights.get(i);
 			if (! ws.get(0).isInteger() || ! ws.get(1).isInteger()) {
-				converter.syntaxError(seq);
+				decomposer.syntaxError(seq);
 			}
 			int a = ws.get(0).integerValue();
 			int b = ws.get(1).integerValue();
 			Expression w = ws.get(2);
 			if (a < 1 || a > vars.length() || b < 1 || b > counts.length()) {
-				converter.syntaxError(seq);
+				decomposer.syntaxError(seq);
 			}
 			Expression var = vars.get(a - 1);
 			Expression val = ((Sequence)counts.get(b - 1)).get(0);
