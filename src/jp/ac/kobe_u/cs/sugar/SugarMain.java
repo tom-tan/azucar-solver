@@ -13,6 +13,7 @@ import java.util.TreeSet;
 import java.util.zip.GZIPInputStream;
 
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
+import jp.ac.kobe_u.cs.sugar.converter.Decomposer;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
@@ -97,6 +98,10 @@ public class SugarMain {
 		if (maxCSP) {
 			expressions = toMaxCSP(expressions);
 		}
+		Logger.fine("Decomposing");
+		Decomposer decomposer = new Decomposer();
+		expressions = decomposer.decompose(expressions);
+		
 		Logger.fine("Converting to clausal form CSP");
 		CSP csp = new CSP();
 		Converter converter = new Converter(csp);

@@ -32,8 +32,12 @@ public class Decomposer {
 	public static boolean OPT_PIGEON = true;
 	public static boolean INCREMENTAL_PROPAGATE = true;
 	public static boolean ESTIMATE_SATSIZE = false; // bad
-    public static boolean NEW_VARIABLE = true;
-    public static int SPLITS = 2;
+	public static boolean NEW_VARIABLE = true;
+	public static int SPLITS = 2;
+	private final String IAUX_PREFIX = "$ID";
+	private int iidx = 0;
+	private final String BAUX_PREFIX = "$BD";
+	private int bidx = 0;
 	
 	private class EquivMap extends LinkedHashMap<Expression,Atom> {
 
@@ -248,9 +252,7 @@ public class Decomposer {
 
 	private Atom newIntegerVariable(IntegerDomain d, Expression x)
 	throws SugarException {
-    final String AUX_PREFIX = "$Idec";
-    /*static*/ int idx = 0;
-    String name = AUX_PREFIX + Integer.toString(idx++);
+    String name = IAUX_PREFIX + Integer.toString(iidx++);
     Atom v = (Atom)Expression.create(name);
     Expression exp = Expression.create(Expression.INT_DEFINITION,
                                        v, d.toExpression());
@@ -273,9 +275,7 @@ public class Decomposer {
 
 	private Atom newBooleanVariable()
     throws SugarException {
-    final String AUX_PREFIX = "$Bdec";
-    /*static*/ int idx = 0;
-    String name = AUX_PREFIX + Integer.toString(idx++);
+    String name = BAUX_PREFIX + Integer.toString(bidx++);
     Atom v = (Atom)Expression.create(name);
     Expression exp = Expression.create(Expression.BOOL_DEFINITION, v);
 		decomposed.add(exp);

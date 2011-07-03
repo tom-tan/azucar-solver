@@ -7,6 +7,7 @@ import java.util.Set;
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.expression.*;
 
 /**
  * This class implements a comparison literal of CSP.
@@ -17,19 +18,35 @@ import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
  */
 public class LinearLiteral extends Literal {
 	private LinearSum linearSum;
+	private Operator op;
 
 	/**
 	 * Constructs a new comparison literal of given linear expression.
 	 * @param linearSum the linear expression
 	 */
-	public LinearLiteral(LinearSum linearSum) {
+	public LinearLiteral(LinearSum linearSum, Atom op) {
+		assert(op.equals(Expression.LE)
+					 || op.equals(Expression.EQ)
+					 || op.equals(Expression.NE));
 		int factor = linearSum.factor();
 		if (factor > 1) {
 			linearSum.divide(factor);
 		}
 		this.linearSum = linearSum;
+		if (op.equals(Expression.LE))      this.op = Operator.LE;
+		else if (op.equals(Expression.EQ)) this.op = Operator.EQ;
+		else                               this.op = Operator.NE;
 	}
-	
+
+	public LinearLiteral(LinearSum linearSum, Operator op) {
+		int factor = linearSum.factor();
+		if (factor > 1) {
+			linearSum.divide(factor);
+		}
+		this.linearSum = linearSum;
+		this.op = op;
+	}
+
 	@Override
 	public Set<IntegerVariable> getVariables() {
 		return linearSum.getVariables();
@@ -81,15 +98,34 @@ public class LinearLiteral extends Literal {
 	public LinearSum getLinearExpression() {
 		return linearSum;
 	}
+
+	public Operator getOperator() {
+		return op;
+	}
 	
 	@Override
 	public boolean isValid() throws SugarException {
-		return linearSum.getDomain().getUpperBound() <= 0;
+		switch(op) {
+		case LE: return linearSum.getDomain().getUpperBound() <= 0;
+		case EQ: return false;
+		case NE: return false;
+		default: throw new SugarException("!!!");
+		}
 	}
 	
 	@Override
 	public boolean isUnsatisfiable() throws SugarException {
-		return linearSum.getDomain().getLowerBound() > 0;
+		switch(op) {
+		case LE:
+			return linearSum.getDomain().getLowerBound() > 0;
+		case EQ:
+			return linearSum.getDomain().getLowerBound() > 0
+				|| 0 > linearSum.getDomain().getUpperBound();
+		case NE:
+			return linearSum.getDomain().size() == 1
+				&& linearSum.getDomain().contains(0);
+		default: throw new SugarException("!!!");
+		}
 	}
 	
 	@Override
@@ -110,6 +146,7 @@ public class LinearLiteral extends Literal {
 			}
 		*/
 		}
+		if (op == Operator.EQ || op == Operator.NE) return 0; // TODO
 		int removed = 0;
 		for (IntegerVariable v : linearSum.getCoef().keySet()) {
 			IntegerDomain d = linearSum.getDomainExcept(v);
@@ -160,6 +197,9 @@ public class LinearLiteral extends Literal {
 		if (! isSimple()) {
 			throw new SugarException("Internal error " + toString()); 
 		}
+		if (op == Operator.EQ || op == Operator.NE) {
+			throw new SugarException("Internal error " + toString()); 
+		}
 		int b = linearSum.getB(); 
 		int code;
 		if (linearSum.size() == 0) {
@@ -180,7 +220,10 @@ public class LinearLiteral extends Literal {
 	 * 
 	 */
 	private void encode(Encoder encoder, IntegerVariable[] vs, int i, int s, int[] clause)
-	throws IOException {
+		throws IOException, SugarException {
+		if (op == Operator.EQ || op == Operator.NE) {
+			throw new SugarException("Internal error " + toString()); 
+		}
 		if (i >= vs.length - 1) {
 			int a = linearSum.getA(vs[i]);
 			// encoder.writeComment(a + "*" + vs[i].getName() + " <= " + (-s));
@@ -244,6 +287,9 @@ public class LinearLiteral extends Literal {
 	
 	@Override
 	public void encode(Encoder encoder, int[] clause) throws SugarException, IOException {
+		if (op == Operator.EQ || op == Operator.NE) {
+			throw new SugarException("Internal error " + toString()); 
+		}
 		if (isValid()) {
 		} if (isSimple()) {
 			clause = expand(clause, 1);
@@ -262,16 +308,23 @@ public class LinearLiteral extends Literal {
 	 */
 	@Override
 	public boolean isSatisfied() {
-		return linearSum.getValue() <= 0;
+		switch(op) {
+		case LE: return linearSum.getValue() <= 0;
+		case EQ: return linearSum.getValue() == 0;
+		case NE: return linearSum.getValue() != 0;
+			//default: throw new SugarException("!!!!");
+		}
+		assert(false);
+		return false;
 	}
-	
+
 	/**
 	 * Returns the string representation of the comparison literal.
 	 * @return the string representation
 	 */
 	@Override
 	public String toString() {
-		return "(le " + linearSum.toString() + " 0)";
+		return "(" + op +" " + linearSum.toString() + " 0)";
 	}
 
 }

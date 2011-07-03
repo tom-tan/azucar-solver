@@ -3,6 +3,8 @@ package jp.ac.kobe_u.cs.sugar.csp;
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.List;
+import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
@@ -483,7 +485,29 @@ public class IntegerDomain {
 	}
 
 	public Expression toExpression() {
-		return null;
+		if (domain == null) {
+			return Expression.create(Expression.create(Expression.create(lb),
+																								 Expression.create(ub)));
+		}
+		List<Expression> doms = new ArrayList<Expression>();
+		int value0 = Integer.MIN_VALUE;
+		int value1 = Integer.MIN_VALUE;
+		for (int value : domain) {
+			if (value0 == Integer.MIN_VALUE) {
+				value0 = value1 = value;
+			} else if (value1 + 1 == value) {
+				value1 = value;
+			} else {
+				if (value0 == value1) {
+					doms.add(Expression.create(value0));
+				} else {
+					doms.add(Expression.create(Expression.create(value0),
+																		 Expression.create(value1)));
+				}
+				value0 = value1 = value;
+			}
+		}
+		return Expression.create(doms);
 	}
 
 	public void appendValues(StringBuilder sb) {

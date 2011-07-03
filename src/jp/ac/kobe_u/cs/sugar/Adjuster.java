@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
+import jp.ac.kobe_u.cs.sugar.csp.Operator;
 import jp.ac.kobe_u.cs.sugar.csp.Literal;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
@@ -51,6 +52,8 @@ class Adjuster{
 	}
 	
 	public static CSP adjust(CSP csp)throws SugarException{
+		final String AUX_PREFIX = "$BA";
+		int idx = 0;
     Logger.fine("Adjust the lower bound of integer variables to 0");
     for(IntegerVariable v: csp.getIntegerVariables()) {
       IntegerDomain d = v.getDomain();
@@ -62,15 +65,17 @@ class Adjuster{
         while(iter.hasNext()) {
           int i = iter.next();
           if(lst+1 != i) {
-            // prefix 設定する必要あり!
-            BooleanVariable b = new BooleanVariable();
-            Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, lst)));
+						String name = AUX_PREFIX + Integer.toString(idx++);
+            BooleanVariable b = new BooleanVariable(name);
+            Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, lst),
+																										 Operator.LE));
             c1.add(new BooleanLiteral(b, true));
             c1.setComment("; "+ v.getName() + " <= " + Integer.toString(lst)
                           + " || "
                           + v.getName() + " >= " + Integer.toString(i));
             csp.add(c1);
-            Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, -i)));
+            Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, -i),
+																										 Operator.LE));
             c2.add(new BooleanLiteral(b, false));
             csp.add(c2);
           }
@@ -95,7 +100,7 @@ class Adjuster{
               Integer> es : ls.getCoef().entrySet()) {
           ls.setB(ls.getB()+es.getKey().getOffset()*es.getValue());
         }
-        newCls = new Clause(new LinearLiteral(ls));
+        newCls = new Clause(new LinearLiteral(ls, pair.first().getOperator()));
         newCls.addAll(pair.second());
       }
       assert(newCls != null);

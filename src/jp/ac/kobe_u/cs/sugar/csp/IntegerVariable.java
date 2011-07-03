@@ -159,29 +159,29 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		return domain.contains(value);
 	}
 
-	public void compact(CSP csp) throws SugarException {
-		if (! domain.isContiguous() || domain.size() <= Encoder.BASE) {
-			return;
-		}
-		vs = new IntegerVariable[2];
-		offset = domain.getLowerBound();
-		int max = domain.getUpperBound() - offset;
-		int ub0 = Encoder.BASE - 1;
-		int ub1 = max / Encoder.BASE;
-		vs[0] = new IntegerVariable(new IntegerDomain(0, ub0));
-		csp.add(vs[0]);
-		vs[1] = new IntegerVariable(new IntegerDomain(0, ub1));
-		csp.add(vs[1]);
-		int c = max % Encoder.BASE;
-		if (c != Encoder.BASE - 1) {
-			Clause clause = new Clause();
-			clause.add(new LinearLiteral(
-					new LinearSum(1, vs[1], -ub1+1)));
-			clause.add(new LinearLiteral(
-					new LinearSum(1, vs[0], -c)));
-			csp.add(clause);
-		}
-	}
+	// public void compact(CSP csp) throws SugarException {
+	// 	if (! domain.isContiguous() || domain.size() <= Encoder.BASE) {
+	// 		return;
+	// 	}
+	// 	vs = new IntegerVariable[2];
+	// 	offset = domain.getLowerBound();
+	// 	int max = domain.getUpperBound() - offset;
+	// 	int ub0 = Encoder.BASE - 1;
+	// 	int ub1 = max / Encoder.BASE;
+	// 	vs[0] = new IntegerVariable(new IntegerDomain(0, ub0));
+	// 	csp.add(vs[0]);
+	// 	vs[1] = new IntegerVariable(new IntegerDomain(0, ub1));
+	// 	csp.add(vs[1]);
+	// 	int c = max % Encoder.BASE;
+	// 	if (c != Encoder.BASE - 1) {
+	// 		Clause clause = new Clause();
+	// 		clause.add(new LinearLiteral(
+	// 				new LinearSum(1, vs[1], -ub1+1)));
+	// 		clause.add(new LinearLiteral(
+	// 				new LinearSum(1, vs[0], -c)));
+	// 		csp.add(clause);
+	// 	}
+	// }
 	
 	public int getSatVariablesSize() {
 		if (vs != null)
