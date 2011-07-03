@@ -34,9 +34,9 @@ public class Decomposer {
 	public static boolean ESTIMATE_SATSIZE = false; // bad
 	public static boolean NEW_VARIABLE = true;
 	public static int SPLITS = 2;
-	private final String IAUX_PREFIX = "$ID";
+	private final String IAUX_PREFIX = "_$ID";
 	private int iidx = 0;
-	private final String BAUX_PREFIX = "$BD";
+	private final String BAUX_PREFIX = "_$BD";
 	private int bidx = 0;
 	
 	private class EquivMap extends LinkedHashMap<Expression,Atom> {
@@ -252,13 +252,14 @@ public class Decomposer {
 
 	private Atom newIntegerVariable(IntegerDomain d, Expression x)
 	throws SugarException {
-    String name = IAUX_PREFIX + Integer.toString(iidx++);
-    Atom v = (Atom)Expression.create(name);
-    Expression exp = Expression.create(Expression.INT_DEFINITION,
-                                       v, d.toExpression());
+		String name = IAUX_PREFIX + Integer.toString(iidx++);
+		Atom v = (Atom)Expression.create(name);
+		Expression exp = Expression.create(Expression.INT_DEFINITION,
+																			 v, d.toExpression());
 		exp.setComment(name + " : " + x.toString());
 		decomposed.add(exp);
-    expDomainMap.put(name, d);
+		expDomainMap.put(name, d);
+		intMap.put(name, v);
 		return v;
 	}
 	
@@ -274,27 +275,15 @@ public class Decomposer {
 	}
 
 	private Atom newBooleanVariable()
-    throws SugarException {
-    String name = BAUX_PREFIX + Integer.toString(bidx++);
-    Atom v = (Atom)Expression.create(name);
-    Expression exp = Expression.create(Expression.BOOL_DEFINITION, v);
+		throws SugarException {
+		String name = BAUX_PREFIX + Integer.toString(bidx++);
+		Atom v = (Atom)Expression.create(name);
+		Expression exp = Expression.create(Expression.BOOL_DEFINITION, v);
 		decomposed.add(exp);
+		boolMap.put(name, v);
 		return v;
 	}
 
-	// private LinearSum decomposeInteger(Atom x) throws SugarException {
-	// 	return new LinearSum(x.integerValue());
-	// }
-	
-	// private LinearSum decomposeString(Atom x) throws SugarException {
-	// 	String s = x.stringValue();
-	// 	if (csp.getIntegerVariable(s) == null) {
-	// 		syntaxError(x);
-	// 	}
-	// 	IntegerVariable v = csp.getIntegerVariable(s);
-	// 	return new LinearSum(v);
-	// }
-	
 	private LinearExpression decomposeADD(Sequence seq) throws SugarException {
 		LinearExpression e = new LinearExpression(0);
 		for (int i = 1; i < seq.length(); i++) {

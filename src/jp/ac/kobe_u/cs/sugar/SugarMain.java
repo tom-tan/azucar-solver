@@ -122,26 +122,30 @@ public class SugarMain {
 			Logger.println("s UNSATISFIABLE");
 		} else {
 			Logger.fine("Simplifing CSP by introducing new Boolean variables");
-			csp.simplify();
+			Simplifier simp = new Simplifier(csp);
+			simp.simplify();
+			//csp.simplify();
 			Logger.info("CSP : " + csp.summary());
 			if (debug > 0) {
 				csp.output(System.out, "c ");
 			}
 			Logger.status();
 
-			if (Encoder.OPT_COMPACT) {
-				Logger.fine("Compacting CSP");
-				csp.compact();
-				Logger.info("CSP : " + csp.summary());
-				if (debug > 0) {
-					csp.output(System.out, "c ");
-				}
-				Logger.status();
-			}
+			// if (Encoder.OPT_COMPACT) {
+			// 	Logger.fine("Compacting CSP");
+			// 	csp.compact();
+			// 	Logger.info("CSP : " + csp.summary());
+			// 	if (debug > 0) {
+			// 		csp.output(System.out, "c ");
+			// 	}
+			// 	Logger.status();
+			// }
 
 			parser = null;
 			converter = null;
 			expressions = null;
+			decomposer = null;
+			simp = null;
 			Expression.clear();
 			Runtime.getRuntime().gc();
 

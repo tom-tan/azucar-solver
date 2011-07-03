@@ -16,7 +16,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class CSP {
-	public static boolean simplifyAll = true;
+	// public static boolean simplifyAll = true;
 	
 	private List<IntegerVariable> integerVariables;
 
@@ -215,70 +215,70 @@ public class CSP {
 		return removedValues + removedLiterals + removedClauses;
 	}
 	
-	private List<Clause> simplify(Clause clause) throws SugarException {
-		List<Literal> literals = clause.getLiterals();
-		List<Clause> newClauses = new ArrayList<Clause>();
-		clause = new Clause();
-		int complex = 0;
-		for (Literal literal : literals) {
-			if (literal.isSimple()) {
-				clause.add(literal);
-			} else {
-				complex++;
-				if (! simplifyAll && complex == 1) {
-					clause.add(literal);
-				} else {
-					BooleanVariable p = new BooleanVariable();
-					add(p);
-					Literal posLiteral = new BooleanLiteral(p, false);
-					Literal negLiteral = new BooleanLiteral(p, true);
-					Clause newClause = new Clause();
-					newClause.add(negLiteral);
-					newClause.add(literal);
-					newClauses.add(newClause);
-					clause.add(posLiteral);
-				}
-			}
-		}
-		newClauses.add(clause);
-		return newClauses;
-	}
+	// private List<Clause> simplify(Clause clause) throws SugarException {
+	// 	List<Literal> literals = clause.getLiterals();
+	// 	List<Clause> newClauses = new ArrayList<Clause>();
+	// 	clause = new Clause();
+	// 	int complex = 0;
+	// 	for (Literal literal : literals) {
+	// 		if (literal.isSimple()) {
+	// 			clause.add(literal);
+	// 		} else {
+	// 			complex++;
+	// 			if (! simplifyAll && complex == 1) {
+	// 				clause.add(literal);
+	// 			} else {
+	// 				BooleanVariable p = new BooleanVariable();
+	// 				add(p);
+	// 				Literal posLiteral = new BooleanLiteral(p, false);
+	// 				Literal negLiteral = new BooleanLiteral(p, true);
+	// 				Clause newClause = new Clause();
+	// 				newClause.add(negLiteral);
+	// 				newClause.add(literal);
+	// 				newClauses.add(newClause);
+	// 				clause.add(posLiteral);
+	// 			}
+	// 		}
+	// 	}
+	// 	newClauses.add(clause);
+	// 	return newClauses;
+	// }
 	
-	public void simplify() throws SugarException {
-		List<Clause> newClauses = new ArrayList<Clause>();
-		for (Clause clause : clauses) {
-			if (clause.isSimple()) {
-				newClauses.add(clause);
-			} else {
-				newClauses.addAll(simplify(clause));
-			}
-		}
-		clauses = newClauses;
-	}
+	// public void simplify() throws SugarException {
+	// 	List<Clause> newClauses = new ArrayList<Clause>();
+	// 	for (Clause clause : clauses) {
+	// 		if (clause.isSimple()) {
+	// 			newClauses.add(clause);
+	// 		} else {
+	// 			newClauses.addAll(simplify(clause));
+	// 		}
+	// 	}
+	// 	clauses = newClauses;
+	// }
 
-	public void compact() throws SugarException {
-		throw new SugarException("Unimplemented method compact()");
-    // int m, base;
-    // this.to3CSP();
-    // this.toRCSP();
-    // this.toCCSP(m, base);
-		/*
-		int n = integerVariables.size();
-		for (int i = 0; i < n; i++) {
-			IntegerVariable v = integerVariables.get(i);
-			v.compact(this);
-		}
-		List<Clause> newClauses = new ArrayList<Clause>();
-		for (Clause clause : clauses) {
-			if (clause.isCompact()) {
-				newClauses.add(clause);
-			} else {
-				newClauses.addAll(compact(clause));
-			}
-		}
-		clauses = newClauses;
-		*/
-	}
+	// public void compact() throws SugarException {
+	// 	throw new SugarException("Unimplemented method compact()");
+  //   int m, base;
+  //   this.to3CSP();
+  //   this.toRCSP();
+  //   this.toCCSP(m, base);
+
+	// 	int n = integerVariables.size();
+	// 	for (int i = 0; i < n; i++) {
+	// 		IntegerVariable v = integerVariables.get(i);
+	// 		v.compact(this);
+	// 	}
+	// 	List<Clause> newClauses = new ArrayList<Clause>();
+	// 	for (Clause clause : clauses) {
+	// 		if (clause.isCompact()) {
+	// 			newClauses.add(clause);
+	// 		} else {
+	// 			newClauses.addAll(compact(clause));
+	// 		}
+	// 	}
+	// 	clauses = newClauses;
+
+	// }
 
   public void to3CSP() throws SugarException {
     

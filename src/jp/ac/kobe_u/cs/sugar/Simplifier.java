@@ -14,9 +14,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.List;
+import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
+import jp.ac.kobe_u.cs.sugar.converter.Decomposer;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
+import jp.ac.kobe_u.cs.sugar.csp.Clause;
+import jp.ac.kobe_u.cs.sugar.csp.Literal;
+import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
@@ -24,6 +29,14 @@ import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
 class Simplifier{
+	public static boolean simplifyAll = true;
+	private static final String BAUX = "_$BS";
+	private int bidx = 0;
+	private CSP csp;
+
+	public Simplifier(CSP csp) {
+		this.csp = csp;
+	}
 	
 	private static CSP readCSP(String cspFileName)
 		throws SugarException, IOException {
@@ -34,6 +47,8 @@ class Simplifier{
 		List<Expression> expressions = parser.parse();
 		Logger.info("parsed " + expressions.size() + " expressions");
 		Logger.status();
+		Decomposer dec = new Decomposer();
+		expressions = dec.decompose(expressions);
 		Logger.fine("Converting to clausal form CSP");
 		CSP csp = new CSP();
 		Converter converter = new Converter(csp);
@@ -41,16 +56,49 @@ class Simplifier{
 		Logger.fine("CSP : " + csp.summary());
 		return csp;
 	}
-	
-	public static CSP simplify(CSP csp)throws SugarException{
-    final String pre = "simp";
-    IntegerVariable.setPrefix(pre);
-    BooleanVariable.setPrefix(pre);
-    Logger.fine("Simplifing CSP by introducing new Boolean variables");
-    csp.simplify();
-    Logger.info("CSP : " + csp.summary());
-		return csp;
+
+		private List<Clause> simplify(Clause clause) throws SugarException {
+		List<Literal> literals = clause.getLiterals();
+		List<Clause> newClauses = new ArrayList<Clause>();
+		clause = new Clause();
+		int complex = 0;
+		for (Literal literal : literals) {
+			if (literal.isSimple()) {
+				clause.add(literal);
+			} else {
+				complex++;
+				if (! simplifyAll && complex == 1) {
+					clause.add(literal);
+				} else {
+					String name = BAUX + Integer.toString(bidx++);
+					BooleanVariable p = new BooleanVariable(name);
+					csp.add(p);
+					Literal posLiteral = new BooleanLiteral(p, false);
+					Literal negLiteral = new BooleanLiteral(p, true);
+					Clause newClause = new Clause();
+					newClause.add(negLiteral);
+					newClause.add(literal);
+					newClauses.add(newClause);
+					clause.add(posLiteral);
+				}
+			}
+		}
+		newClauses.add(clause);
+		return newClauses;
 	}
+	
+	public void simplify() throws SugarException {
+		List<Clause> newClauses = new ArrayList<Clause>();
+		for (Clause clause : csp.getClauses()) {
+			if (clause.isSimple()) {
+				newClauses.add(clause);
+			} else {
+				newClauses.addAll(simplify(clause));
+			}
+		}
+		csp.setClauses(newClauses);
+	}
+
 	
 	public static void main(String[] args)
 		throws SugarException, IOException {
@@ -70,16 +118,18 @@ class Simplifier{
 		}
 		String cspFileName = args[i];
 		String outFileName = args[i+1];
-
 		CSP csp = readCSP(cspFileName);
-		csp = simplify(csp);
+		Simplifier simp = new Simplifier(csp);
+		Logger.fine("Simplifing CSP by introducing new Boolean variables");
+		simp.simplify();
+		Logger.info("CSP : " + csp.summary());
 		File file = new File(outFileName);
 		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
-    if (csp.isUnsatisfiable()) {
-      pw.println("(or)");
-    }else{
-      pw.println(csp);
-    }
-    pw.close();
+		if (csp.isUnsatisfiable()) {
+			pw.println("(or)");
+		}else{
+			pw.println(csp);
+		}
+		pw.close();
 	}
 }

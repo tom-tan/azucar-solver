@@ -54,66 +54,14 @@ public class Converter {
 	private Map<String,IntegerDomain> domainMap;
 	private Map<String,IntegerVariable> intMap;
 	private Map<String,BooleanVariable> boolMap;
-	// private Map<String,Predicate> predicateMap;
-	// private Map<String,Relation> relationMap;
-	// private Map<Expression,IntegerVariable> equivMap;
-	// private List<Expression> extra;
 	
 	public Converter(CSP csp) {
 		this.csp = csp;
 		domainMap = new HashMap<String,IntegerDomain>();
 		intMap = new HashMap<String,IntegerVariable>();
 		boolMap = new HashMap<String,BooleanVariable>();
-		// predicateMap = new HashMap<String,Predicate>();
-		// relationMap = new HashMap<String,Relation>();
-		// equivMap = new EquivMap();
-		// extra = new ArrayList<Expression>();
 	}
 	
-	// private void convertDomainDefinition(Sequence seq) throws SugarException {
-	// 	String name = null;
-	// 	IntegerDomain domain = null;
-	// 	if (seq.matches("WWII")) {
-	// 		name = seq.get(1).stringValue();
-	// 		int lb = seq.get(2).integerValue();
-	// 		int ub = seq.get(3).integerValue();
-	// 		domain = new IntegerDomain(lb, ub);
-	// 	} else if (seq.matches("WWI")) {
-	// 		name = seq.get(1).stringValue();
-	// 		int lb = seq.get(2).integerValue();
-	// 		domain = new IntegerDomain(lb, lb);
-	// 	} else if (seq.matches("WWS")) {
-	// 		name = seq.get(1).stringValue();
-	// 		SortedSet<Integer> d = new TreeSet<Integer>(); 
-	// 		Sequence x = (Sequence)seq.get(2);
-	// 		for (int i = 0; i < x.length(); i++) {
-	// 			if (x.get(i).isInteger()) {
-	// 				d.add(x.get(i).integerValue());
-	// 			} else 	if (x.get(i).isSequence()) {
-	// 				Sequence seq1 = (Sequence)x.get(i);
-	// 				if (seq1.matches("II")) {
-	// 					int value0 = ((Sequence)x.get(i)).get(0).integerValue();
-	// 					int value1 = ((Sequence)x.get(i)).get(1).integerValue();
-	// 					for (int value = value0; value <= value1; value++) {
-	// 						d.add(value);
-	// 					}
-	// 				} else {
-	// 					throw new SugarException("Bad definition " + seq);
-	// 				}
-	// 			} else {
-	// 				throw new SugarException("Bad definition " + seq);
-	// 			}
-	// 		}
-	// 		domain = new IntegerDomain(d);
-	// 	} else {
-	// 		throw new SugarException("Bad definition " + seq);
-	// 	}
-	// 	if (domainMap.containsKey(name)) {
-	// 		throw new SugarException("Duplicated definition " + seq);
-	// 	}
-	// 	domainMap.put(name, domain);
-	// }
-
 	private void convertIntDefinition(Sequence seq) throws SugarException {
 		String name = null;
 		IntegerDomain domain = null;

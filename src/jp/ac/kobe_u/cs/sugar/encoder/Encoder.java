@@ -253,27 +253,27 @@ public class Encoder {
 //		satFileSize = (new File(satFileName)).length();
 	}
 
-	public void modifySat(String satFileName, int[][] clauses) throws IOException {
-		RandomAccessFile satFile1 = new RandomAccessFile(satFileName, "rw");
-		satFile1.seek(satFileSize);
-		for (int[] clause : clauses) {
-			for (int code : clause) {
-				satFile1.write(Integer.toString(code).getBytes());
-				satFile1.write(' ');
-			}
-			satFile1.write('0');
-			satFile1.write('\n');
-		}
-		satFile1.seek(0);
-		int n = clauses.length;
-		satFile1.write(getHeader(satVariablesCount, satClausesCount+n).getBytes());
-		satFile1.close();
-	}
+	// public void modifySat(String satFileName, int[][] clauses) throws IOException {
+	// 	RandomAccessFile satFile1 = new RandomAccessFile(satFileName, "rw");
+	// 	satFile1.seek(satFileSize);
+	// 	for (int[] clause : clauses) {
+	// 		for (int code : clause) {
+	// 			satFile1.write(Integer.toString(code).getBytes());
+	// 			satFile1.write(' ');
+	// 		}
+	// 		satFile1.write('0');
+	// 		satFile1.write('\n');
+	// 	}
+	// 	satFile1.seek(0);
+	// 	int n = clauses.length;
+	// 	satFile1.write(getHeader(satVariablesCount, satClausesCount+n).getBytes());
+	// 	satFile1.close();
+	// }
 	
-	public void modifySat(String satFileName, int[] clause) throws IOException {
-		int[][] clauses = { clause };
-		modifySat(satFileName, clauses);
-	}
+	// public void modifySat(String satFileName, int[] clause) throws IOException {
+	// 	int[][] clauses = { clause };
+	// 	modifySat(satFileName, clauses);
+	// }
 
 	public void outputMap(String mapFileName) throws SugarException, IOException {
 		BufferedWriter mapWriter = new BufferedWriter(
