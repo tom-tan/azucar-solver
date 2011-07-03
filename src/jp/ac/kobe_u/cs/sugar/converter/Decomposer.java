@@ -1,5 +1,14 @@
 package jp.ac.kobe_u.cs.sugar.converter;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.FileInputStream;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,7 +35,7 @@ public class Decomposer {
     public static boolean NEW_VARIABLE = true;
     public static int SPLITS = 2;
 	
-	private class EquivMap extends LinkedHashMap<Expression,Expression> {
+	private class EquivMap extends LinkedHashMap<Expression,Atom> {
 
 		private static final long serialVersionUID = -4882267868872050198L;
 
@@ -38,32 +47,32 @@ public class Decomposer {
 		 * @see java.util.LinkedHashMap#removeEldestEntry(java.util.Map.Entry)
 		 */
 		@Override
-		protected boolean removeEldestEntry(Entry<Expression, Expression> eldest) {
+		protected boolean removeEldestEntry(Entry<Expression, Atom> eldest) {
 			return size() > MAX_EQUIVMAP_SIZE;
 		}
 		
 	}
 	
-	// private CSP csp;
+	private List<Expression> decomposed;
 	private Map<String,Expression> domainMap;
-	private Map<String,Expression> intMap;
-	private Map<String,Expression> boolMap;
+	private Map<String,Atom> intMap;
+	private Map<String,Atom> boolMap;
+	private Map<String,IntegerDomain> expDomainMap;
 	private Map<String,Predicate> predicateMap;
 	private Map<String,Relation> relationMap;
-	private Map<Expression,Expression> equivMap;
-	private List<Expression> extra;
+	private Map<Expression,Atom> equivMap;
 	
-	public Decomposer(CSP csp) {
-	// 	this.csp = csp;
+	public Decomposer() {
+		decomposed = new ArrayList<Expression>();
 		domainMap = new HashMap<String,Expression>();
-		intMap = new HashMap<String,Expression>();
-		boolMap = new HashMap<String,Expression>();
+		intMap = new HashMap<String,Atom>();
+		boolMap = new HashMap<String,Atom>();
+		expDomainMap = new HashMap<String,IntegerDomain>();
 		predicateMap = new HashMap<String,Predicate>();
 		relationMap = new HashMap<String,Relation>();
 		equivMap = new EquivMap();
-	// 	extra = new ArrayList<Expression>();
 	}
-	
+
 	private void decomposeDomainDefinition(Sequence seq) throws SugarException {
 		String name = null;
 		Expression domain = null;
@@ -71,18 +80,18 @@ public class Decomposer {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
 			int ub = seq.get(3).integerValue();
-      Expression[] exps = {Expression.create(lb),
-                           Expression.create(ub)};
-      domain = Expression.create(exps);
+			Expression[] exps = {Expression.create(lb),
+													 Expression.create(ub)};
+			domain = Expression.create(Expression.create(exps));
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
-      Expression[] exps = {Expression.create(lb),
-                           Expression.create(lb)};
-      domain = Expression.create(exps);
+			Expression[] exps = {Expression.create(lb),
+													 Expression.create(lb)};
+			domain = Expression.create(Expression.create(exps));
 		} else if (seq.matches("WWS")) {
 			name = seq.get(1).stringValue();
-      domain = (Sequence)seq.get(2);
+			domain = (Sequence)seq.get(2);
 		} else {
 			throw new SugarException("Bad definition " + seq);
 		}
@@ -92,30 +101,57 @@ public class Decomposer {
 		domainMap.put(name, domain);
 	}
 
-	private List<Expression> decomposeIntDefinition(Sequence seq) throws SugarException {
+	private void decomposeIntDefinition(Sequence seq) throws SugarException {
     List<Expression> ret = new ArrayList<Expression>();
 		String name = null;
-    Expression domain = null;
+    Expression domainExp = null;
+		IntegerDomain domain = null;
 		if (seq.matches("WWW")) {
 			name = seq.get(1).stringValue();
 			String domainName = seq.get(2).stringValue();
-			domain = domainMap.get(domainName);
+			domainExp = domainMap.get(domainName);
+			Expression[] exp = {seq.get(0), seq.get(1), domainExp};
+			decomposeIntDefinition(new Sequence(exp));
+			return;
 		} else if (seq.matches("WWS")) {
 			name = seq.get(1).stringValue();
-      domain = (Sequence)seq.get(2);
+      domainExp = (Sequence)seq.get(2);
+			SortedSet<Integer> d = new TreeSet<Integer>();
+			Sequence x = (Sequence)seq.get(2);
+			for (int i = 0; i < x.length(); i++) {
+				if (x.get(i).isInteger()) {
+					d.add(x.get(i).integerValue());
+				} else 	if (x.get(i).isSequence()) {
+					Sequence seq1 = (Sequence)x.get(i);
+					if (seq1.matches("II")) {
+						int value0 = ((Sequence)x.get(i)).get(0).integerValue();
+						int value1 = ((Sequence)x.get(i)).get(1).integerValue();
+						for (int value = value0; value <= value1; value++) {
+							d.add(value);
+						}
+					} else {
+						throw new SugarException("Bad definition " + seq);
+					}
+				} else {
+					throw new SugarException("Bad definition " + seq);
+				}
+			}
+			domain = new IntegerDomain(d);
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
 			int ub = seq.get(3).integerValue();
       Expression[] exps = {Expression.create(lb),
                            Expression.create(ub)};
-      domain = new Sequence(exps);
+      domainExp = Expression.create(Expression.create(exps));
+			domain = new IntegerDomain(lb, ub);
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
       Expression[] exps = {Expression.create(lb),
                            Expression.create(lb)};
-      domain = new Sequence(exps);
+      domainExp = Expression.create(Expression.create(exps));
+			domain = new IntegerDomain(lb, lb);
 		} else {
 			throw new SugarException("Bad definition " + seq);
 		}
@@ -125,32 +161,31 @@ public class Decomposer {
 		if (intMap.containsKey(name)) {
 			throw new SugarException("Duplicated definition " + seq);
 		}
-    Expression[] retexps = {seq.get(1),
-                            Expression.create(name),
-                            domain};
+    Expression[] retexps = {seq.get(0),
+                            seq.get(1),
+                            domainExp};
     Sequence v = new Sequence(retexps);
-		intMap.put(name, v);
-    ret.add(v);
-    return ret;
+		intMap.put(name, (Atom)seq.get(1));
+		expDomainMap.put(name, domain);
+		decomposed.add(v);
 	}
 
-	private List<Expression> decomposeBoolDefinition(Sequence seq) throws SugarException {
+	private void decomposeBoolDefinition(Sequence seq) throws SugarException {
     List<Expression> ret = new ArrayList<Expression>();
 		String name = null;
 		if (seq.matches("WW")) {
-      // do nothing
+			name = seq.get(1).stringValue();
 		} else {
 			throw new SugarException("Bad definition " + seq);
 		}
 		if (boolMap.containsKey(name)) {
 			throw new SugarException("Duplicated definition " + seq);
 		}
-		boolMap.put(name, seq);
-    ret.add(seq);
-    return ret;
+		decomposed.add(seq);
+		boolMap.put(name, (Atom)seq.get(1));
 	}
 
-	private List<Expression> decomposeObjectiveDefinition(Sequence seq) throws SugarException {
+	private void decomposeObjectiveDefinition(Sequence seq) throws SugarException {
 		Objective objective = null;
 		String name = null;
 		if (seq.matches("WWW")) {
@@ -164,15 +199,11 @@ public class Decomposer {
 		if (objective == null || name == null) {
 			throw new SugarException("Bad definition " + seq);
 		}
-		Expression v = intMap.get(name);
+		Atom v = intMap.get(name);
 		if (v == null) {
 			throw new SugarException("Unknown objective variable " + seq);
 		}
-    List<Expression> ret = new ArrayList<Expression>();
-    ret.add(seq);
-    return ret;
-		// csp.setObjectiveVariable(v);
-		// csp.setObjective(objective);
+		decomposed.add(seq);
 	}
 
 	private void decomposePredicateDefinition(Sequence seq) throws SugarException {
@@ -197,7 +228,7 @@ public class Decomposer {
 		relationMap.put(name, rel);
 	}
 
-	private void addEquivalence(Expression v, Expression x) {
+	private void addEquivalence(Atom v, Expression x) {
 		equivMap.put(x, v);
 	}
 
@@ -215,51 +246,39 @@ public class Decomposer {
 		}
 	}
 
-	private Expression newIntegerVariable(Expression d, Expression x)
+	private Atom newIntegerVariable(IntegerDomain d, Expression x)
 	throws SugarException {
     final String AUX_PREFIX = "$Idec";
     /*static*/ int idx = 0;
     String name = AUX_PREFIX + Integer.toString(idx++);
-    Expression v = Expression.create(name);
+    Atom v = (Atom)Expression.create(name);
     Expression exp = Expression.create(Expression.INT_DEFINITION,
-                                       v, d);
-    //IntegerVariable v = new IntegerVariable(d);
-		//csp.add(v);
+                                       v, d.toExpression());
 		exp.setComment(name + " : " + x.toString());
-    // v を intMap に add
+		decomposed.add(exp);
+    expDomainMap.put(name, d);
 		return v;
 	}
 	
-	private Expression toIntegerVariable(//LinearSum e,
-                                       Expression e,
-                                       Expression x)
-	throws SugarException {
-    Expression v;
-		//IntegerVariable v;
-		// if (e.isIntegerVariable()) {
-    if (((Sequence)e).matches("W")) {
-			v = e;//e.getCoef().firstKey();
-		} else {
-			v = newIntegerVariable(e.getDomain(), x);
-			Expression eq = v.eq(x);
-			eq.setComment(v.toString() + " == " + x);
-			decomposeConstraint(eq);
-			addEquivalence(v, x);
+	private LinearExpression decomposeInteger(Atom x) throws SugarException {
+		return new LinearExpression(x.integerValue());
+	}
+	
+	private LinearExpression decomposeString(Atom x) throws SugarException {
+		if (! intMap.containsKey(x.stringValue())) {
+			syntaxError(x);
 		}
-		return v;
+		return new LinearExpression(x);
 	}
 
-	private Expression newBooleanVariable()
+	private Atom newBooleanVariable()
     throws SugarException {
     final String AUX_PREFIX = "$Bdec";
     /*static*/ int idx = 0;
     String name = AUX_PREFIX + Integer.toString(idx++);
-    Expression v = Expression.create(name);
+    Atom v = (Atom)Expression.create(name);
     Expression exp = Expression.create(Expression.BOOL_DEFINITION, v);
-    //IntegerVariable v = new IntegerVariable(d);
-		//csp.add(v);
-		//exp.setComment(name + " : " + x.toString());
-    // v を intMap に add
+		decomposed.add(exp);
 		return v;
 	}
 
@@ -276,74 +295,68 @@ public class Decomposer {
 	// 	return new LinearSum(v);
 	// }
 	
-	private Expression decomposeADD(Sequence seq) throws SugarException {
-		//LinearSum e = new LinearSum(0);
-    List<Expression> forms = new ArrayList<Expression>();
+	private LinearExpression decomposeADD(Sequence seq) throws SugarException {
+		LinearExpression e = new LinearExpression(0);
 		for (int i = 1; i < seq.length(); i++) {
-			forms.add(decomposeFormula(seq.get(i)));
-			//e.add(ei);
+			LinearExpression ei = decomposeFormula(seq.get(i));
+			e.add(ei);
 		}
-		return Expression.add(forms);
+		return e;
 	}
 	
-	private Expression decomposeSUB(Sequence seq) throws SugarException {
-		//LinearSum e = null;
-    Expression e = null;
+	private LinearExpression decomposeSUB(Sequence seq) throws SugarException {
+    LinearExpression e = null;
 		if (seq.length() == 1) {
 			syntaxError(seq);
 		} else if (seq.length() == 2) {
 			e = decomposeFormula(seq.get(1));
-			e = e.mul(-1);
+			e.multiply(-1);
 		} else {
 			e = decomposeFormula(seq.get(1));
 			for (int i = 2; i < seq.length(); i++) {
-				Expression ei = decomposeFormula(seq.get(i));
-				e = e.sub(ei);
+				LinearExpression ei = decomposeFormula(seq.get(i));
+				e.subtract(ei);
 			}
 		}
 		return e;
 	}
 	
-	private Expression decomposeABS(Sequence seq) throws SugarException {
+	private LinearExpression decomposeABS(Sequence seq) throws SugarException {
 		checkArity(seq, 1);
 		Expression x1 = seq.get(1);
-		Expression e1 = decomposeFormula(x1);
-		//IntegerDomain d1 = e1.getDomain();
-    IntegerDomain d1 = e1.getDomain();
+		LinearExpression e1 = decomposeFormula(x1);
+    IntegerDomain d1 = e1.getDomain(expDomainMap);
 		if (d1.getLowerBound() >= 0) {
 			return e1;
 		} else if (d1.getUpperBound() <= 0) {
-			e1 = e1.mul(-1);
+			e1.multiply(-1);
 			return e1;
 		}
 		IntegerDomain d = d1.abs();
-		Expression x = newIntegerVariable(d, seq);
-		//Expression x = Expression.create(v.getName());
+		Atom x = newIntegerVariable(d, seq);
 		Expression eq =
-			(x.ge(e1))
-			.and(x.ge(e1.neg()))
-			.and((x.le(e1)).or(x.le(e1.neg())));
+			(x.ge(x1))
+			.and(x.ge(x1.neg()))
+			.and((x.le(x1)).or(x.le(x1.neg())));
 		eq.setComment(x.toString() + " == " + seq);
 		decomposeConstraint(eq);
 		addEquivalence(x, seq);
-		return x;
+		return new LinearExpression((Atom)x);
 	}
 	
-	private Expression decomposeMUL(Sequence seq) throws SugarException {
+	private LinearExpression decomposeMUL(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
 		Expression x2 = seq.get(2);
-		// LinearSum e1 = decomposeFormula(x1);
-		// LinearSum e2 = decomposeFormula(x2);
-		Expression e1 = decomposeFormula(x1);
-		Expression e2 = decomposeFormula(x2);
-		IntegerDomain d1 = e1.getDomain();
-		IntegerDomain d2 = e2.getDomain();
+		LinearExpression e1 = decomposeFormula(x1);
+		LinearExpression e2 = decomposeFormula(x2);
+		IntegerDomain d1 = e1.getDomain(expDomainMap);
+		IntegerDomain d2 = e2.getDomain(expDomainMap);
 		if (d1.size() == 1) {
-			e2 = e2.mul(d1.getLowerBound());
+			e2.multiply(d1.getLowerBound());
 			return e2;
 		} else if (d2.size() == 1) {
-			e1 = e1.mul(d2.getLowerBound());
+			e1.multiply(d2.getLowerBound());
 			return e1;
 		} else if (d1.size() <= d2.size()) {
 			Expression x = null;
@@ -362,22 +375,18 @@ public class Decomposer {
 		}
 	}
 	
-	private Expression decomposeDIV(Sequence seq) throws SugarException {
+	private LinearExpression decomposeDIV(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
 		Expression x2 = seq.get(2);
-		// LinearSum e1 = decomposeFormula(x1);
-		// LinearSum e2 = decomposeFormula(x2);
-		Expression e1 = decomposeFormula(x1);
-		Expression e2 = decomposeFormula(x2);
-		IntegerDomain d1 = e1.getDomain();
-		IntegerDomain d2 = e2.getDomain();
+		LinearExpression e1 = decomposeFormula(x1);
+		LinearExpression e2 = decomposeFormula(x2);
+		IntegerDomain d1 = e1.getDomain(expDomainMap);
+		IntegerDomain d2 = e2.getDomain(expDomainMap);
 		IntegerDomain qd = d1.div(d2);
 		IntegerDomain rd = d1.mod(d2);
-		// IntegerVariable qv = newIntegerVariable(qd, seq);
-		// IntegerVariable rv = newIntegerVariable(rd, x1.mod(x2));
-		Expression q = newIntegerVariable(qd, seq);
-		Expression r = newIntegerVariable(rd, x1.mod(x2));
+		Atom q = newIntegerVariable(qd, seq);
+		Atom r = newIntegerVariable(rd, x1.mod(x2));
 		// Expression q = Expression.create(qv.getName());
 		// Expression r = Expression.create(rv.getName());
 		Expression px = x2.mul(q);
@@ -386,7 +395,7 @@ public class Decomposer {
 			if (value2 == 1) {
 				return e1;
 			} else if (value2 == -1) {
-				e1 = e1.mul(-1);
+				e1.multiply(-1);
 				return e1;
 			}
 			// TODO
@@ -399,12 +408,12 @@ public class Decomposer {
 			eq.setComment(q.toString() + " == " + seq);
 			decomposeConstraint(eq);
 			addEquivalence(q, seq);
-			return q;//new LinearSum(qv);
+			return new LinearExpression(q);
 		}
 		// TODO
-		if (true) {
+		//if (true) {
 			throw new SugarException("Unsupported " + seq);
-		}
+		//}
 		// IntegerVariable v2 = toIntegerVariable(e2, x2);
 		// IntegerDomain pd = d1.sub(rd);
 		// IntegerVariable pv = newIntegerVariable(pd, px);
@@ -421,24 +430,18 @@ public class Decomposer {
 		// return new LinearSum(qv);
 	}
 	
-	private Expression decomposeMOD(Sequence seq) throws SugarException {
+	private LinearExpression decomposeMOD(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
 		Expression x2 = seq.get(2);
-		// LinearSum e1 = decomposeFormula(x1);
-		// LinearSum e2 = decomposeFormula(x2);
-		Expression e1 = decomposeFormula(x1);
-		Expression e2 = decomposeFormula(x2);
-		IntegerDomain d1 = e1.getDomain();
-		IntegerDomain d2 = e2.getDomain();
+		LinearExpression e1 = decomposeFormula(x1);
+		LinearExpression e2 = decomposeFormula(x2);
+		IntegerDomain d1 = e1.getDomain(expDomainMap);
+		IntegerDomain d2 = e2.getDomain(expDomainMap);
 		IntegerDomain qd = d1.div(d2);
 		IntegerDomain rd = d1.mod(d2);
-		// IntegerVariable qv = newIntegerVariable(qd, seq);
-		// IntegerVariable rv = newIntegerVariable(rd, x1.mod(x2));
-		Expression q = newIntegerVariable(qd, seq);
-		Expression r = newIntegerVariable(rd, x1.mod(x2));
-		// Expression q = Expression.create(qv.getName());
-		// Expression r = Expression.create(rv.getName());
+		Atom q = newIntegerVariable(qd, seq);
+		Atom r = newIntegerVariable(rd, x1.mod(x2));
 		Expression px = x2.mul(q);
 		if (d2.size() == 1) {
 			int value2 = d2.getLowerBound();
@@ -452,12 +455,12 @@ public class Decomposer {
 			eq.setComment(q.toString() + " == " + seq);
 			decomposeConstraint(eq);
 			addEquivalence(r, seq);
-			return r;//new LinearSum(rv);
+			return new LinearExpression(r);
 		}
 		// TODO
-		if (true) {
+		// if (true) {
 			throw new SugarException("Unsupported " + seq);
-		}
+		// }
 		// IntegerVariable v2 = toIntegerVariable(e2, x2);
 		// IntegerDomain pd = d1.sub(rd);
 		// IntegerVariable pv = newIntegerVariable(pd, px);
@@ -474,30 +477,26 @@ public class Decomposer {
 		// return new LinearSum(rv);
 	}
 	
-	private Expression decomposePOW(Sequence seq) throws SugarException {
+	private LinearExpression decomposePOW(Sequence seq) throws SugarException {
 		// TODO pow
 		throw new SugarException("Unsupported " + seq);
 	}
 	
-	private Expression decomposeMIN(Sequence seq) throws SugarException {
+	private LinearExpression decomposeMIN(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
 		Expression x2 = seq.get(2);
-		// LinearSum e1 = decomposeFormula(x1);
-		// LinearSum e2 = decomposeFormula(x2);
-		Expression e1 = decomposeFormula(x1);
-		Expression e2 = decomposeFormula(x2);
-		IntegerDomain d1 = e1.getDomain();
-		IntegerDomain d2 = e2.getDomain();
+		LinearExpression e1 = decomposeFormula(x1);
+		LinearExpression e2 = decomposeFormula(x2);
+		IntegerDomain d1 = e1.getDomain(expDomainMap);
+		IntegerDomain d2 = e2.getDomain(expDomainMap);
 		if (d1.getUpperBound() <= d2.getLowerBound()) {
 			return e1;
 		} else if (d2.getUpperBound() <= d1.getLowerBound()) {
 			return e2;
 		}
 		IntegerDomain d = d1.min(d2);
-		// IntegerVariable v = newIntegerVariable(d, seq);
-		Expression x = newIntegerVariable(d, seq);
-		//Expression x = Expression.create(v.getName());
+		Atom x = newIntegerVariable(d, seq);
 		Expression eq =
 			(x.le(x1))
 			.and(x.le(x2))
@@ -505,28 +504,24 @@ public class Decomposer {
 		eq.setComment(x.toString() + " == " + seq);
 		decomposeConstraint(eq);
 		addEquivalence(x, seq);
-		return x;//new LinearSum(v);
+		return new LinearExpression(x);
 	}
 	
-	private Expression decomposeMAX(Sequence seq) throws SugarException {
+	private LinearExpression decomposeMAX(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
 		Expression x2 = seq.get(2);
-		// LinearSum e1 = decomposeFormula(x1);
-		// LinearSum e2 = decomposeFormula(x2);
-		Expression e1 = decomposeFormula(x1);
-		Expression e2 = decomposeFormula(x2);
-		IntegerDomain d1 = e1.getDomain();
-		IntegerDomain d2 = e2.getDomain();
+		LinearExpression e1 = decomposeFormula(x1);
+		LinearExpression e2 = decomposeFormula(x2);
+		IntegerDomain d1 = e1.getDomain(expDomainMap);
+		IntegerDomain d2 = e2.getDomain(expDomainMap);
 		if (d1.getUpperBound() <= d2.getLowerBound()) {
 			return e2;
 		} else if (d2.getUpperBound() <= d1.getLowerBound()) {
 			return e1;
 		}
 		IntegerDomain d = d1.max(d2);
-		// IntegerVariable v = newIntegerVariable(d, seq);
-		Expression x = newIntegerVariable(d, seq);
-		// Expression x = Expression.create(v.getName());
+		Atom x = newIntegerVariable(d, seq);
 		Expression eq =
 			(x.ge(x1))
 			.and(x.ge(x2))
@@ -534,44 +529,39 @@ public class Decomposer {
 		eq.setComment(x.toString() + " == " + seq);
 		decomposeConstraint(eq);
 		addEquivalence(x, seq);
-		return x;//new LinearSum(v);
+		return new LinearExpression(x);
 	}
 	
-	private Expression decomposeIF(Sequence seq) throws SugarException {
+	private LinearExpression decomposeIF(Sequence seq) throws SugarException {
 		checkArity(seq, 3);
 		Expression x1 = seq.get(1);
 		Expression x2 = seq.get(2);
 		Expression x3 = seq.get(3);
-		// LinearSum e2 = decomposeFormula(x2);
-		// LinearSum e3 = decomposeFormula(x3);
-		Expression e2 = decomposeFormula(x2);
-		Expression e3 = decomposeFormula(x3);
-		IntegerDomain d2 = e2.getDomain();
-		IntegerDomain d3 = e3.getDomain();
+		LinearExpression e2 = decomposeFormula(x2);
+		LinearExpression e3 = decomposeFormula(x3);
+		IntegerDomain d2 = e2.getDomain(expDomainMap);
+		IntegerDomain d3 = e3.getDomain(expDomainMap);
 		IntegerDomain d = d2.cup(d3);
-		//IntegerVariable v = newIntegerVariable(d, seq);
-		Expression x = newIntegerVariable(d, seq);
-		//Expression x = Expression.create(v.getName());
+		Atom x = newIntegerVariable(d, seq);
 		Expression eq =
 			((x1.not()).or(x.eq(x2)))
 			.and(x1.or(x.eq(x3)));
 		eq.setComment(x.toString() + " == " + seq);
 		decomposeConstraint(eq);
 		addEquivalence(x, seq);
-		return x;//new LinearSum(v);
+		return new LinearExpression(x);
 	}
 	
-	protected Expression decomposeFormula(Expression x) throws SugarException {
-		//LinearSum e = null;
-		Expression e = null;
-		Expression v = equivMap.get(x);
+	protected LinearExpression decomposeFormula(Expression x) throws SugarException {
+		LinearExpression e = null;
+		Atom v = equivMap.get(x);
 		if (v != null) {
-			e = v;//new LinearSum(v);
+			e = new LinearExpression(v);
 		} else if (x.isAtom()) {
 			if (x.isInteger()) {
-				e = v;//decomposeInteger((Atom)x);
+				e = decomposeInteger((Atom)x);
 			} else {
-				e = v;//decomposeString((Atom)x);
+				e = decomposeString((Atom)x);
 			}
 		} else {
 			if (x.isSequence(Expression.ADD)) {
@@ -600,140 +590,77 @@ public class Decomposer {
 		}
 		return e;
 	}
-	
-// 	private LinearSum simplifyLinearSum(LinearSum e) throws SugarException {
-// 		if (e.size() <= 3) {
-// 			return e;
-// 		}
-// 		IntegerVariable[] vs = e.getVariablesSorted();
-// 		LinearSum e1 = new LinearSum(0);
-// 		for (int i = 2; i < vs.length; i++) {
-// 			e1.setA(e.getA(vs[i]), vs[i]);
-// 		}
-// 		int factor = e1.factor();
-// 		if (factor > 1) {
-// 			e1.divide(factor);
-// 		}
-// 		// v == (a[2]*vs[2] + a[3]*vs[3] + ... + a[n]*vs[n]) / factor
-// 		IntegerVariable v = new IntegerVariable(e1.getDomain());
-// 		v.setComment(v.getName() + " : " + e1);
-// 		csp.add(v);
-// 		Expression x = Expression.create(v.getName());
-// 		Expression ex = e1.toExpression();
-// 		Expression eq = x.eq(ex);
-// 		// eq.setComment(v.getName() + " == " + e1);
-// 		// XXX 
-// 		// convertConstraint(eq);
-// 		extra.add(eq);
-// 		// e0 = b + a[0]*vs[0] + a[1]*vs[1] + factor*v
-// 		LinearSum e0 = new LinearSum(e.getB());
-// 		e0.setA(e.getA(vs[0]), vs[0]);
-// 		e0.setA(e.getA(vs[1]), vs[1]);
-// 		e0.setA(factor, v);
-// //		System.out.println(e + " ==> " + e0 + " with " + eq);
-// 		return e0;
-// 	}
-	
-	// private LinearSum simplifyLinearExpression(LinearSum e, boolean first) throws SugarException {
-	// 	if (ESTIMATE_SATSIZE) {
-	// 		if (e.satSizeLE(MAX_LINEARSUM_SIZE)) {
-	// 			return e;
-	// 		}
-	// 	} else {
-	// 		if (e.size() <= 1) {
-	// 			return e;
-	// 		}
-	// 	}
-	// 	int b = e.getB();
-	// 	LinearSum[] es = e.split(first ? 3 : SPLITS);
-	// 	e = new LinearSum(b);
-	// 	for (int i = 0; i < es.length; i++) {
-	// 		LinearSum ei = es[i];
-	// 		int factor = ei.factor();
-	// 		if (factor > 1) {
-	// 			ei.divide(factor);
-	// 		}
-	// 		ei = simplifyLinearExpression(ei, false);
-	// 		// System.out.println(es[i] + " ==> " + ei);
-	// 		if (ei.size() > 1) {
-	// 			IntegerVariable v = new IntegerVariable(ei.getDomain());
-	// 			v.setComment(v.getName() + " : " + ei);
-	// 			csp.add(v);
-	// 			Expression x = Expression.create(v.getName());
-	// 			Expression ex = ei.toExpression();
-	// 			Expression eq = x.eq(ex);
-	// 			eq.setComment(v.getName() + " == " + ei);
-	// 			convertConstraint(eq);
-	// 			ei = new LinearSum(v);
-	// 		}
-	// 		if (factor > 1) {
-	// 			ei.multiply(factor);
-	// 		}
-	// 		e.add(ei);
-	// 	}
-	// 	return e;
-	// }
-	
-	private List<Expression> decomposeComparison(Expression x) throws SugarException {
-		Expression e = decomposeFormula(x);
-		//e.factorize();
+
+	private List<Expression> decomposeComparison(Expression x, Expression op) throws SugarException {
+		assert(op.equals(Expression.LE)
+					 || op.equals(Expression.EQ)
+					 || op.equals(Expression.NE));
+		LinearExpression e = decomposeFormula(x);
 		List<Expression> exps = new ArrayList<Expression>();
-		IntegerDomain d = e.getDomain();
-		if (d.getUpperBound() <= 0) {
+		IntegerDomain d = e.getDomain(expDomainMap);
+		if (op.equals(Expression.LE)) {
+			if (d.getUpperBound() <= 0) {
+				return exps;
+			}
+			if (d.getLowerBound() > 0) {
+				exps.add(Expression.create(Expression.OR));
+				return exps;
+			}
+			exps.add(Expression.create(Expression.OR,
+																 e.le(0)));
+			return exps;
+		}else if (op.equals(Expression.EQ)) {
+			if (d.getLowerBound() > 0 || 0 > d.getUpperBound()) {
+				exps.add(Expression.create(Expression.OR));
+				return exps;
+			}
+			exps.add(Expression.create(Expression.OR,
+																 e.eq(0)));
+			return exps;
+		}else if (op.equals(Expression.NE)) {
+			if (d.getLowerBound() > 0 || 0 > d.getUpperBound()) {
+				return exps;
+			}
+			exps.add(Expression.create(Expression.OR,
+																 e.ne(0)));
 			return exps;
 		}
-		if (d.getLowerBound() > 0) {
-			//clauses.add(new Clause());
-      exps.add(Expression.create(Expression.OR));
-			return exps;
-		}
-		// if (NEW_VARIABLE && e.size() > 3) {
-		// 	if (ESTIMATE_SATSIZE) {
-		// 		e = simplifyLinearExpression(e, true);
-		// 	} else {
-		// 		e = simplifyLinearExpression(e, true);
-		// 	}
-		// }
-		//clauses.add(new Clause(new LinearLiteral(e)));
-    exps.add(Expression.create(Expression.OR,
-                               e.le(0)));
-		return exps;
+		throw new SugarException("!!!");
 	}
-	// ここまで
+
+	
 	private List<Expression> decomposeDisj(Sequence seq, boolean negative) throws SugarException {
 		List<Expression> exps = null;
 		if (seq.length() == 1) {
-			//clauses = new ArrayList<Clause>();
-			//clauses.add(new Clause());
-      exps = new ArrayList<Expression>();
-      exps.add(Expression.create(Expression.OR));
+			exps = new ArrayList<Expression>();
+			exps.add(Expression.create(Expression.OR));
 		} else if (seq.length() == 2) {
 			exps = decomposeConstraint(seq.get(1), negative);
 		} else {
 			exps = new ArrayList<Expression>();
-			Expression exp = Expression.create(Expression.OR);
+			List<Expression> lits = new ArrayList<Expression>();
 			// clause.setComment(seq.toString());
-			exps.add(exp);
 			for (int i = 1; i < seq.length(); i++) {
 				List<Expression> exps0 = decomposeConstraint(seq.get(i), negative);
 				if (exps0.size() == 0) {
 					return exps0;
 				} else if (exps0.size() == 1) {
-					exp = exp.or(exps0.get(0)); // これではまずい
-				} else {
-					Expression v = newBooleanVariable();
-					//csp.add(v);
-					// v.setComment(seq.toString());
-					Expression v0 = v;//new BooleanLiteral(v, false);
-					Expression v1 = v.not();//new BooleanLiteral(v, true);
-					//clause.add(v0);
-          exp = exp.or(v0);
-					for (Expression exp0 : exps0) {
-						exp0.or(v1); // exps0 に反映されていない!
+					Sequence seq0 = (Sequence)exps0.get(0);
+					for(int j = 1; j < seq0.length(); j++) {
+						lits.add(seq0.get(j));
 					}
-					exps.addAll(exps0);
+				} else {
+					Atom v = newBooleanVariable();
+					// v.setComment(seq.toString());
+					Expression v0 = v;
+					Expression v1 = v.not();
+					lits.add(v0);
+					for (Expression exp0 : exps0) {
+						exps.add(exp0.or(v1));
+					}
 				}
 			}
+			exps.add(Expression.create(Expression.OR, lits));
 		}
 		return exps;
 	}
@@ -791,9 +718,9 @@ public class Decomposer {
 					exps = new ArrayList<Expression>();
 					break;
 				} else if (boolMap.containsKey(x.stringValue())) {
-					Expression v = boolMap.get(x.stringValue());
+					Atom v = boolMap.get(x.stringValue());
 					Expression exp = Expression.create(Expression.OR,
-                                             negative ? v.not() : v);//new Clause(new BooleanLiteral(v, negative));
+                                             negative ? v.not() : v);
 					exps = new ArrayList<Expression>();
 					exps.add(exp);
 					break;
@@ -836,12 +763,44 @@ public class Decomposer {
 						|| (seq.isSequence(Expression.AND) && negative)) {
 					exps = decomposeDisj(seq, negative);
 					break;
-				} else if (seq.isSequence(Expression.EQ)) {
+				} else if ((seq.isSequence(Expression.EQ) && ! negative)
+									 || (seq.isSequence(Expression.NE) && negative)) {
 					checkArity(seq, 2);
-					x = (seq.get(1).le(seq.get(2))).and(seq.get(1).ge(seq.get(2)));
-				} else if (seq.isSequence(Expression.NE)) {
+					if (seq.get(1).isSequence(Expression.MUL) && seq.get(2).equals(Expression.ZERO)) {
+						Expression a1 = ((Sequence)seq.get(1)).get(1);
+						Expression a2 = ((Sequence)seq.get(1)).get(2);
+						// a1*a2 == 0
+						x = (a1.eq(Expression.ZERO)).or(a2.eq(Expression.ZERO));
+						continue;
+					}
+					if (seq.get(2).isSequence(Expression.MUL) && seq.get(1).equals(Expression.ZERO)) {
+						Expression a1 = ((Sequence)seq.get(2)).get(1);
+						Expression a2 = ((Sequence)seq.get(2)).get(2);
+						x = (a1.eq(Expression.ZERO)).or(a2.eq(Expression.ZERO));
+						continue;
+					}
+					exps = decomposeComparison(seq.get(1).sub(seq.get(2)),
+																		 Expression.EQ);
+					break;
+				} else if ((seq.isSequence(Expression.NE) && !negative)
+									 || (seq.isSequence(Expression.EQ) && negative)) {
 					checkArity(seq, 2);
-					x = (seq.get(1).lt(seq.get(2))).or(seq.get(1).gt(seq.get(2)));
+					if (seq.get(1).isSequence(Expression.MUL) && seq.get(2).equals(Expression.ZERO)) {
+						Expression a1 = ((Sequence)seq.get(1)).get(1);
+						Expression a2 = ((Sequence)seq.get(1)).get(2);
+						// a1*a2 != 0
+						x = (a1.ne(Expression.ZERO)).and(a2.ne(Expression.ZERO));
+						continue;
+					}
+					if (seq.get(2).isSequence(Expression.MUL) && seq.get(1).equals(Expression.ZERO)) {
+						Expression a1 = ((Sequence)seq.get(2)).get(1);
+						Expression a2 = ((Sequence)seq.get(2)).get(2);
+						x = (a1.ne(Expression.ZERO)).and(a2.ne(Expression.ZERO));
+						continue;
+					}
+					exps = decomposeComparison(seq.get(1).sub(seq.get(2)),
+																		 Expression.NE);
+					break;
 				} else if ((seq.isSequence(Expression.LE) && ! negative)
 						|| (seq.isSequence(Expression.GT) && negative)) {
 					checkArity(seq, 2);
@@ -881,7 +840,8 @@ public class Decomposer {
 							continue;
 						}
 					}
-					exps = decomposeComparison(seq.get(1).sub(seq.get(2)));
+					exps = decomposeComparison(seq.get(1).sub(seq.get(2)),
+																		 Expression.LE);
 					break;
 				} else if ((seq.isSequence(Expression.LT) && ! negative)
 						|| (seq.isSequence(Expression.GE) && negative)) {
@@ -919,7 +879,8 @@ public class Decomposer {
 						}
 					}
 					exps = decomposeComparison(seq.get(1).sub(seq.get(2))
-                                     .add(Expression.create(1)));
+                                     .add(Expression.create(1)),
+																		 Expression.LE);
 					break;
 				} else if ((seq.isSequence(Expression.GE) && ! negative)
 						|| (seq.isSequence(Expression.LT) && negative)) {
@@ -960,7 +921,8 @@ public class Decomposer {
 							continue;
 						}
 					}
-					exps = decomposeComparison(seq.get(2).sub(seq.get(1)));
+					exps = decomposeComparison(seq.get(2).sub(seq.get(1)),
+																		 Expression.LE);
 					break;
 				} else if ((seq.isSequence(Expression.GT) && ! negative)
 						|| (seq.isSequence(Expression.LE) && negative)) {
@@ -998,7 +960,8 @@ public class Decomposer {
 						}
 					}
 					exps = decomposeComparison(seq.get(2).sub(seq.get(1))
-                                     .add(Expression.create(1)));
+                                     .add(Expression.create(1)),
+																		 Expression.LE);
 					break;
 				} else if (seq.isSequence(Expression.ALLDIFFERENT) && ! negative) {
 					x = GlobalConstraints.decomposeAllDifferent(this, seq);
@@ -1030,7 +993,7 @@ public class Decomposer {
 		return exps;
 	}
 
-	private List<Expression> decomposeConstraint(Expression x) throws SugarException {
+	private void decomposeConstraint(Expression x) throws SugarException {
 		List<Expression> exps = decomposeConstraint(x, false);
 		if (exps.size() > 0) {
 			if (x.getComment() == null) {
@@ -1039,32 +1002,27 @@ public class Decomposer {
 				exps.get(0).setComment(x.getComment());
 			}
 		}
-		// for (Expression clause : clauses) {
-		// 	csp.add(clause);
-		// 	if (INCREMENTAL_PROPAGATE) {
-		// 		clause.propagate();
-		// 	}
-		// }
-    return exps;
+		for (Expression e : exps) {
+			decomposed.add(e);
+		}
 	}
 
-	private List<Expression> decomposeExpression(Expression x) throws SugarException {
+	private void decomposeExpression(Expression x) throws SugarException {
 		if (x.isSequence(Expression.DOMAIN_DEFINITION)) {
 			decomposeDomainDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.INT_DEFINITION)) {
-			return decomposeIntDefinition((Sequence)x);
+			decomposeIntDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.BOOL_DEFINITION)) {
-			return decomposeBoolDefinition((Sequence)x);
+			decomposeBoolDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.OBJECTIVE_DEFINITION)) {
-			return decomposeObjectiveDefinition((Sequence)x);
+			decomposeObjectiveDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.PREDICATE_DEFINITION)) {
 			decomposePredicateDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.RELATION_DEFINITION)) {
 			decomposeRelationDefinition((Sequence)x);
 		} else {
-			return decomposeConstraint(x);
+			decomposeConstraint(x);
 		}
-    assert(false);
 	}
 	
 	public List<Expression> decompose(List<Expression> expressions) throws SugarException {
@@ -1079,14 +1037,52 @@ public class Decomposer {
 				percent += 10;
 			}
 		}
-		while (extra.size() > 0) {
-			Expression x = extra.remove(0);
-			decomposeExpression(x);
-			count++;
-			if (count % 1000 == 0) {
-				Logger.fine("converted " + count + " extra expressions, remaining " + extra.size());
-			}
-		}
+		return decomposed;
 	}
-	
+
+	public Map<String,IntegerDomain> getDomMap() {
+		return expDomainMap;
+	}
+
+	private static List<Expression> readExpression(String cspFileName)
+		throws SugarException, IOException {
+		Logger.fine("Parsing " + cspFileName);
+		InputStream in = new FileInputStream(cspFileName);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+		Parser parser = new Parser(reader, false);
+		List<Expression> expressions = parser.parse();
+		Logger.info("parsed " + expressions.size() + " expressions");
+		Logger.status();
+		return expressions;
+	}
+
+	public static void main(String[] args)
+		throws SugarException, IOException {
+		int i = 0;
+		while (i < args.length) {
+			if (args[i].equals("-v") || args[i].equals("-verbose")) {
+				Logger.verboseLevel++;
+			}else{
+				break;
+			}
+			i++;
+		}
+		int n = args.length - i;
+		if (n != 2) {
+			System.out.println("Usage : java Decomposer [-v] inputCSPFile outCSPFile");
+			System.exit(1);
+		}
+		String cspFileName = args[i];
+		String outFileName = args[i+1];
+
+		Decomposer dec = new Decomposer();
+		List<Expression> exps = readExpression(cspFileName);
+		exps = dec.decompose(exps);
+		File file = new File(outFileName);
+		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+		for(Expression e : exps) {
+			pw.println(e);
+		}
+		pw.close();
+	}
 }

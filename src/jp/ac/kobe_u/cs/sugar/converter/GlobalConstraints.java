@@ -2,6 +2,7 @@ package jp.ac.kobe_u.cs.sugar.converter;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.SugarException;
@@ -17,6 +18,7 @@ public class GlobalConstraints {
 	
 	protected static Expression decomposeAllDifferent(Decomposer decomposer, Sequence seq)
 	throws SugarException {
+		Map<String,IntegerDomain> map = decomposer.getDomMap();
 		int di = 1;
 		int n = seq.length() - 1;
 		if (n == 1 && seq.get(n).isSequence()) {
@@ -36,7 +38,7 @@ public class GlobalConstraints {
 			int lb = Integer.MAX_VALUE;
 			int ub = Integer.MIN_VALUE;
 			for (int i = 0; i < n; i++) {
-				IntegerDomain d = decomposer.decomposeFormula(seq.get(i+di)).getDomain();
+				IntegerDomain d = decomposer.decomposeFormula(seq.get(i+di)).getDomain(map);
 				lb = Math.min(lb, d.getLowerBound());
 				ub = Math.max(ub, d.getUpperBound());
 			}
@@ -87,6 +89,7 @@ public class GlobalConstraints {
 		if (! seq.get(1).isSequence()) {
 			decomposer.syntaxError(seq);
 		}
+		Map<String,IntegerDomain> map = decomposer.getDomMap();
 		Sequence seq1 = (Sequence)seq.get(1);
 		Expression x2 = seq.get(2);
 		int n = seq1.length();
@@ -118,8 +121,8 @@ public class GlobalConstraints {
 				t0[i] = origin;
 				t1[i] = end;
 			}
-			IntegerDomain d1 = decomposer.decomposeFormula(t0[i]).getDomain();
-			IntegerDomain d2 = decomposer.decomposeFormula(t1[i]).getDomain();
+			IntegerDomain d1 = decomposer.decomposeFormula(t0[i]).getDomain(map);
+			IntegerDomain d2 = decomposer.decomposeFormula(t1[i]).getDomain(map);
 			lb = Math.min(lb, d1.getLowerBound());
 			ub = Math.max(ub, d2.getUpperBound() - 1);
 		}

@@ -5,6 +5,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
+import jp.ac.kobe_u.cs.sugar.expression.Expression;
 
 /**
  * This class implements an integer domain class.
@@ -479,6 +480,10 @@ public class IntegerDomain {
 				return create(d1);
 			}
 		}
+	}
+
+	public Expression toExpression() {
+		return null;
 	}
 
 	public void appendValues(StringBuilder sb) {

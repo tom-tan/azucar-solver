@@ -47,6 +47,8 @@ public class Atom extends Expression {
 			return 1;
 		if (x instanceof Sequence)
 			return -1;
+		if (x instanceof LinearExpression)
+			return -1;
 		if (this.equals(x))
 			return 0;
 		Atom another = (Atom)x;

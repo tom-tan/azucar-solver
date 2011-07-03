@@ -127,6 +127,8 @@ public class Sequence extends Expression {
 			return 1;
 		if (x instanceof Atom)
 			return 1;
+		if (x instanceof LinearExpression)
+			return 1;
 		if (this.equals(x))
 			return 0;
 		Sequence another = (Sequence)x;

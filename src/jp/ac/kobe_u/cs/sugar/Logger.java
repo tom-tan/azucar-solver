@@ -28,7 +28,7 @@ public class Logger {
 		}
 	}
 
-	static void status() {
+	public static void status() {
 		MemoryMXBean mbean = ManagementFactory.getMemoryMXBean();
 		MemoryUsage heapUsage = mbean.getHeapMemoryUsage();
 //		long heapInit = heapUsage.getInit() / MEGA;

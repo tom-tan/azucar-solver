@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -14,28 +15,28 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 
-public class LinearExpression {
-	private Atom b;
-	private SortedMap<Atom,Atom> coef;
+public class LinearExpression extends Expression {
+	private int b;
+	private SortedMap<Atom,Integer> coef;
 	private IntegerDomain domain = null;
 
-	public LinearExpression(Atom b) {
-		coef = new TreeMap<Atom,Atom>();
+	public LinearExpression(int b) {
+		coef = new TreeMap<Atom,Integer>();
 		this.b = b;
 	}
 
-	public LinearExpression(Atom a0, Atom v0, Atom b) {
+	public LinearExpression(int a0, Atom v0, int b) {
 		this(b);
 		coef.put(v0, a0);
 	}
 
 	public LinearExpression(Atom v0) {
-		this((Atom)Expression.ONE, v0, (Atom)Expression.ZERO);
+		this(1, v0, 0);
 	}
 
 	public LinearExpression(LinearExpression e) {
 		b = e.b;
-		coef = new TreeMap<Atom,Atom>(e.coef);
+		coef = new TreeMap<Atom,Integer>(e.coef);
 		domain = null;
 	}
 
@@ -47,18 +48,15 @@ public class LinearExpression {
 		return coef.size();
 	}
 	
-	public Atom getB() {
+	public int getB() {
 		return b;
 	}
 
-	public void setB(Atom b) {
+	public void setB(int b) {
 		this.b = b;
 	}
-	public void setB(int b) {
-		this.b = (Atom)Expression.create(b);
-	}
 	
-	public SortedMap<Atom,Atom> getCoef() {
+	public SortedMap<Atom,Integer> getCoef() {
 		return coef;
 	}
 
@@ -67,19 +65,19 @@ public class LinearExpression {
 	}
 
 	public boolean isIntegerVariable() {
-		return b.integerValue() == 0 && size() == 1 && getA(coef.firstKey()).integerValue() == 1;  
+		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;
 	}
 	
-	public Atom getA(Atom v) {
-		Atom a = coef.get(v);
+	public Integer getA(Atom v) {
+		Integer a = coef.get(v);
 		if (a == null) {
-			a = (Atom)Expression.ZERO;
+			a = 0;
 		}
-		return (Atom)Expression.create(a);
+		return a;
 	}
 	
-	public void setA(Atom a, Atom v) {
-		if (a.integerValue() == 0) {
+	public void setA(int a, Atom v) {
+		if (a == 0) {
 			coef.remove(v);
 		} else {
 			coef.put(v, a);
@@ -92,10 +90,10 @@ public class LinearExpression {
 	 * @param linearSum the linear expression to be added.
 	 */
 	public void add(LinearExpression linearExpression) {
-		setB(b.integerValue() + linearExpression.b.integerValue());
+		b += linearExpression.b;
 		for (Atom v : linearExpression.coef.keySet()) {
-			int a = getA(v).integerValue() + linearExpression.getA(v).integerValue();
-			setA((Atom)Expression.create(a), v);
+			int a = getA(v) + linearExpression.getA(v);
+			setA(a, v);
 		}
 		domain = null;
 	}
@@ -105,10 +103,10 @@ public class LinearExpression {
 	 * @param linearSum the linear expression to be subtracted.
 	 */
 	public void subtract(LinearExpression linearExpression) {
-		setB(b.integerValue() - linearExpression.b.integerValue());
+		b -= linearExpression.b;
 		for (Atom v : linearExpression.coef.keySet()) {
-			int a = getA(v).integerValue() - linearExpression.getA(v).integerValue();
-			setA((Atom)Expression.create(a), v);
+			int a = getA(v) - linearExpression.getA(v);
+			setA(a, v);
 		}
 		domain = null;
 	}
@@ -118,29 +116,29 @@ public class LinearExpression {
 	 * @param c the constant to be multiplied by
 	 */
 	public void multiply(int c) {
-		setB(b.integerValue() * c);
+		b *= c;
 		for (Atom v : coef.keySet()) {
-			int a = c * getA(v).integerValue();
-			setA((Atom)Expression.create(a), v);
+			int a = c * getA(v);
+			setA(a, v);
 		}
 		domain = null;
 	}
 
 	public void divide(int c) {
-		setB(b.integerValue() / c);
+		b /= c;
 		for (Atom v : coef.keySet()) {
-			int a = getA(v).integerValue() / c;
-			setA((Atom)Expression.create(a), v);
+			int a = getA(v) / c;
+			setA(a, v);
 		}
 		domain = null;
 	}
 
-	public IntegerDomain getDomain() throws SugarException {
+	public IntegerDomain getDomain(Map<String, IntegerDomain> m) throws SugarException {
 		if (domain == null) {
-			domain = new IntegerDomain(b.integerValue(), b.integerValue());
+			domain = new IntegerDomain(b, b);
 			for (Atom v : coef.keySet()) {
-				int a = getA(v).integerValue();
-				domain = domain.add(v.getDomain().mul(a));
+				int a = getA(v);
+				domain = domain.add(m.get(v.toString()).mul(a));
 			}
 		}
 		return domain;
@@ -174,6 +172,37 @@ public class LinearExpression {
 		return equals((LinearExpression)obj);
 	}
 
+	@Override
+	public int compareTo(Expression x) {
+		if (x == null)
+			return 1;
+		if (x instanceof Atom)
+			return 1;
+		if (x instanceof Sequence)
+			return -1;
+		if (this.equals(x))
+			return 0;
+		LinearExpression another = (LinearExpression)x;
+		if (coef.size() < another.coef.size())
+			return -1;
+		if (coef.size() > another.coef.size())
+			return 1;
+		Iterator<Atom> it1 = coef.keySet().iterator();
+		Iterator<Atom> it2 = coef.keySet().iterator();
+		while(it1.hasNext()) {
+			assert(it2.hasNext());
+			Atom v1 = it1.next();
+			Atom v2 = it2.next();
+			int cv = v1.compareTo(v2);
+			if (cv != 0)
+				return cv;
+			int ca = getA(v1).compareTo(another.getA(v2));
+			if (ca != 0)
+				return ca;
+		}
+		return ((Integer)b).compareTo(another.b);
+	}
+
 	/**
 	 * Returns the hash code of the linear expression.
 	 * @return the hash code
@@ -183,7 +212,7 @@ public class LinearExpression {
 		final int PRIME = 31;
 		int result = 1;
 		result = PRIME * result + ((coef == null) ? 0 : coef.hashCode());
-		result = PRIME * result + b.integerValue();
+		result = PRIME * result + b;
 		return result;
 	}
 
@@ -192,9 +221,9 @@ public class LinearExpression {
 		StringBuilder sb = new StringBuilder();
     sb.append("(add ");
 		for (Atom v : coef.keySet()) {
-			Atom c = getA(v);
-			if (c.integerValue() == 0) {
-			}else if(c.integerValue() == 1) {
+			int c = getA(v);
+			if (c == 0) {
+			}else if(c == 1) {
         sb.append(v.toString());
       }else{
         sb.append("(mul ");
