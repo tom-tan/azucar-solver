@@ -47,8 +47,11 @@ class Simplifier{
 		List<Expression> expressions = parser.parse();
 		Logger.info("parsed " + expressions.size() + " expressions");
 		Logger.status();
+		long start = System.currentTimeMillis();
 		Decomposer dec = new Decomposer();
 		expressions = dec.decompose(expressions);
+		long end = System.currentTimeMillis();
+		System.err.println("Decomposed in "+ (end - start) + " msec");
 		Logger.fine("Converting to clausal form CSP");
 		CSP csp = new CSP();
 		Converter converter = new Converter(csp);
@@ -118,10 +121,15 @@ class Simplifier{
 		}
 		String cspFileName = args[i];
 		String outFileName = args[i+1];
+		long start = System.currentTimeMillis();
 		CSP csp = readCSP(cspFileName);
+		long parsed = System.currentTimeMillis();
+		System.err.println("Parsed in "+ (parsed - start) + " msec");
 		Simplifier simp = new Simplifier(csp);
-		Logger.fine("Simplifing CSP by introducing new Boolean variables");
+		System.err.println("Simplifing CSP by introducing new Boolean variables");
 		simp.simplify();
+		long simpTime = System.currentTimeMillis()-parsed;
+		System.err.println("Simplified in "+ simpTime + " msec");
 		Logger.info("CSP : " + csp.summary());
 		File file = new File(outFileName);
 		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));

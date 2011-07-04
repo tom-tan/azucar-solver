@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
+import jp.ac.kobe_u.cs.sugar.converter.Decomposer;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
 import jp.ac.kobe_u.cs.sugar.csp.Literal;
@@ -43,6 +44,8 @@ class Adjuster{
 		List<Expression> expressions = parser.parse();
 		Logger.info("parsed " + expressions.size() + " expressions");
 		Logger.status();
+		Decomposer dec = new Decomposer();
+		expressions = dec.decompose(expressions);
 		Logger.fine("Converting to clausal form CSP");
 		CSP csp = new CSP();
 		Converter converter = new Converter(csp);
