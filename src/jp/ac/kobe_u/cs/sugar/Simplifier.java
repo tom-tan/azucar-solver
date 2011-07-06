@@ -4,7 +4,7 @@ import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.PrintWriter;
+import java.io.PrintStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -30,8 +30,6 @@ import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
 class Simplifier{
 	public static boolean simplifyAll = true;
-	private static final String BAUX = "_$BS";
-	private int bidx = 0;
 	private CSP csp;
 
 	public Simplifier(CSP csp) {
@@ -60,7 +58,7 @@ class Simplifier{
 		return csp;
 	}
 
-		private List<Clause> simplify(Clause clause) throws SugarException {
+  private List<Clause> simplify(Clause clause) throws SugarException {
 		List<Literal> literals = clause.getLiterals();
 		List<Clause> newClauses = new ArrayList<Clause>();
 		clause = new Clause();
@@ -73,8 +71,7 @@ class Simplifier{
 				if (! simplifyAll && complex == 1) {
 					clause.add(literal);
 				} else {
-					String name = BAUX + Integer.toString(bidx++);
-					BooleanVariable p = new BooleanVariable(name);
+					BooleanVariable p = new BooleanVariable();
 					csp.add(p);
 					Literal posLiteral = new BooleanLiteral(p, false);
 					Literal negLiteral = new BooleanLiteral(p, true);
@@ -91,6 +88,8 @@ class Simplifier{
 	}
 	
 	public void simplify() throws SugarException {
+    BooleanVariable.setPrefix("S");
+    BooleanVariable.setIndex(0);
 		List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause clause : csp.getClauses()) {
 			if (clause.isSimple()) {
@@ -132,12 +131,13 @@ class Simplifier{
 		System.err.println("Simplified in "+ simpTime + " msec");
 		Logger.info("CSP : " + csp.summary());
 		File file = new File(outFileName);
-		PrintWriter pw = new PrintWriter(new BufferedWriter(new FileWriter(file)));
+		PrintStream ps = new PrintStream(file);
 		if (csp.isUnsatisfiable()) {
-			pw.println("(or)");
+			ps.println("(or)");
 		}else{
-			pw.println(csp);
+			csp.output(ps, "");
 		}
-		pw.close();
+		ps.close();
+		long writed = System.currentTimeMillis();
 	}
 }

@@ -12,7 +12,7 @@ import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class IntegerVariable implements Comparable<IntegerVariable> {
-  private static final String AUX_PRE = "$I";
+  private static final String AUX_PRE = "_$I";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
 	private static int auxIntegerVariablesSize = 0;
 	private String name;
@@ -28,7 +28,11 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
   public static void setPrefix(String pre) {
     AUX_NAME_PREFIX = AUX_PRE + pre;
   }
-	
+
+  public static void setIndex(int index) {
+    auxIntegerVariablesSize = 0;
+  }
+
 	public IntegerVariable(String name, IntegerDomain domain) throws SugarException {
 		this.name = name;
 		this.domain = domain;

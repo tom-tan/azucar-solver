@@ -11,7 +11,7 @@ import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class BooleanVariable implements Comparable<BooleanVariable> {
-	private static final String AUX_PRE = "$B";
+	private static final String AUX_PRE = "_$B";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
 	private static int auxBooleanVariablesSize = 0;
 	private String name;
@@ -22,6 +22,10 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 
   public static void setPrefix(String pre) {
     AUX_NAME_PREFIX = AUX_PRE + pre;
+  }
+
+  public static void setIndex(int index) {
+    auxBooleanVariablesSize = 0;
   }
 
 	/**

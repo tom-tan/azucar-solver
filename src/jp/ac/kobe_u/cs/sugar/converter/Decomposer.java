@@ -119,28 +119,42 @@ public class Decomposer {
 			return;
 		} else if (seq.matches("WWS")) {
 			name = seq.get(1).stringValue();
-      domainExp = (Sequence)seq.get(2);
+			domainExp = (Sequence)seq.get(2);
 			SortedSet<Integer> d = new TreeSet<Integer>();
 			Sequence x = (Sequence)seq.get(2);
-			for (int i = 0; i < x.length(); i++) {
-				if (x.get(i).isInteger()) {
-					d.add(x.get(i).integerValue());
-				} else 	if (x.get(i).isSequence()) {
-					Sequence seq1 = (Sequence)x.get(i);
-					if (seq1.matches("II")) {
-						int value0 = ((Sequence)x.get(i)).get(0).integerValue();
-						int value1 = ((Sequence)x.get(i)).get(1).integerValue();
-						for (int value = value0; value <= value1; value++) {
-							d.add(value);
-						}
-					} else {
-						throw new SugarException("Bad definition " + seq);
-					}
-				} else {
-					throw new SugarException("Bad definition " + seq);
-				}
-			}
-			domain = new IntegerDomain(d);
+      if (x.length() == 1) {
+        Sequence seq1 = (Sequence)x.get(0);
+        if (seq1.matches("II")) {
+          int lb = seq1.get(0).integerValue();
+          int ub = seq1.get(1).integerValue();
+          Expression[] exps = {Expression.create(lb),
+                               Expression.create(ub)};
+          domainExp = Expression.create(Expression.create(exps));
+          domain = new IntegerDomain(lb, ub);
+        } else {
+          throw new SugarException("Bad definition " + seq);
+        }
+      }else{
+        for (int i = 0; i < x.length(); i++) {
+          if (x.get(i).isInteger()) {
+            d.add(x.get(i).integerValue());
+          } else 	if (x.get(i).isSequence()) {
+            Sequence seq1 = (Sequence)x.get(i);
+            if (seq1.matches("II")) {
+              int value0 = ((Sequence)x.get(i)).get(0).integerValue();
+              int value1 = ((Sequence)x.get(i)).get(1).integerValue();
+              for (int value = value0; value <= value1; value++) {
+                d.add(value);
+              }
+            } else {
+              throw new SugarException("Bad definition " + seq);
+            }
+          } else {
+            throw new SugarException("Bad definition " + seq);
+          }
+        }
+        domain = new IntegerDomain(d);
+      }
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
