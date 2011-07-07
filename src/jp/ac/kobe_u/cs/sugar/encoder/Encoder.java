@@ -31,8 +31,6 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class Encoder {
-	public static String satSolverName = "minisat2"; 
-
 	public static final int FALSE_CODE = 0;
 
 	public static final int TRUE_CODE = Integer.MIN_VALUE;
@@ -42,10 +40,6 @@ public class Encoder {
 	public static int SAT_BUFFER_SIZE = 4*1024;
 	
 	public static long MAX_SAT_SIZE = 3*1024*1024*1024L;
-	
-	public static boolean OPT_COMPACT = false;
-	
-	public static int BASE = 10;
 	
 	private CSP csp;
 	
@@ -250,30 +244,7 @@ public class Encoder {
 			satFile1.write(getHeader(satVariablesCount, satClausesCount + 1).getBytes());
 		}
 		satFile1.close();
-//		satFileSize = (new File(satFileName)).length();
 	}
-
-	// public void modifySat(String satFileName, int[][] clauses) throws IOException {
-	// 	RandomAccessFile satFile1 = new RandomAccessFile(satFileName, "rw");
-	// 	satFile1.seek(satFileSize);
-	// 	for (int[] clause : clauses) {
-	// 		for (int code : clause) {
-	// 			satFile1.write(Integer.toString(code).getBytes());
-	// 			satFile1.write(' ');
-	// 		}
-	// 		satFile1.write('0');
-	// 		satFile1.write('\n');
-	// 	}
-	// 	satFile1.seek(0);
-	// 	int n = clauses.length;
-	// 	satFile1.write(getHeader(satVariablesCount, satClausesCount+n).getBytes());
-	// 	satFile1.close();
-	// }
-	
-	// public void modifySat(String satFileName, int[] clause) throws IOException {
-	// 	int[][] clauses = { clause };
-	// 	modifySat(satFileName, clauses);
-	// }
 
 	public void outputMap(String mapFileName) throws SugarException, IOException {
 		BufferedWriter mapWriter = new BufferedWriter(
@@ -318,37 +289,6 @@ public class Encoder {
 //		mapFile.close();
 		mapWriter.close();
 	}
-
-	/*
-	public void solveSAT() throws IOException, InterruptedException {
-		File outFile = new File(outFileName);
-		if (outFile.exists()) {
-			outFile.delete();
-		}
-		String[] command = { satSolverName, satFileName, outFileName };
-		SugarMain.log(satSolverName + " " + satFileName + " " + outFileName);
-		Process process = Runtime.getRuntime().exec(command);
-		BufferedReader stdout = new BufferedReader(
-				new InputStreamReader(process.getInputStream()));
-		BufferedReader stderr = new BufferedReader(
-				new InputStreamReader(process.getErrorStream()));
-		while (true) {
-			String line = stderr.readLine();
-			if (line == null)
-				break;
-			SugarMain.log(line);
-		}
-		stderr.close();
-		while (true) {
-			String line = stdout.readLine();
-			if (line == null)
-				break;
-			SugarMain.log(line);
-		}
-		stdout.close();
-		process.waitFor();
-	}
-	*/
 
 	public boolean decode(String outFileName) throws SugarException, IOException {
 		String result = null;
