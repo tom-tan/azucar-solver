@@ -163,6 +163,22 @@ public class Encoder {
 		return s.toString();
 	}
 
+  public void encode(IntegerVariable ivar) {
+    ivar.encode(this);
+  }
+
+  public void encode(Clause cl) {
+    cl.encode(this);
+  }
+
+  public int getSatVariablesSize(IntegerVariable ivar) {
+    return ivar.getSatVariablesSize();
+  }
+
+  public int getSatVariablesSize(BooleanVariable bvar) {
+    return bvar.getSatVariablesSize();
+  }
+
 	public void encode(String satFileName, boolean incremental) throws SugarException, IOException {
 		satFileSize = 0;
 		if (USE_NEWIO) {
@@ -178,19 +194,19 @@ public class Encoder {
 		satClausesCount = 0;
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			v.setCode(satVariablesCount + 1);
-			int size = v.getSatVariablesSize();
+			int size = getSatVariablesSize(v);
 			satVariablesCount += size;
 		}
 		for (BooleanVariable v : csp.getBooleanVariables()) {
 			v.setCode(satVariablesCount + 1);
-			int size = v.getSatVariablesSize();
+			int size = getSatVariablesSize(v);
 			satVariablesCount += size;
 		}
 		int count = 0;
 		int n = csp.getIntegerVariables().size();
 		int percent = 10;
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-			v.encode(this);
+      encode(v);
 			count++;
 			if ((100*count)/n >= percent) {
 				Logger.fine(count + " (" + percent + "%) "
@@ -208,7 +224,7 @@ public class Encoder {
 		for (Clause c : csp.getClauses()) {
 			int satClausesCount0 = satClausesCount;
 			if (! c.isValid()) {
-				c.encode(this);
+				encode(c);
 			}
 			count++;
 			if (SugarMain.debug >= 1) {
