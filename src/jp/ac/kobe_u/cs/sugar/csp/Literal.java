@@ -32,20 +32,4 @@ public abstract class Literal {
 	public abstract boolean isValid() throws SugarException;
 	
 	public abstract boolean isUnsatisfiable() throws SugarException;
-
-	public int getCode() throws SugarException {
-		throw new SugarException("Internal error " + toString()); 
-	}
-
-	public abstract void encode(AbstractEncoder encoder, int[] clause)
-	throws SugarException, IOException;
-
-	protected int[] expand(int[] clause0, int n) {
-		int[] clause = new int[clause0.length + n];
-		for (int i = 0; i < clause0.length; i++) {
-			clause[i + n] = clause0[i];
-		}
-		return clause;
-	}
-
 }

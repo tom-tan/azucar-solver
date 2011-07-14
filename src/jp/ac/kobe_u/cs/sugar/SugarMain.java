@@ -110,12 +110,12 @@ public class SugarMain {
 		converter.convert(expressions);
 		Logger.fine("CSP : " + csp.summary());
 		// csp.output(System.out, "c ");
-		// if (propagate) {
-		// 	Logger.status();
-		// 	Logger.fine("Propagation in CSP");
-		// 	csp.propagate();
-		// 	Logger.fine("CSP : " + csp.summary());
-		// }
+		if (propagate) {
+			Logger.status();
+			Logger.fine("Propagation in CSP");
+			csp.propagate();
+			Logger.fine("CSP : " + csp.summary());
+		}
 		// csp.output(System.out, "c ");
 		Logger.status();
 		if (csp.isUnsatisfiable()) {
@@ -147,7 +147,6 @@ public class SugarMain {
 				Logger.fine("Encoding CSP to SAT : " + satFileName);
 				Encoder encoder = new Encoder(csp);
         encoder.reduce();
-        System.out.println(csp);
 				encoder.encode(satFileName, incremental);
 				Logger.fine("Writing map file : " + mapFileName);
 				encoder.outputMap(mapFileName);
@@ -170,30 +169,50 @@ public class SugarMain {
 				break;
 			String[] s = line.split("\\s+");
 			if (s[0].equals("objective")) {
+        // multi-objective にするなら要変更
 				if (s[1].equals(SugarConstants.MINIMIZE)) {
 					csp.setObjective(CSP.Objective.MINIMIZE);
 				} else if (s[1].equals(SugarConstants.MAXIMIZE)) {
 					csp.setObjective(CSP.Objective.MAXIMIZE);
 				}
 				objectiveVariableName = s[2];
+      } else if (s[0].equals("bases")) {
+        List<Integer> bases = new ArrayList<Integer>();
+        for (int i=1; i<s.length ; i++) {
+          bases.add(Integer.parseInt(s[i]));
+        }
+        csp.setBases(bases);
+      } else if (s[0].equals("bigint")) {
+        String name = s[1];
+        int offset = Integer.parseInt(s[2]);
+        List<IntegerVariable> digits = new ArrayList<IntegerVariable>();
+        for (int i=3; i<s.length ; i++) {
+          IntegerVariable di = csp.getIntegerVariable(s[i]);
+          assert(di != null);
+          digits.add(di);
+        }
+        IntegerVariable v = new IntegerVariable(name, digits);
+        v.setOffset(offset);
+        csp.add(v);
 			} else if (s[0].equals("int")) {
 				String name = s[1];
-				int code = Integer.parseInt(s[2]);
+        int offset = Integer.parseInt(s[2]);
+				int code = Integer.parseInt(s[3]);
 				IntegerDomain domain = null;
-				if (s.length == 4) {
+				if (s.length == 5) {
 					int lb;
 					int ub;
-					int pos = s[3].indexOf("..");
+					int pos = s[4].indexOf("..");
 					if (pos < 0) {
-						lb = ub = Integer.parseInt(s[3]);
+						lb = ub = Integer.parseInt(s[4]);
 					} else {
-						lb = Integer.parseInt(s[3].substring(0, pos));
-						ub = Integer.parseInt(s[3].substring(pos+2));
+						lb = Integer.parseInt(s[4].substring(0, pos));
+						ub = Integer.parseInt(s[4].substring(pos+2));
 					}
 					domain = new IntegerDomain(lb, ub);
 				} else {
 					SortedSet<Integer> d = new TreeSet<Integer>();
-					for (int i = 3; i < s.length; i++) {
+					for (int i = 4; i < s.length; i++) {
 						int lb;
 						int ub;
 						int pos = s[i].indexOf("..");
@@ -210,6 +229,7 @@ public class SugarMain {
 					domain = new IntegerDomain(d);
 				}
 				IntegerVariable v = new IntegerVariable(name, domain);
+        v.setOffset(offset);
 				v.setCode(code);
 				csp.add(v);
 				if (name.equals(objectiveVariableName)) {

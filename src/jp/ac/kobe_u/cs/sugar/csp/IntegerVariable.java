@@ -2,9 +2,10 @@ package jp.ac.kobe_u.cs.sugar.csp;
 
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
+
 
 /**
  * This class implements an integer variable of CSP.
@@ -23,7 +24,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	private int code;
 	private int value;
 	private int offset;
-	private IntegerVariable[] vs = null;
+  private boolean isDigit_;
+	private List<IntegerVariable> vs = null;
 
   public static void setPrefix(String pre) {
     AUX_NAME_PREFIX = AUX_PRE + pre;
@@ -47,6 +49,11 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		this(AUX_NAME_PREFIX + (++auxIntegerVariablesSize), domain);
 		aux = true;
 	}
+
+  public IntegerVariable(String name, List<IntegerVariable> digits) {
+    this.name = name;
+    vs = digits;
+  }
 
 	/**
 	 * Returns the name of the integer variable. 
@@ -157,78 +164,17 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		return domain.isEmpty();
 	}
 
-	public int getSatVariablesSize() {
-		if (vs != null)
-			return 0;
-		return domain.size() - 1;
-	}
+  public List<IntegerVariable> getDigits() {
+    return vs;
+  }
 
-	public int getCodeLE(int value) {
-		if (value < domain.getLowerBound()) {
-			return AbstractEncoder.FALSE_CODE;
-		} else if (value >= domain.getUpperBound()) {
-			return AbstractEncoder.TRUE_CODE;
-		}
-		return code + domain.sizeLE(value) - 1;
-	}
+  public void setDigits(List<IntegerVariable> ds) {
+    vs = ds;
+  }
 
-	public int getCodeLE(int a, int b) {
-		int code;
-		if (a >= 0) {
-//			int c = (int) Math.floor((double) b / a);
-			int c;
-			if (b >= 0) {
-				c = b/a;
-			} else {
-				c = (b-a+1)/a;
-			}
-			code = getCodeLE(c);
-		} else {
-//			int c = (int) Math.ceil((double) b / a) - 1;
-			int c;
-			if (b >= 0) {
-				c = b/a - 1;
-			} else {
-				c = (b+a+1)/a - 1;
-			}
-			code = AbstractEncoder.negateCode(getCodeLE(c));
-		}
-		return code;
-	}
-
-	public void encode(AbstractEncoder encoder) throws IOException {
-		encoder.writeComment(toString());
-		if (vs == null) {
-			int[] clause = new int[2];
-			int a0 = domain.getLowerBound();
-			for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
-				if (domain.contains(a)) {
-					clause[0] = AbstractEncoder.negateCode(getCodeLE(a0));
-					clause[1] = getCodeLE(a);
-					encoder.writeClause(clause);
-					a0 = a;
-				}
-			}
-		} else {
-			
-		}
-	}
-
-	public void decode(BitSet satValues) {
-		int lb = domain.getLowerBound();
-		int ub = domain.getUpperBound();
-		int code = getCode();
-		value = ub;
-		for (int c = lb; c < ub; c++) {
-			if (domain.contains(c)) {
-				if (satValues.get(code)) {
-					value = c;
-					break;
-				}
-				code++;
-			}
-		}
-	}
+  public boolean isDigit() {
+    return isDigit_;
+  }
 
 	public int compareTo(IntegerVariable v) {
 		if (this == v)

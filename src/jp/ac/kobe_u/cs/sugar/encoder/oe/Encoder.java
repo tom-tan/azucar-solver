@@ -1,20 +1,9 @@
 package jp.ac.kobe_u.cs.sugar.encoder.oe;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.RandomAccessFile;
-import java.io.StreamTokenizer;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
@@ -29,6 +18,7 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
+import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 
 /**
@@ -41,13 +31,185 @@ public class Encoder extends AbstractEncoder{
     super(csp);
 	}
 
-  public void encode(IntegerVariable ivar)throws SugarException, IOException{
-    ivar.encode(this);
+  @Override
+  protected int getCode(LinearLiteral lit) throws SugarException {
+		if (! lit.isSimple()) {
+			throw new SugarException("Internal error " + lit.toString()); 
+		}
+		if (lit.getOperator() == Operator.EQ ||
+        lit.getOperator() == Operator.NE) {
+			throw new SugarException("Internal error " + lit.toString()); 
+		}
+    LinearSum ls = lit.getLinearExpression();
+		int b = ls.getB();
+		int code;
+		if (ls.size() == 0) {
+			code = (b <= 0) ? TRUE_CODE : FALSE_CODE;
+		} else {
+			IntegerVariable v = ls.getCoef().firstKey();
+			int a = ls.getA(v);
+			code = getCodeLE(v, a, -b);
+		}
+		return code;
+	}
+
+	protected int getCodeLE(IntegerVariable var, int value) {
+    IntegerDomain domain = var.getDomain();
+		if (value < domain.getLowerBound()) {
+			return FALSE_CODE;
+		} else if (value >= domain.getUpperBound()) {
+			return TRUE_CODE;
+		}
+		return var.getCode() + sizeLE(domain, value) - 1;
+	}
+
+  private int sizeLE(IntegerDomain d, int value) {
+		if (value < d.getLowerBound())
+			return 0;
+		if (value >= d.getUpperBound())
+			return d.size();
+		if (d.isContiguous()) {
+			return value - d.getLowerBound() + 1;
+		} else {
+			return d.headSet(value + 1).size();
+		}
+	}
+
+
+	@Override
+  protected void encode(IntegerVariable ivar)throws SugarException, IOException{
+		writeComment(ivar.toString());
+		if (ivar.getDigits() == null) {
+      IntegerDomain domain = ivar.getDomain();
+			int[] clause = new int[2];
+			int a0 = domain.getLowerBound();
+			for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
+				if (domain.contains(a)) {
+					clause[0] = negateCode(getCodeLE(ivar, a0));
+					clause[1] = getCodeLE(ivar, a);
+					writeClause(clause);
+					a0 = a;
+				}
+			}
+		} else {
+			throw new SugarException("Internal Error");
+		}
   }
 
-  public void encode(Clause cl)throws SugarException, IOException{
-    cl.encode(this);
-  }
+	/*
+	 * a1*v1+a2*v2+a3*v3+b <= 0
+	 * <--> v1>=c1 -> a2*v2+a3*v3+b+a1*c1 <= 0 (when a1>0)
+	 *      v1<=c1 -> a2*v2+a3*v3+b+a1*c1 <= 0 (when a1<0)
+	 * <--> v1>=c1 -> v2>=c2 -> a3*v3+b+a1*c1+a2*c2<= 0 (when a1>0, a2>0)
+	 * 
+	 */
+	protected void encode(LinearSum ls, IntegerVariable[] vs, int i, int s, int[] clause)
+		throws IOException, SugarException {
+		if (i >= vs.length - 1) {
+			int a = ls.getA(vs[i]);
+			// encoder.writeComment(a + "*" + vs[i].getName() + " <= " + (-s));
+			clause[i] = getCodeLE(vs[i], a, -s);
+			writeClause(clause);
+		} else {
+			int lb0 = s;
+			int ub0 = s;
+			for (int j = i + 1; j < vs.length; j++) {
+				int a = ls.getA(vs[j]); 
+				if (a > 0) {
+					lb0 += a * vs[j].getDomain().getLowerBound();
+					ub0 += a * vs[j].getDomain().getUpperBound();
+				} else {
+					lb0 += a * vs[j].getDomain().getUpperBound();
+					ub0 += a * vs[j].getDomain().getLowerBound();
+				}
+			}
+			int a = ls.getA(vs[i]);
+			IntegerDomain domain = vs[i].getDomain();
+			int lb = domain.getLowerBound();
+			int ub = domain.getUpperBound();
+			if (a >= 0) {
+				// ub = Math.min(ub, (int)Math.floor(-(double)lb0 / a));
+				if (-lb0 >= 0) {
+					ub = Math.min(ub, -lb0/a);
+				} else {
+					ub = Math.min(ub, (-lb0-a+1)/a);
+				}
+				// XXX
+				Iterator<Integer> iter = domain.values(lb, ub); 
+				while (iter.hasNext()) {
+					int c = iter.next();
+					// vs[i]>=c -> ...
+					// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
+					clause[i] = getCodeLE(vs[i], c - 1);
+					encode(ls, vs, i+1, s+a*c, clause);
+				}
+				clause[i] = getCodeLE(vs[i], ub);
+				encode(ls, vs, i+1, s+a*(ub+1), clause);
+			} else {
+				// lb = Math.max(lb, (int)Math.ceil(-(double)lb0/a));
+				if (-lb0 >= 0) {
+					lb = Math.max(lb, -lb0/a);
+				} else {
+					lb = Math.max(lb, (-lb0+a+1)/a);
+				}
+				// XXX
+				clause[i] = negateCode(getCodeLE(vs[i], lb - 1));
+				encode(ls, vs, i+1, s+a*(lb-1), clause);
+				Iterator<Integer> iter = domain.values(lb, ub); 
+				while (iter.hasNext()) {
+					int c = iter.next();
+					// vs[i]<=c -> ...
+					clause[i] = negateCode(getCodeLE(vs[i], c));
+					encode(ls, vs, i+1, s+a*c, clause);
+				}
+			}
+		}
+	}
+	
+	@Override
+    protected void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
+		if (lit.getOperator() == Operator.EQ
+        || lit.getOperator() == Operator.NE) {
+			throw new SugarException("Internal error " + lit.toString());
+		}
+		if (lit.isValid()) {
+		} if (lit.isSimple()) {
+			clause = expand(clause, 1);
+			clause[0] = getCode(lit);
+			writeClause(clause);
+		} else {
+      LinearSum ls = lit.getLinearExpression();
+			IntegerVariable[] vs = lit.getLinearExpression().getVariablesSorted();
+			int n = ls.size();
+			clause = expand(clause, n);
+			encode(ls, vs, 0, lit.getLinearExpression().getB(), clause);
+		}
+	}
+
+
+	public int getCodeLE(IntegerVariable v, int a, int b) {
+		int code;
+		if (a >= 0) {
+//			int c = (int) Math.floor((double) b / a);
+			int c;
+			if (b >= 0) {
+				c = b/a;
+			} else {
+				c = (b-a+1)/a;
+			}
+			code = getCodeLE(v, c);
+		} else {
+//			int c = (int) Math.ceil((double) b / a) - 1;
+			int c;
+			if (b >= 0) {
+				c = b/a - 1;
+			} else {
+				c = (b+a+1)/a - 1;
+			}
+			code = negateCode(getCodeLE(v, c));
+		}
+		return code;
+	}
 
   /**
    * 符号化しやすい節に還元する．
@@ -57,6 +219,7 @@ public class Encoder extends AbstractEncoder{
    * 2. TODO LinearLiteral 中の整数変数の数を制限する．
    *  (Not implemented)
    **/
+	@Override
   public void reduce()throws SugarException{
     final String AUX_PREFIX = "R";
     BooleanVariable.setPrefix(AUX_PREFIX);
@@ -117,116 +280,31 @@ public class Encoder extends AbstractEncoder{
     csp.setClauses(newClauses);
   }
 
-	public void outputMap(String mapFileName) throws SugarException, IOException {
-		BufferedWriter mapWriter = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(mapFileName), "UTF-8"));
-//		BufferedOutputStream mapFile =
-//			new BufferedOutputStream(new FileOutputStream(mapFileName));
-		if (csp.getObjectiveVariable() != null) {
-			String s = "objective ";
-			if (csp.getObjective().equals(CSP.Objective.MINIMIZE)) {
-				s += SugarConstants.MINIMIZE;
-			} else if (csp.getObjective().equals(CSP.Objective.MAXIMIZE)) {
-				s += SugarConstants.MAXIMIZE;
-			}
-			s += " " + csp.getObjectiveVariable().getName();
-//			mapFile.write(s.getBytes());
-//			mapFile.write('\n');
-			mapWriter.write(s);
-			mapWriter.write('\n');
-		}
-		for (IntegerVariable v : csp.getIntegerVariables()) {
-			if (! v.isAux() || SugarMain.debug > 0) {
-				int code = v.getCode();
-				StringBuilder sb = new StringBuilder();
-				sb.append("int " + v.getName() + " " + code + " ");
-				v.getDomain().appendValues(sb);
-//				mapFile.write(sb.toString().getBytes());
-//				mapFile.write('\n');
-				mapWriter.write(sb.toString());
-				mapWriter.write('\n');
+  @Override
+	protected void decode(IntegerVariable v, BitSet satValues) {
+    assert(v.getDigits() == null);
+    assert(!v.isDigit());
+		IntegerDomain domain = v.getDomain();
+		int lb = domain.getLowerBound();
+		int ub = domain.getUpperBound();
+		int code = v.getCode();
+		v.setValue(ub);
+		for (int c = lb; c < ub; c++) {
+			if (domain.contains(c)) {
+				if (satValues.get(code)) {
+					v.setValue(c);
+					break;
+				}
+				code++;
 			}
 		}
-		for (BooleanVariable v : csp.getBooleanVariables()) {
-			if (! v.isAux() || SugarMain.debug > 0) {
-				int code = v.getCode();
-				String s = "bool " + v.getName() + " " + code;
-//				mapFile.write(s.getBytes());
-//				mapFile.write('\n');
-				mapWriter.write(s);
-				mapWriter.write('\n');
-			}
-		}
-//		mapFile.close();
-		mapWriter.close();
+    v.setValue(v.getValue()+v.getOffset());
 	}
 
-	public boolean decode(String outFileName) throws SugarException, IOException {
-		String result = null;
-		boolean sat = false;
-		BufferedReader rd = new BufferedReader(new FileReader(outFileName));
-		StreamTokenizer st = new StreamTokenizer(rd);
-		st.eolIsSignificant(true);
-		while (result == null) {
-			st.nextToken();
-			if (st.ttype == StreamTokenizer.TT_WORD) {
-				if (st.sval.equals("c")) {
-					do {
-						st.nextToken();
-					} while (st.ttype != StreamTokenizer.TT_EOL);
-				} else if (st.sval.equals("s")) {
-					st.nextToken();
-					result = st.sval;
-				} else {
-					result = st.sval;
-				}
-			} else {
-				throw new SugarException("Unknown output " + st.sval);
-			}
-		} 
-		if (result.startsWith("SAT")) {
-			sat = true;
-			BitSet satValues = new BitSet();
-			while (true) {
-				st.nextToken();
-				if (st.ttype == StreamTokenizer.TT_EOF)
-					break;
-				switch (st.ttype) {
-				case StreamTokenizer.TT_EOL:
-					break;
-				case StreamTokenizer.TT_WORD:
-					if (st.sval.equals("v")) {
-					} else if (st.sval.equals("c")) {
-						do {
-							st.nextToken();
-						} while (st.ttype != StreamTokenizer.TT_EOL);
-					} else {
-						throw new SugarException("Unknown output " + st.sval);
-					}
-					break;
-				case StreamTokenizer.TT_NUMBER:
-					int value = (int)st.nval;
-					int i = Math.abs(value);
-					if (i > 0) {
-						satValues.set(i, value > 0);
-					}
-					break;
-				default:
-					throw new SugarException("Unknown output " + st.sval);
-				}
-			}
-			for (IntegerVariable v : csp.getIntegerVariables()) {
-				v.decode(satValues);
-			}
-			for (BooleanVariable v : csp.getBooleanVariables()) {
-				v.decode(satValues);
-			}
-		} else if (result.startsWith("UNSAT")) {
-			sat = false;
-		} else {
-			throw new SugarException("Unknown output result " + result);
-		}
-		rd.close();
-		return sat;
-	}
+  @Override
+  protected int getSatVariablesSize(IntegerVariable v) {
+    if (v.getDigits() != null)
+      return 0;
+    return v.getDomain().size()-1;
+  }
 }

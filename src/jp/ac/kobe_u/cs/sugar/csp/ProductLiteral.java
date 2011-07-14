@@ -40,11 +40,6 @@ public class ProductLiteral extends Literal {
 	}
 	
 	@Override
-	public void encode(AbstractEncoder encoder, int[] clause) throws SugarException, IOException {
-		// TODO encode
-	}
-
-	@Override
 	public boolean isSimple() {
 		return false;
 	}

@@ -59,19 +59,6 @@ public class BooleanLiteral extends Literal {
 	public boolean isUnsatisfiable() throws SugarException {
 		return false;
 	}
-	
-	@Override
-	public int getCode() {
-		int code = v.getCode();
-		return negative ? -code : code;
-	}
-
-	@Override
-	public void encode(AbstractEncoder encoder, int[] clause) throws SugarException, IOException {
-		clause = expand(clause, 1);
-		clause[0] = getCode();
-		encoder.writeClause(clause);
-	}
 
 	/**
 	 * Returns the string representation of the boolean literal.

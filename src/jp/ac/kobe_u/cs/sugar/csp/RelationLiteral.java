@@ -269,23 +269,24 @@ public class RelationLiteral extends Literal {
 		List<Brick> bricks = combineBricks(0, null, tuple);
 		return bricks;
 	}
-	
-	@Override
-	public void encode(AbstractEncoder encoder, int[] clause0) throws SugarException, IOException {
-		int[] clause = new int[2*arity + clause0.length];
-		for (int i = 0; i < clause0.length; i++) {
-			clause[2*arity + i] = clause0[i];
-		}
-		List<Brick> bricks = getConflictBricks();
-		for (Brick brick : bricks) {
-			for (int i = 0; i < arity; i++) {
-				IntegerVariable v = vs[i];
-				clause[2*i + 0] = v.getCodeLE(brick.lb[i] - 1);
-				clause[2*i + 1] = AbstractEncoder.negateCode(v.getCodeLE(brick.ub[i]));
-			}
-			encoder.writeClause(clause);
-		}
-	}
+
+  // まだ decompose 出来ていない
+	// @Override
+	// public void encode(AbstractEncoder encoder, int[] clause0) throws SugarException, IOException {
+	// 	int[] clause = new int[2*arity + clause0.length];
+	// 	for (int i = 0; i < clause0.length; i++) {
+	// 		clause[2*arity + i] = clause0[i];
+	// 	}
+	// 	List<Brick> bricks = getConflictBricks();
+	// 	for (Brick brick : bricks) {
+	// 		for (int i = 0; i < arity; i++) {
+	// 			IntegerVariable v = vs[i];
+	// 			clause[2*i + 0] = v.getCodeLE(brick.lb[i] - 1);
+	// 			clause[2*i + 1] = AbstractEncoder.negateCode(v.getCodeLE(brick.ub[i]));
+	// 		}
+	// 		encoder.writeClause(clause);
+	// 	}
+	// }
 
 	@Override
 	public String toString() {

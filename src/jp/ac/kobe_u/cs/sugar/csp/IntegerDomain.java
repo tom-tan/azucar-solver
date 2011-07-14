@@ -108,18 +108,6 @@ public class IntegerDomain {
 		}
 	}
 
-	public int sizeLE(int value) {
-		if (value < lb)
-			return 0;
-		if (value >= ub)
-			return size();
-		if (domain == null) {
-			return value - lb + 1;
-		} else {
-			return domain.headSet(value + 1).size();
-		}
-	}
-
 	public IntegerDomain bound(int lb, int ub) throws SugarException {
 		if (lb <= this.lb && this.ub <= ub)
 			return this;
@@ -483,6 +471,10 @@ public class IntegerDomain {
 			}
 		}
 	}
+
+  public SortedSet<Integer> headSet(int value) {
+    return domain.headSet(value);
+  }
 
 	public Expression toExpression() {
 		if (domain == null) {

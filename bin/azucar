@@ -391,6 +391,7 @@ sub load_map {
     open(MAP, "<$map_file") || die;
     while (<MAP>) {
 	chomp;
+  # multi-objective にするなら要変更
 	if (/^objective/) {
 	    split;
 	    ($objective, $objective_var) = ($_[1], $_[2]);

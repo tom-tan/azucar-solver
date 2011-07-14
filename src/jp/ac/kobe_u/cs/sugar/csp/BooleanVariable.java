@@ -107,17 +107,6 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 		this.value = value;
 	}
 
-	public int getSatVariablesSize() {
-		return 1;
-	}
-
-	public void encode(AbstractEncoder encoder) {
-	}
-
-	public void decode(BitSet satValues) {
-		setValue(satValues.get(getCode()));
-	}
-
 	public int compareTo(BooleanVariable v) {
 		if (this == v)
 			return 0;

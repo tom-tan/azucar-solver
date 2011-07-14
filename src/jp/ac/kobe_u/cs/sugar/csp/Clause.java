@@ -243,37 +243,6 @@ public class Clause {
 		return count;
 	}
 
-	public void encode(AbstractEncoder encoder) throws SugarException, IOException {
-		if (! isSimple()) {
-			throw new SugarException("Cannot encode non-simple clause " + toString());
-		}
-		encoder.writeComment(toString());
-		if (isValid()) {
-			return;
-		}
-		int[] clause = new int[simpleSize()];
-		Literal lit = null;
-		int i = 0;
-    for (Literal literal : boolLiterals) {
-      assert(literal.isSimple());
-      clause[i] = literal.getCode();
-      i++;
-    }
-		for (Literal literal : arithLiterals) {
-			if (literal.isSimple()) {
-				clause[i] = literal.getCode();
-				i++;
-			} else {
-				lit = literal;
-			}
-		}
-		if (lit == null) {
-			encoder.writeClause(clause);
-		} else {
-			lit.encode(encoder, clause);
-		}
-	}
-
 	/**
 	 * Returns the string representation of the clause.
 	 * @return the string representation

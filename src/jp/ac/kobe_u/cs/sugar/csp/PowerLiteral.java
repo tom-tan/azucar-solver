@@ -36,11 +36,6 @@ public class PowerLiteral extends Literal {
 	}
 	
 	@Override
-	public void encode(AbstractEncoder encoder, int[] clause) throws SugarException, IOException {
-		// TODO encode
-	}
-
-	@Override
 	public String toString() {
 		// TODO toString
 		String s = "(power)";
