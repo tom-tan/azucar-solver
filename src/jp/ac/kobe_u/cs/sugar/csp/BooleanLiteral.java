@@ -1,9 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.io.IOException;
-
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This class implements a boolean literal of CSP.
@@ -24,7 +21,7 @@ public class BooleanLiteral extends Literal {
 		this.v = v;
 		this.negative = negative;
 	}
-	
+
 	/**
 	 * Always returns true since boolean literals are simple.
 	 * @return always true
@@ -33,7 +30,7 @@ public class BooleanLiteral extends Literal {
 	public boolean isSimple() {
 		return true;
 	}
-	
+
 	/**
 	 * Returns the boolean variable of CSP.
 	 * @return the boolean variable
@@ -41,7 +38,7 @@ public class BooleanLiteral extends Literal {
 	public BooleanVariable getBooleanVariable() {
 		return v;
 	}
-	
+
 	/**
 	 * Returns the negative flag of the boolean literal.
 	 * @return the negative flag
@@ -54,7 +51,7 @@ public class BooleanLiteral extends Literal {
 	public boolean isValid() throws SugarException {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isUnsatisfiable() throws SugarException {
 		return false;
@@ -72,5 +69,4 @@ public class BooleanLiteral extends Literal {
 		}
 		return s;
 	}
-
 }

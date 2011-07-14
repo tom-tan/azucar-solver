@@ -3,7 +3,6 @@ package jp.ac.kobe_u.cs.sugar.encoder;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -15,6 +14,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.BitSet;
 import java.util.List;
+import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
@@ -26,7 +26,6 @@ import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
-import jp.ac.kobe_u.cs.sugar.csp.Literal;
 
 /**
  * Encoder encodes CSP into SAT.
@@ -60,6 +59,13 @@ public abstract class AbstractEncoder {
 	
 	private long satFileSize = 0;
 
+	protected abstract int getCode(LinearLiteral lit) throws SugarException;
+	protected abstract void encode(IntegerVariable v) throws SugarException, IOException;
+	protected abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
+	protected abstract int getSatVariablesSize(IntegerVariable ivar);
+	protected abstract void decode(IntegerVariable v, BitSet satValues);
+	public abstract void reduce() throws SugarException;
+
 	public static int negateCode(int code) {
 		if (code == FALSE_CODE) {
 			code = TRUE_CODE;
@@ -83,11 +89,10 @@ public abstract class AbstractEncoder {
 		return satFileSize;
 	}
 
-  protected int getCode(BooleanLiteral lit)throws SugarException{
+	protected int getCode(BooleanLiteral lit) throws SugarException {
 		int code = lit.getBooleanVariable().getCode();
 		return lit.getNegative() ? -code : code;
-  }
-  protected abstract int getCode(LinearLiteral lit)throws SugarException;
+	}
 
 	public String getHeader(int numOfVariables, int numOfClauses) throws UnsupportedEncodingException {
 		int n = 64;
@@ -103,9 +108,7 @@ public abstract class AbstractEncoder {
 		return s.toString();
 	}
 
-  protected abstract void encode(IntegerVariable v) throws SugarException, IOException;
-
-  protected void encode(Clause cl) throws SugarException, IOException{
+	protected void encode(Clause cl) throws SugarException, IOException {
 		if (! cl.isSimple()) {
 			throw new SugarException("Cannot encode non-simple clause " + cl.toString());
 		}
@@ -116,11 +119,11 @@ public abstract class AbstractEncoder {
 		int[] clause = new int[cl.simpleSize()];
 		LinearLiteral lit = null;
 		int i = 0;
-    for (BooleanLiteral literal : cl.getBooleanLiterals()) {
-      assert(literal.isSimple());
-      clause[i] = getCode(literal);
-      i++;
-    }
+		for (BooleanLiteral literal : cl.getBooleanLiterals()) {
+			assert(literal.isSimple());
+			clause[i] = getCode(literal);
+			i++;
+		}
 		for (LinearLiteral literal : cl.getArithmeticLiterals()) {
 			if (literal.isSimple()) {
 				clause[i] = getCode(literal);
@@ -134,23 +137,18 @@ public abstract class AbstractEncoder {
 		} else {
 			encode(lit, clause);
 		}
-  }
+	}
 
-  protected abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
-
-	protected void encode(BooleanVariable v) {}
+	protected void encode(BooleanVariable v) {
+	}
 
 	protected void decode(BooleanVariable v, BitSet satValues) {
 		v.setValue(satValues.get(v.getCode()));
 	}
 
-  protected abstract int getSatVariablesSize(IntegerVariable ivar);
-
-  protected int getSatVariablesSize(BooleanVariable bvar) {
-    return 1;
-  }
-
-  public abstract void reduce()throws SugarException;
+	protected int getSatVariablesSize(BooleanVariable bvar) {
+		return 1;
+	}
 
 	public void encode(String satFileName, boolean incremental) throws SugarException, IOException {
 		satFileSize = 0;
@@ -179,7 +177,7 @@ public abstract class AbstractEncoder {
 		int n = csp.getIntegerVariables().size();
 		int percent = 10;
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-      encode(v);
+			encode(v);
 			count++;
 			if ((100*count)/n >= percent) {
 				Logger.fine(count + " (" + percent + "%) "
@@ -229,20 +227,20 @@ public abstract class AbstractEncoder {
 		satFile1.close();
 	}
 
-  public void outputMap(String mapFileName) throws SugarException, IOException {
+	public void outputMap(String mapFileName) throws SugarException, IOException {
 		BufferedWriter mapWriter = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(mapFileName), "UTF-8"));
-    if (!csp.getBases().isEmpty()) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("bases");
-      for (int base : csp.getBases()) {
-        sb.append(" "+base);
-      }
+		if (!csp.getBases().isEmpty()) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("bases");
+			for (int base : csp.getBases()) {
+				sb.append(" "+base);
+			}
 			mapWriter.write(sb.toString());
 			mapWriter.write('\n');
-    }
+		}
 		if (csp.getObjectiveVariable() != null) {
-      // muli-objective にするには変更が必要
+			// muli-objective にするには変更が必要
 			String s = "objective ";
 			if (csp.getObjective().equals(CSP.Objective.MINIMIZE)) {
 				s += SugarConstants.MINIMIZE;
@@ -253,24 +251,31 @@ public abstract class AbstractEncoder {
 			mapWriter.write(s);
 			mapWriter.write('\n');
 		}
+
+		List<IntegerVariable> bigints = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-      if (v.getDigits() != null) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("bigint " + v.getName() + " " + v.getOffset());
-        for (IntegerVariable digit : v.getDigits()) {
-          sb.append(" "+digit.getName());
-        }
-        mapWriter.write(sb.toString());
-        mapWriter.write('\n');
-      }else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
-        int code = v.getCode();
-        StringBuilder sb = new StringBuilder();
-        sb.append("int " + v.getName() + " " + v.getOffset()+ " " + code + " ");
-        v.getDomain().appendValues(sb);
-        mapWriter.write(sb.toString());
-        mapWriter.write('\n');
-      }
+			if (v.getDigits() != null) {
+				bigints.add(v);
+			}else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
+				int code = v.getCode();
+				StringBuilder sb = new StringBuilder();
+				sb.append("int " + v.getName() + " " + v.getOffset()+ " " + code + " ");
+				v.getDomain().appendValues(sb);
+				mapWriter.write(sb.toString());
+				mapWriter.write('\n');
+			}
 		}
+
+		for (IntegerVariable v : bigints) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("bigint " + v.getName() + " " + v.getOffset());
+			for (IntegerVariable digit : v.getDigits()) {
+				sb.append(" "+digit.getName());
+			}
+			mapWriter.write(sb.toString());
+			mapWriter.write('\n');
+		}
+
 		for (BooleanVariable v : csp.getBooleanVariables()) {
 			if (! v.isAux() || SugarMain.debug > 0) {
 				int code = v.getCode();
@@ -282,7 +287,6 @@ public abstract class AbstractEncoder {
 		mapWriter.close();
 	}
 
-	protected abstract void decode(IntegerVariable v, BitSet satValues);
 	public boolean decode(String outFileName) throws SugarException, IOException {
 		String result = null;
 		boolean sat = false;
@@ -305,7 +309,7 @@ public abstract class AbstractEncoder {
 			} else {
 				throw new SugarException("Unknown output " + st.sval);
 			}
-		} 
+		}
 		if (result.startsWith("SAT")) {
 			sat = true;
 			BitSet satValues = new BitSet();
@@ -390,13 +394,13 @@ public abstract class AbstractEncoder {
 		}
 		satFileSize += s.length();
 	}
-	
+
 	public void writeComment(String comment) throws IOException {
 		if (SugarMain.debug >= 1) {
 			write("c " + comment + "\n");
 		}
 	}
-	
+
 	public void writeClause(int[] clause) throws IOException {
 		for (int code : clause) {
 			if (code == TRUE_CODE) {

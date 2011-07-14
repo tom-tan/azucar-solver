@@ -1,9 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.util.BitSet;
-
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This class implements a boolean variable of CSP.
@@ -20,13 +17,13 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	private int code;
 	private boolean value;
 
-  public static void setPrefix(String pre) {
-    AUX_NAME_PREFIX = AUX_PRE + pre;
-  }
+	public static void setPrefix(String pre) {
+		AUX_NAME_PREFIX = AUX_PRE + pre;
+	}
 
-  public static void setIndex(int index) {
-    auxBooleanVariablesSize = 0;
-  }
+	public static void setIndex(int index) {
+		auxBooleanVariablesSize = 0;
+	}
 
 	/**
 	 * Adds a new boolean variable with give name.
@@ -42,7 +39,7 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 		this(AUX_NAME_PREFIX + (++auxBooleanVariablesSize));
 		aux = true;
 	}
-	
+
 	/**
 	 * Returns the name of the boolean variable.
 	 * @return the name
@@ -114,7 +111,7 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 			return 1;
 		return name.compareTo(v.name);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -154,5 +151,4 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	public String toString() {
 		return "(bool " + name + ")";
 	}
-
 }

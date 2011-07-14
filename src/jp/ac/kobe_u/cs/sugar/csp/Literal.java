@@ -1,10 +1,8 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.io.IOException;
 import java.util.Set;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This is an abstract class for literals of CSP.
@@ -28,8 +26,8 @@ public abstract class Literal {
 	 * @return true when the literal is simple
 	 */
 	public abstract boolean isSimple();
-	
+
 	public abstract boolean isValid() throws SugarException;
-	
+
 	public abstract boolean isUnsatisfiable() throws SugarException;
 }

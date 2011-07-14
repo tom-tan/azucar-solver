@@ -1,5 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.csp;
- 
+
 import java.util.Iterator;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -16,7 +16,6 @@ import jp.ac.kobe_u.cs.sugar.expression.Expression;
  */
 public class IntegerDomain {
 	public static int MAX_SET_SIZE = 128;
-	// public static int MAX_SET_SIZE = 256;
 	private int lb;
 	private int ub;
 	private SortedSet<Integer> domain;
@@ -39,11 +38,11 @@ public class IntegerDomain {
 			domain = null;
 		}
 		if (domain == null) {
-			return new IntegerDomain(lb, ub); 
+			return new IntegerDomain(lb, ub);
 		}
 		return new IntegerDomain(domain);
 	}
-	
+
 	public IntegerDomain(int lb, int ub) throws SugarException {
 		if (lb > ub) {
 			throw new SugarException("Illegal domain instantiation " + lb + " " + ub);
@@ -70,7 +69,7 @@ public class IntegerDomain {
 
 	public int size() {
 		if (domain == null) {
-			return lb <= ub ? ub - lb + 1 : 0; 
+			return lb <= ub ? ub - lb + 1 : 0;
 		} else {
 			return domain.size();
 		}
@@ -79,7 +78,7 @@ public class IntegerDomain {
 	public boolean isContiguous() {
 		return domain == null;
 	}
-	
+
 	public boolean isEmpty() {
 		return size() == 0;
 	}
@@ -123,12 +122,12 @@ public class IntegerDomain {
 	private class Iter implements Iterator<Integer> {
 		int value;
 		int ub;
-		
+
 		public Iter(int lb, int ub) {
 			value = lb;
 			this.ub = ub;
 		}
-		
+
 		public boolean hasNext() {
 			return value <= ub;
 		}
@@ -139,9 +138,8 @@ public class IntegerDomain {
 
 		public void remove() {
 		}
-
 	}
-	
+
 	public Iterator<Integer> values(int lb, int ub) {
 		if (lb > ub) {
 			return new Iter(lb, ub);
@@ -153,11 +151,11 @@ public class IntegerDomain {
 			return domain.subSet(lb, ub + 1).iterator();
 		}
 	}
-	
+
 	public Iterator<Integer> values() {
 		return values(lb, ub);
 	}
-	
+
 	public IntegerDomain cup(IntegerDomain d1) throws SugarException {
 		if (domain == null || d1.domain == null) {
 			int lb = Math.min(this.lb, d1.lb);
@@ -218,7 +216,7 @@ public class IntegerDomain {
 			return create(d);
 		}
 	}
-	
+
 	public IntegerDomain add(int a) throws SugarException {
 		if (domain == null) {
 			return new IntegerDomain(lb+a, ub+a);
@@ -317,7 +315,7 @@ public class IntegerDomain {
 		}
 		return x / y;
 	}
-	
+
 	public IntegerDomain div(int a) throws SugarException {
 		if (domain == null) {
 			if (a < 0) {
@@ -417,7 +415,7 @@ public class IntegerDomain {
 			return create(d);
 		}
 	}
-	
+
 	public IntegerDomain min(IntegerDomain d) throws SugarException {
 		int lb0 = Math.min(lb, d.lb);
 		int ub0 = Math.min(ub, d.ub);
@@ -439,7 +437,6 @@ public class IntegerDomain {
 				SortedSet<Integer> d1 = new TreeSet<Integer>(domain);
 				d1.addAll(d.domain);
 				d1 = d1.subSet(lb0, ub0 + 1);
-				// return new IntegerDomain(d1);
 				return create(d1);
 			}
 		}
@@ -466,20 +463,19 @@ public class IntegerDomain {
 				SortedSet<Integer> d1 = new TreeSet<Integer>(domain);
 				d1.addAll(d.domain);
 				d1 = d1.subSet(lb0, ub0 + 1);
-				// return new IntegerDomain(d1);
 				return create(d1);
 			}
 		}
 	}
 
-  public SortedSet<Integer> headSet(int value) {
-    return domain.headSet(value);
-  }
+	public SortedSet<Integer> headSet(int value) {
+		return domain.headSet(value);
+	}
 
 	public Expression toExpression() {
 		if (domain == null) {
 			return Expression.create(Expression.create(Expression.create(lb),
-																								 Expression.create(ub)));
+			                         Expression.create(ub)));
 		}
 		List<Expression> doms = new ArrayList<Expression>();
 		int value0 = Integer.MIN_VALUE;
@@ -494,7 +490,7 @@ public class IntegerDomain {
 					doms.add(Expression.create(value0));
 				} else {
 					doms.add(Expression.create(Expression.create(value0),
-																		 Expression.create(value1)));
+					                           Expression.create(value1)));
 				}
 				value0 = value1 = value;
 			}
@@ -542,7 +538,7 @@ public class IntegerDomain {
 		if (domain == null) {
 			sb.append(lb + " " + ub);
 		} else {
-      sb.append("(");
+			sb.append("(");
 			String delim = "";
 			int value0 = Integer.MIN_VALUE;
 			int value1 = Integer.MIN_VALUE;
@@ -570,9 +566,8 @@ public class IntegerDomain {
 					sb.append("(" + value0 + " " + value1 + ")");
 				}
 			}
-      sb.append(")");
+			sb.append(")");
 		}
 		return sb.toString();
 	}
-
 }

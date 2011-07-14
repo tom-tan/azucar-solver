@@ -7,10 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
-import jp.ac.kobe_u.cs.sugar.Logger;
-import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.SugarMain;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
@@ -26,21 +23,21 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
  * @see CSP 
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class Encoder extends AbstractEncoder{
+public class Encoder extends AbstractEncoder {
 	public Encoder(CSP csp) {
-    super(csp);
+		super(csp);
 	}
 
-  @Override
-  protected int getCode(LinearLiteral lit) throws SugarException {
+	@Override
+	protected int getCode(LinearLiteral lit) throws SugarException {
 		if (! lit.isSimple()) {
 			throw new SugarException("Internal error " + lit.toString()); 
 		}
 		if (lit.getOperator() == Operator.EQ ||
-        lit.getOperator() == Operator.NE) {
+		    lit.getOperator() == Operator.NE) {
 			throw new SugarException("Internal error " + lit.toString()); 
 		}
-    LinearSum ls = lit.getLinearExpression();
+		LinearSum ls = lit.getLinearExpression();
 		int b = ls.getB();
 		int code;
 		if (ls.size() == 0) {
@@ -53,8 +50,8 @@ public class Encoder extends AbstractEncoder{
 		return code;
 	}
 
-	protected int getCodeLE(IntegerVariable var, int value) {
-    IntegerDomain domain = var.getDomain();
+	private int getCodeLE(IntegerVariable var, int value) {
+		IntegerDomain domain = var.getDomain();
 		if (value < domain.getLowerBound()) {
 			return FALSE_CODE;
 		} else if (value >= domain.getUpperBound()) {
@@ -63,7 +60,7 @@ public class Encoder extends AbstractEncoder{
 		return var.getCode() + sizeLE(domain, value) - 1;
 	}
 
-  private int sizeLE(IntegerDomain d, int value) {
+	private int sizeLE(IntegerDomain d, int value) {
 		if (value < d.getLowerBound())
 			return 0;
 		if (value >= d.getUpperBound())
@@ -77,10 +74,10 @@ public class Encoder extends AbstractEncoder{
 
 
 	@Override
-  protected void encode(IntegerVariable ivar)throws SugarException, IOException{
+	protected void encode(IntegerVariable ivar) throws SugarException, IOException {
 		writeComment(ivar.toString());
 		if (ivar.getDigits() == null) {
-      IntegerDomain domain = ivar.getDomain();
+			IntegerDomain domain = ivar.getDomain();
 			int[] clause = new int[2];
 			int a0 = domain.getLowerBound();
 			for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
@@ -94,7 +91,7 @@ public class Encoder extends AbstractEncoder{
 		} else {
 			throw new SugarException("Internal Error");
 		}
-  }
+	}
 
 	/*
 	 * a1*v1+a2*v2+a3*v3+b <= 0
@@ -103,7 +100,7 @@ public class Encoder extends AbstractEncoder{
 	 * <--> v1>=c1 -> v2>=c2 -> a3*v3+b+a1*c1+a2*c2<= 0 (when a1>0, a2>0)
 	 * 
 	 */
-	protected void encode(LinearSum ls, IntegerVariable[] vs, int i, int s, int[] clause)
+	private void encode(LinearSum ls, IntegerVariable[] vs, int i, int s, int[] clause)
 		throws IOException, SugarException {
 		if (i >= vs.length - 1) {
 			int a = ls.getA(vs[i]);
@@ -135,7 +132,7 @@ public class Encoder extends AbstractEncoder{
 					ub = Math.min(ub, (-lb0-a+1)/a);
 				}
 				// XXX
-				Iterator<Integer> iter = domain.values(lb, ub); 
+				Iterator<Integer> iter = domain.values(lb, ub);
 				while (iter.hasNext()) {
 					int c = iter.next();
 					// vs[i]>=c -> ...
@@ -155,7 +152,7 @@ public class Encoder extends AbstractEncoder{
 				// XXX
 				clause[i] = negateCode(getCodeLE(vs[i], lb - 1));
 				encode(ls, vs, i+1, s+a*(lb-1), clause);
-				Iterator<Integer> iter = domain.values(lb, ub); 
+				Iterator<Integer> iter = domain.values(lb, ub);
 				while (iter.hasNext()) {
 					int c = iter.next();
 					// vs[i]<=c -> ...
@@ -165,11 +162,11 @@ public class Encoder extends AbstractEncoder{
 			}
 		}
 	}
-	
+
 	@Override
-    protected void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
+	protected void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
 		if (lit.getOperator() == Operator.EQ
-        || lit.getOperator() == Operator.NE) {
+		    || lit.getOperator() == Operator.NE) {
 			throw new SugarException("Internal error " + lit.toString());
 		}
 		if (lit.isValid()) {
@@ -178,7 +175,7 @@ public class Encoder extends AbstractEncoder{
 			clause[0] = getCode(lit);
 			writeClause(clause);
 		} else {
-      LinearSum ls = lit.getLinearExpression();
+			LinearSum ls = lit.getLinearExpression();
 			IntegerVariable[] vs = lit.getLinearExpression().getVariablesSorted();
 			int n = ls.size();
 			clause = expand(clause, n);
@@ -187,7 +184,7 @@ public class Encoder extends AbstractEncoder{
 	}
 
 
-	public int getCodeLE(IntegerVariable v, int a, int b) {
+	private int getCodeLE(IntegerVariable v, int a, int b) {
 		int code;
 		if (a >= 0) {
 //			int c = (int) Math.floor((double) b / a);
@@ -211,79 +208,79 @@ public class Encoder extends AbstractEncoder{
 		return code;
 	}
 
-  /**
-   * 符号化しやすい節に還元する．
-   * 1. 全ての LinearLiteral を
-   *  a1*x1+a2*x2+...+b <= 0
-   *  の形にする．
-   * 2. TODO LinearLiteral 中の整数変数の数を制限する．
-   *  (Not implemented)
-   **/
+	/**
+	 * 符号化しやすい節に還元する．
+	 * 1. 全ての LinearLiteral を
+	 *  a1*x1+a2*x2+...+b <= 0
+	 *  の形にする．
+	 * 2. TODO LinearLiteral 中の整数変数の数を制限する．
+	 *  (Not implemented)
+	 **/
 	@Override
-  public void reduce()throws SugarException{
-    final String AUX_PREFIX = "R";
-    BooleanVariable.setPrefix(AUX_PREFIX);
-    BooleanVariable.setIndex(0);
-    IntegerVariable.setPrefix(AUX_PREFIX);
-    IntegerVariable.setIndex(0);
+	public void reduce() throws SugarException {
+		final String AUX_PREFIX = "R";
+		BooleanVariable.setPrefix(AUX_PREFIX);
+		BooleanVariable.setIndex(0);
+		IntegerVariable.setPrefix(AUX_PREFIX);
+		IntegerVariable.setIndex(0);
 
-    List<Clause> newClauses = new ArrayList<Clause>();
-    for (Clause c: csp.getClauses()) {
-      if(c.getArithmeticLiterals().size() == 0) {
-        newClauses.add(c);
-      }else{
-        assert(c.getArithmeticLiterals().size() == 1);
-        LinearLiteral ll = c.getArithmeticLiterals().get(0);
-        List<BooleanLiteral> bls = c.getBooleanLiterals();
-        switch(ll.getOperator()) {
-        case LE:{
-          newClauses.add(c);
-          break;
-        }
-        case EQ:{
-          Clause c1 = new Clause(bls);
-          c1.add(new LinearLiteral(ll.getLinearExpression(),
-                                   Operator.LE));
-          newClauses.add(c1);
-          Clause c2 = new Clause(bls);
-          LinearSum ls = new LinearSum(ll.getLinearExpression());
-          ls.multiply(-1);
-          c2.add(new LinearLiteral(ls, Operator.LE));
-          newClauses.add(c2);
-          break;
-        }
-        case NE:{
-          Clause c1 = new Clause(bls);
-          LinearSum ls1 = new LinearSum(ll.getLinearExpression());
-          ls1.setB(ls1.getB()+1);
-          c1.add(new LinearLiteral(ls1, Operator.LE));
-          newClauses.add(c1);
+		List<Clause> newClauses = new ArrayList<Clause>();
+		for (Clause c: csp.getClauses()) {
+			if(c.getArithmeticLiterals().size() == 0) {
+				newClauses.add(c);
+			}else{
+				assert(c.getArithmeticLiterals().size() == 1);
+				LinearLiteral ll = c.getArithmeticLiterals().get(0);
+				List<BooleanLiteral> bls = c.getBooleanLiterals();
+				switch(ll.getOperator()) {
+				case LE:{
+					newClauses.add(c);
+					break;
+				}
+				case EQ:{
+					Clause c1 = new Clause(bls);
+					c1.add(new LinearLiteral(ll.getLinearExpression(),
+					                         Operator.LE));
+					newClauses.add(c1);
+					Clause c2 = new Clause(bls);
+					LinearSum ls = new LinearSum(ll.getLinearExpression());
+					ls.multiply(-1);
+					c2.add(new LinearLiteral(ls, Operator.LE));
+					newClauses.add(c2);
+					break;
+				}
+				case NE:{
+					Clause c1 = new Clause(bls);
+					LinearSum ls1 = new LinearSum(ll.getLinearExpression());
+					ls1.setB(ls1.getB()+1);
+					c1.add(new LinearLiteral(ls1, Operator.LE));
+					newClauses.add(c1);
 
-          LinearSum ls2 = new LinearSum(ll.getLinearExpression());
-          ls2.multiply(-1);
-          ls2.setB(ls2.getB()+1);
-          BooleanVariable p = new BooleanVariable();
-          csp.add(p);
-          BooleanLiteral posLiteral = new BooleanLiteral(p, false);
-          BooleanLiteral negLiteral = new BooleanLiteral(p, true);
-          Clause c2 = new Clause();
-          c2.add(negLiteral);
-          c2.add(new LinearLiteral(ls2, Operator.LE));
-          c1.add(posLiteral);
-          newClauses.add(c2);
-          break;
-        }
-        default: new SugarException("Internal Error");
-        }
-      }
-    }
-    csp.setClauses(newClauses);
-  }
+					LinearSum ls2 = new LinearSum(ll.getLinearExpression());
+					ls2.multiply(-1);
+					ls2.setB(ls2.getB()+1);
+					BooleanVariable p = new BooleanVariable();
+					csp.add(p);
+					BooleanLiteral posLiteral = new BooleanLiteral(p, false);
+					BooleanLiteral negLiteral = new BooleanLiteral(p, true);
+					Clause c2 = new Clause();
+					c2.add(negLiteral);
+					c2.add(new LinearLiteral(ls2, Operator.LE));
+					c1.add(posLiteral);
+					newClauses.add(c2);
+					break;
+				}
+				default: new SugarException("Internal Error");
+				}
+			}
+		}
+		csp.setClauses(newClauses);
+	}
 
-  @Override
+	@Override
 	protected void decode(IntegerVariable v, BitSet satValues) {
-    assert(v.getDigits() == null);
-    assert(!v.isDigit());
+		assert(v.getDigits() == null);
+		assert(!v.isDigit());
 		IntegerDomain domain = v.getDomain();
 		int lb = domain.getLowerBound();
 		int ub = domain.getUpperBound();
@@ -298,13 +295,13 @@ public class Encoder extends AbstractEncoder{
 				code++;
 			}
 		}
-    v.setValue(v.getValue()+v.getOffset());
+		v.setValue(v.getValue()+v.getOffset());
 	}
 
-  @Override
-  protected int getSatVariablesSize(IntegerVariable v) {
-    if (v.getDigits() != null)
-      return 0;
-    return v.getDomain().size()-1;
-  }
+	@Override
+	protected int getSatVariablesSize(IntegerVariable v) {
+		if (v.getDigits() != null)
+			return 0;
+		return v.getDomain().size()-1;
+	}
 }

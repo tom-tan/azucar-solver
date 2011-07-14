@@ -1,13 +1,11 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This class implements a clause in CSP.
@@ -15,76 +13,61 @@ import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class Clause {
-  private List<BooleanLiteral> boolLiterals;
-  // 本来は ProductLiteral もとれるべき
+	private List<BooleanLiteral> boolLiterals;
+	// 本来は ProductLiteral もとれるべき
 	private List<LinearLiteral>  arithLiterals;
 	private Set<IntegerVariable> commonVariables = null;
 	private String comment = null;
-	
+
 	/**
 	 * Constructs a new clause with give literals.
 	 * @param literals the literals of the clause
 	 */
-	// public Clause(List<Literal> literals) {
-  //   this();
-  //   addAll(literals);
-	// }
-
 	public Clause(List<BooleanLiteral> literals) {
-    this();
-    addAll(literals);
+		this();
+		addAll(literals);
 	}
 
 	/**
 	 * Constructs a new clause.
 	 */
 	public Clause() {
-    boolLiterals = new ArrayList<BooleanLiteral>();
-    arithLiterals = new ArrayList<LinearLiteral>();
+		boolLiterals = new ArrayList<BooleanLiteral>();
+		arithLiterals = new ArrayList<LinearLiteral>();
 	}
-	
+
 	public Clause(Literal literal) {
 		this();
 		add(literal);
 	}
 
-  public List<BooleanLiteral> getBooleanLiterals() {
-    return boolLiterals;
-  }
+	public List<BooleanLiteral> getBooleanLiterals() {
+		return boolLiterals;
+	}
 
-  public List<LinearLiteral> getArithmeticLiterals() {
-    return arithLiterals;
-  }
+	public List<LinearLiteral> getArithmeticLiterals() {
+		return arithLiterals;
+	}
 
 	/**
 	 * Adds all given literals to the clause.
 	 * @param literals the literals to be added
 	 */
-	// public void addAll(List<Literal> literals) {
-  //   for(Literal l: literals) {
-  //     add(l);
-  //   }
-	// }
-
 	public void addAll(List<BooleanLiteral> literals) {
-    boolLiterals.addAll(literals);
+		boolLiterals.addAll(literals);
 	}
 
-	// public void addAll(List<LinearLiteral> literals) {
-  //   arithLiterals.addAll(literals);
-	// }
-
-  public void add(Literal literal) {
-    if (literal instanceof BooleanLiteral)
-      boolLiterals.add((BooleanLiteral)literal);
-    else
-      arithLiterals.add((LinearLiteral)literal);
-  }
+	public void add(Literal literal) {
+		if (literal instanceof BooleanLiteral)
+			boolLiterals.add((BooleanLiteral)literal);
+		else
+			arithLiterals.add((LinearLiteral)literal);
+	}
 
 	public int size() {
 		return boolLiterals.size()+arithLiterals.size();
 	}
-	
+
 	/**
 	 * Returns the comment set to the clause.
 	 * @return the comment
@@ -114,7 +97,7 @@ public class Clause {
 		}
 		return false;
 	}
-	
+
 	public Set<IntegerVariable> getCommonVariables() {
 		if (commonVariables == null && size() > 0) {
 			for (Literal lit : arithLiterals) {
@@ -140,7 +123,7 @@ public class Clause {
 		}
 		return commonVariables;
 	}
-	
+
 	public int simpleSize() {
 		int simpleLiterals = boolLiterals.size();
 		for (Literal literal : arithLiterals) {
@@ -160,7 +143,7 @@ public class Clause {
 	public boolean isSimple() {
 		return (size() - simpleSize()) <= 1;
 	}
-	
+
 	public boolean isValid() throws SugarException {
 		for (Literal lit : boolLiterals) {
 			if (lit.isValid()) {
@@ -174,7 +157,7 @@ public class Clause {
 		}
 		return false;
 	}
-	
+
 	public boolean isUnsatisfiable() throws SugarException {
 		for (Literal lit : boolLiterals) {
 			if (! lit.isUnsatisfiable()) {
@@ -192,11 +175,9 @@ public class Clause {
 	public int propagate() throws SugarException {
 		if (size() == 0)
 			return 0;
-		// if (size() == 1)
-		// return literals.get(0).propagate();
 		int count = 0;
 		for (IntegerVariable v : getCommonVariables()) {
-      assert(boolLiterals.isEmpty());
+			assert(boolLiterals.isEmpty());
 			int[] bound = null;
 			for (Literal lit : arithLiterals) {
 				int[] b = lit.getBound(v);
@@ -262,5 +243,4 @@ public class Clause {
 		sb.append(")");
 		return sb.toString();
 	}
-
 }

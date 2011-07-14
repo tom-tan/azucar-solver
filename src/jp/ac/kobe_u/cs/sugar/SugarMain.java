@@ -2,7 +2,6 @@ package jp.ac.kobe_u.cs.sugar;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,7 +17,6 @@ import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
-import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
 import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 import jp.ac.kobe_u.cs.sugar.encoder.oe.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
@@ -81,7 +79,7 @@ public class SugarMain {
 		Logger.info("MAX CSP: " + n + " constraints");
 		return expressions;
 	}
-	
+
 	public void encode(String cspFileName, String satFileName, String mapFileName)
 	throws SugarException, IOException {
 		Logger.fine("Parsing " + cspFileName);
@@ -102,7 +100,7 @@ public class SugarMain {
 		Logger.fine("Decomposing");
 		Decomposer decomposer = new Decomposer();
 		expressions = decomposer.decompose(expressions);
-		
+
 		Logger.fine("Converting to clausal form CSP");
 		CSP csp = new CSP();
 		Converter converter = new Converter(csp);
@@ -145,8 +143,8 @@ public class SugarMain {
 				Logger.println("s UNSATISFIABLE");
 			} else {
 				Logger.fine("Encoding CSP to SAT : " + satFileName);
-				Encoder encoder = new Encoder(csp);
-        encoder.reduce();
+				AbstractEncoder encoder = new Encoder(csp);
+				encoder.reduce();
 				encoder.encode(satFileName, incremental);
 				Logger.fine("Writing map file : " + mapFileName);
 				encoder.outputMap(mapFileName);
@@ -155,7 +153,7 @@ public class SugarMain {
 			}
 		}
 	}
-	
+
 	public void decode(String outFileName, String mapFileName)
 	throws SugarException, IOException {
 		Logger.fine("Decoding " + outFileName);
@@ -169,34 +167,35 @@ public class SugarMain {
 				break;
 			String[] s = line.split("\\s+");
 			if (s[0].equals("objective")) {
-        // multi-objective にするなら要変更
+				// multi-objective にするなら要変更
 				if (s[1].equals(SugarConstants.MINIMIZE)) {
 					csp.setObjective(CSP.Objective.MINIMIZE);
 				} else if (s[1].equals(SugarConstants.MAXIMIZE)) {
 					csp.setObjective(CSP.Objective.MAXIMIZE);
 				}
 				objectiveVariableName = s[2];
-      } else if (s[0].equals("bases")) {
-        List<Integer> bases = new ArrayList<Integer>();
-        for (int i=1; i<s.length ; i++) {
-          bases.add(Integer.parseInt(s[i]));
-        }
-        csp.setBases(bases);
-      } else if (s[0].equals("bigint")) {
-        String name = s[1];
-        int offset = Integer.parseInt(s[2]);
-        List<IntegerVariable> digits = new ArrayList<IntegerVariable>();
-        for (int i=3; i<s.length ; i++) {
-          IntegerVariable di = csp.getIntegerVariable(s[i]);
-          assert(di != null);
-          digits.add(di);
-        }
-        IntegerVariable v = new IntegerVariable(name, digits);
-        v.setOffset(offset);
-        csp.add(v);
+			} else if (s[0].equals("bases")) {
+				List<Integer> bases = new ArrayList<Integer>();
+				for (int i=1; i<s.length ; i++) {
+					bases.add(Integer.parseInt(s[i]));
+				}
+				csp.setBases(bases);
+			} else if (s[0].equals("bigint")) {
+				String name = s[1];
+				int offset = Integer.parseInt(s[2]);
+				List<IntegerVariable> digits = new ArrayList<IntegerVariable>();
+				for (int i=3; i<s.length ; i++) {
+					IntegerVariable di = csp.getIntegerVariable(s[i]);
+					assert(di != null);
+					di.isDigit(true);
+					digits.add(di);
+				}
+				IntegerVariable v = new IntegerVariable(name, digits);
+				v.setOffset(offset);
+				csp.add(v);
 			} else if (s[0].equals("int")) {
 				String name = s[1];
-        int offset = Integer.parseInt(s[2]);
+				int offset = Integer.parseInt(s[2]);
 				int code = Integer.parseInt(s[3]);
 				IntegerDomain domain = null;
 				if (s.length == 5) {
@@ -229,7 +228,7 @@ public class SugarMain {
 					domain = new IntegerDomain(d);
 				}
 				IntegerVariable v = new IntegerVariable(name, domain);
-        v.setOffset(offset);
+				v.setOffset(offset);
 				v.setCode(code);
 				csp.add(v);
 				if (name.equals(objectiveVariableName)) {
@@ -245,7 +244,7 @@ public class SugarMain {
 			}
 		}
 		rd.close();
-		Encoder encoder = new Encoder(csp);
+		AbstractEncoder encoder = new Encoder(csp);
 		if (encoder.decode(outFileName)) {
 			if (csp.getObjectiveVariable() == null) {
 				Logger.println("s SATISFIABLE");
@@ -280,7 +279,7 @@ public class SugarMain {
 			Logger.println("s UNSATISFIABLE");
 		}
 	}
-	
+
 	/**
 	 * @param args
 	 */
@@ -305,9 +304,9 @@ public class SugarMain {
 							//Encoder.OPT_COMPACT = ! opt.startsWith("no_");
 						} else if (opt.matches("(no_)?estimate_satsize")) {
 							Converter.ESTIMATE_SATSIZE = ! opt.startsWith("no_");
-              //Encoder.OPT_COMPACT = ! opt.startsWith("no_");
-                        } else if (opt.matches("(no_)?new_variable")) {
-                            Converter.NEW_VARIABLE = ! opt.startsWith("no_");
+							//Encoder.OPT_COMPACT = ! opt.startsWith("no_");
+						} else if (opt.matches("(no_)?new_variable")) {
+							Converter.NEW_VARIABLE = ! opt.startsWith("no_");
 						} else if (opt.matches("equiv=(\\d+)")) {
 							int n = "equiv=".length();
 							Converter.MAX_EQUIVMAP_SIZE = Integer.parseInt(opt.substring(n));
@@ -317,9 +316,9 @@ public class SugarMain {
 						} else if (opt.matches("split=(\\d+)")) {
 							int n = "split=".length();
 							Converter.SPLITS = Integer.parseInt(opt.substring(n));
-                        } else if (opt.matches("domain=(\\d+)")) {
-                            int n = "domain=".length();
-                            IntegerDomain.MAX_SET_SIZE = Integer.parseInt(opt.substring(n));
+						} else if (opt.matches("domain=(\\d+)")) {
+							int n = "domain=".length();
+							IntegerDomain.MAX_SET_SIZE = Integer.parseInt(opt.substring(n));
 						} else {
 							throw new SugarException("Unknown option " + opt);
 						}
@@ -355,14 +354,14 @@ public class SugarMain {
 			}
 			Logger.status();
 		} catch (Exception e) {
-			Logger.println("c ERROR Exception " + e.getMessage());			
+			Logger.println("c ERROR Exception " + e.getMessage());
 			for (StackTraceElement t : e.getStackTrace()) {
 				Logger.info(t.toString());
 			}
 			Logger.println("s UNKNOWN");
 			System.exit(1);
 		} catch (Error e) {
-			Logger.println("c ERROR Exception " + e.getMessage());			
+			Logger.println("c ERROR Exception " + e.getMessage());
 			for (StackTraceElement t : e.getStackTrace()) {
 				Logger.info(t.toString());
 			}
@@ -370,5 +369,4 @@ public class SugarMain {
 			System.exit(1);
 		}
 	}
-
 }

@@ -27,20 +27,13 @@ import jp.ac.kobe_u.cs.sugar.expression.*;
 
 public class Decomposer {
 	public static int MAX_EQUIVMAP_SIZE = 1000;
-	public static long MAX_LINEARSUM_SIZE = 1024L;
 	public static boolean expandABS = true;
-	public static boolean OPT_PIGEON = true;
-	public static boolean INCREMENTAL_PROPAGATE = true;
-	public static boolean ESTIMATE_SATSIZE = false; // bad
-	public static boolean NEW_VARIABLE = true;
-	public static int SPLITS = 2;
 	private final String IAUX_PREFIX = "_$ID";
 	private int iidx = 0;
 	private final String BAUX_PREFIX = "_$BD";
 	private int bidx = 0;
-	
-	private class EquivMap extends LinkedHashMap<Expression,Atom> {
 
+	private class EquivMap extends LinkedHashMap<Expression,Atom> {
 		private static final long serialVersionUID = -4882267868872050198L;
 
 		EquivMap() {
@@ -54,9 +47,8 @@ public class Decomposer {
 		protected boolean removeEldestEntry(Entry<Expression, Atom> eldest) {
 			return size() > MAX_EQUIVMAP_SIZE;
 		}
-		
 	}
-	
+
 	private List<Expression> decomposed;
 	private Map<String,Expression> domainMap;
 	private Map<String,Atom> intMap;
@@ -65,7 +57,7 @@ public class Decomposer {
 	private Map<String,Predicate> predicateMap;
 	private Map<String,Relation> relationMap;
 	private Map<Expression,Atom> equivMap;
-	
+
 	public Decomposer() {
 		decomposed = new ArrayList<Expression>();
 		domainMap = new HashMap<String,Expression>();
@@ -106,9 +98,9 @@ public class Decomposer {
 	}
 
 	private void decomposeIntDefinition(Sequence seq) throws SugarException {
-    List<Expression> ret = new ArrayList<Expression>();
+		List<Expression> ret = new ArrayList<Expression>();
 		String name = null;
-    Expression domainExp = null;
+		Expression domainExp = null;
 		IntegerDomain domain = null;
 		if (seq.matches("WWW")) {
 			name = seq.get(1).stringValue();
@@ -122,53 +114,53 @@ public class Decomposer {
 			domainExp = (Sequence)seq.get(2);
 			SortedSet<Integer> d = new TreeSet<Integer>();
 			Sequence x = (Sequence)seq.get(2);
-      if (x.length() == 1) {
-        Sequence seq1 = (Sequence)x.get(0);
-        if (seq1.matches("II")) {
-          int lb = seq1.get(0).integerValue();
-          int ub = seq1.get(1).integerValue();
-          Expression[] exps = {Expression.create(lb),
-                               Expression.create(ub)};
-          domainExp = Expression.create(Expression.create(exps));
-          domain = new IntegerDomain(lb, ub);
-        } else {
-          throw new SugarException("Bad definition " + seq);
-        }
-      }else{
-        for (int i = 0; i < x.length(); i++) {
-          if (x.get(i).isInteger()) {
-            d.add(x.get(i).integerValue());
-          } else 	if (x.get(i).isSequence()) {
-            Sequence seq1 = (Sequence)x.get(i);
-            if (seq1.matches("II")) {
-              int value0 = ((Sequence)x.get(i)).get(0).integerValue();
-              int value1 = ((Sequence)x.get(i)).get(1).integerValue();
-              for (int value = value0; value <= value1; value++) {
-                d.add(value);
-              }
-            } else {
-              throw new SugarException("Bad definition " + seq);
-            }
-          } else {
-            throw new SugarException("Bad definition " + seq);
-          }
-        }
-        domain = new IntegerDomain(d);
-      }
+			if (x.length() == 1) {
+				Sequence seq1 = (Sequence)x.get(0);
+				if (seq1.matches("II")) {
+					int lb = seq1.get(0).integerValue();
+					int ub = seq1.get(1).integerValue();
+					Expression[] exps = {Expression.create(lb),
+															 Expression.create(ub)};
+					domainExp = Expression.create(Expression.create(exps));
+					domain = new IntegerDomain(lb, ub);
+				} else {
+					throw new SugarException("Bad definition " + seq);
+				}
+			} else {
+				for (int i = 0; i < x.length(); i++) {
+					if (x.get(i).isInteger()) {
+						d.add(x.get(i).integerValue());
+					} else if (x.get(i).isSequence()) {
+						Sequence seq1 = (Sequence)x.get(i);
+						if (seq1.matches("II")) {
+							int value0 = ((Sequence)x.get(i)).get(0).integerValue();
+							int value1 = ((Sequence)x.get(i)).get(1).integerValue();
+							for (int value = value0; value <= value1; value++) {
+								d.add(value);
+								w}
+						} else {
+							throw new SugarException("Bad definition " + seq);
+							}
+					} else {
+						throw new SugarException("Bad definition " + seq);
+					}
+				}
+				domain = new IntegerDomain(d);
+			}
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
 			int ub = seq.get(3).integerValue();
-      Expression[] exps = {Expression.create(lb),
-                           Expression.create(ub)};
-      domainExp = Expression.create(Expression.create(exps));
+			Expression[] exps = {Expression.create(lb),
+													 Expression.create(ub)};
+			domainExp = Expression.create(Expression.create(exps));
 			domain = new IntegerDomain(lb, ub);
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
-      Expression[] exps = {Expression.create(lb),
-                           Expression.create(lb)};
-      domainExp = Expression.create(Expression.create(exps));
+			Expression[] exps = {Expression.create(lb),
+													 Expression.create(lb)};
+			domainExp = Expression.create(Expression.create(exps));
 			domain = new IntegerDomain(lb, lb);
 		} else {
 			throw new SugarException("Bad definition " + seq);
@@ -179,17 +171,15 @@ public class Decomposer {
 		if (intMap.containsKey(name)) {
 			throw new SugarException("Duplicated definition " + seq);
 		}
-    Expression[] retexps = {seq.get(0),
-                            seq.get(1),
-                            domainExp};
-    Sequence v = new Sequence(retexps);
+		Expression[] retexps = {seq.get(0), seq.get(1), domainExp};
+		Sequence v = new Sequence(retexps);
 		intMap.put(name, (Atom)seq.get(1));
 		expDomainMap.put(name, domain);
 		decomposed.add(v);
 	}
 
 	private void decomposeBoolDefinition(Sequence seq) throws SugarException {
-    List<Expression> ret = new ArrayList<Expression>();
+		List<Expression> ret = new ArrayList<Expression>();
 		String name = null;
 		if (seq.matches("WW")) {
 			name = seq.get(1).stringValue();
@@ -253,11 +243,11 @@ public class Decomposer {
 	protected void syntaxError(String s) throws SugarException {
 		throw new SugarException("Syntax error " + s);
 	}
-	
+
 	protected void syntaxError(Expression x) throws SugarException {
 		syntaxError(x.toString());
 	}
-	
+
 	protected void checkArity(Expression x, int arity) throws SugarException {
 		if (! x.isSequence(arity)) {
 			syntaxError(x);
@@ -276,11 +266,11 @@ public class Decomposer {
 		intMap.put(name, v);
 		return v;
 	}
-	
+
 	private LinearExpression decomposeInteger(Atom x) throws SugarException {
 		return new LinearExpression(x.integerValue());
 	}
-	
+
 	private LinearExpression decomposeString(Atom x) throws SugarException {
 		if (! intMap.containsKey(x.stringValue())) {
 			syntaxError(x);
@@ -306,9 +296,9 @@ public class Decomposer {
 		}
 		return e;
 	}
-	
+
 	private LinearExpression decomposeSUB(Sequence seq) throws SugarException {
-    LinearExpression e = null;
+		LinearExpression e = null;
 		if (seq.length() == 1) {
 			syntaxError(seq);
 		} else if (seq.length() == 2) {
@@ -323,12 +313,12 @@ public class Decomposer {
 		}
 		return e;
 	}
-	
+
 	private LinearExpression decomposeABS(Sequence seq) throws SugarException {
 		checkArity(seq, 1);
 		Expression x1 = seq.get(1);
 		LinearExpression e1 = decomposeFormula(x1);
-    IntegerDomain d1 = e1.getDomain(expDomainMap);
+		IntegerDomain d1 = e1.getDomain(expDomainMap);
 		if (d1.getLowerBound() >= 0) {
 			return e1;
 		} else if (d1.getUpperBound() <= 0) {
@@ -346,7 +336,7 @@ public class Decomposer {
 		addEquivalence(x, seq);
 		return new LinearExpression((Atom)x);
 	}
-	
+
 	private LinearExpression decomposeMUL(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
@@ -377,7 +367,7 @@ public class Decomposer {
 			return decomposeMUL((Sequence)x2.mul(x1));
 		}
 	}
-	
+
 	private LinearExpression decomposeDIV(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
@@ -390,8 +380,6 @@ public class Decomposer {
 		IntegerDomain rd = d1.mod(d2);
 		Atom q = newIntegerVariable(qd, seq);
 		Atom r = newIntegerVariable(rd, x1.mod(x2));
-		// Expression q = Expression.create(qv.getName());
-		// Expression r = Expression.create(rv.getName());
 		Expression px = x2.mul(q);
 		if (d2.size() == 1) {
 			int value2 = d2.getLowerBound();
@@ -414,25 +402,9 @@ public class Decomposer {
 			return new LinearExpression(q);
 		}
 		// TODO
-		//if (true) {
-			throw new SugarException("Unsupported " + seq);
-		//}
-		// IntegerVariable v2 = toIntegerVariable(e2, x2);
-		// IntegerDomain pd = d1.sub(rd);
-		// IntegerVariable pv = newIntegerVariable(pd, px);
-		// Clause clause = new Clause(new ProductLiteral(pv, qv, v2));
-		// clause.setComment(pv.getName() + " == " + px);
-		// csp.add(clause);
-		// Expression p = Expression.create(pv.getName());
-		// Expression eq =
-		// 	(x1.eq(p.add(r)))
-		// 	.and((r.ge(Expression.ZERO)).and((x2.abs()).gt(r)));
-		// eq.setComment(qv.getName() + " == " + seq);
-		// decomposeConstraint(eq);
-		// addEquivalence(qv, seq);
-		// return new LinearSum(qv);
+		throw new SugarException("Unsupported " + seq);
 	}
-	
+
 	private LinearExpression decomposeMOD(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
@@ -461,30 +433,14 @@ public class Decomposer {
 			return new LinearExpression(r);
 		}
 		// TODO
-		// if (true) {
-			throw new SugarException("Unsupported " + seq);
-		// }
-		// IntegerVariable v2 = toIntegerVariable(e2, x2);
-		// IntegerDomain pd = d1.sub(rd);
-		// IntegerVariable pv = newIntegerVariable(pd, px);
-		// Clause clause = new Clause(new ProductLiteral(pv, qv, v2));
-		// clause.setComment(pv.getName() + " == " + px);
-		// csp.add(clause);
-		// Expression p = Expression.create(pv.getName());
-		// Expression eq =
-		// 	(x1.eq(p.add(r)))
-		// 	.and((r.ge(Expression.ZERO)).and((x2.abs()).gt(r)));
-		// eq.setComment(rv.getName() + " == " + seq);
-		// decomposeConstraint(eq);
-		// addEquivalence(rv, seq);
-		// return new LinearSum(rv);
+		throw new SugarException("Unsupported " + seq);
 	}
-	
+
 	private LinearExpression decomposePOW(Sequence seq) throws SugarException {
 		// TODO pow
 		throw new SugarException("Unsupported " + seq);
 	}
-	
+
 	private LinearExpression decomposeMIN(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
@@ -509,7 +465,7 @@ public class Decomposer {
 		addEquivalence(x, seq);
 		return new LinearExpression(x);
 	}
-	
+
 	private LinearExpression decomposeMAX(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
 		Expression x1 = seq.get(1);
@@ -534,7 +490,7 @@ public class Decomposer {
 		addEquivalence(x, seq);
 		return new LinearExpression(x);
 	}
-	
+
 	private LinearExpression decomposeIF(Sequence seq) throws SugarException {
 		checkArity(seq, 3);
 		Expression x1 = seq.get(1);
@@ -554,7 +510,7 @@ public class Decomposer {
 		addEquivalence(x, seq);
 		return new LinearExpression(x);
 	}
-	
+
 	protected LinearExpression decomposeFormula(Expression x) throws SugarException {
 		LinearExpression e = null;
 		Atom v = equivMap.get(x);
@@ -631,7 +587,6 @@ public class Decomposer {
 		throw new SugarException("!!!");
 	}
 
-	
 	private List<Expression> decomposeDisj(Sequence seq, boolean negative) throws SugarException {
 		List<Expression> exps = null;
 		if (seq.length() == 1) {
@@ -681,7 +636,7 @@ public class Decomposer {
 		Expression x = pred.apply(args);
 		return x;
 	}
-	
+
 	private Expression decomposeRelation(Sequence seq) throws SugarException {
 		String name = seq.get(0).stringValue();
 		Relation rel = relationMap.get(name);
@@ -722,8 +677,7 @@ public class Decomposer {
 					break;
 				} else if (boolMap.containsKey(x.stringValue())) {
 					Atom v = boolMap.get(x.stringValue());
-					Expression exp = Expression.create(Expression.OR,
-                                             negative ? v.not() : v);
+					Expression exp = Expression.create(Expression.OR, negative ? v.not() : v);
 					exps = new ArrayList<Expression>();
 					exps.add(exp);
 					break;
@@ -882,7 +836,7 @@ public class Decomposer {
 						}
 					}
 					exps = decomposeComparison(seq.get(1).sub(seq.get(2))
-                                     .add(Expression.create(1)),
+																		 .add(Expression.create(1)),
 																		 Expression.LE);
 					break;
 				} else if ((seq.isSequence(Expression.GE) && ! negative)
@@ -943,7 +897,7 @@ public class Decomposer {
 						Expression a2 = ((Sequence)seq.get(2)).get(2);
 						// a1*a2 < 0
 						x = ((a1.lt(Expression.ZERO)).and(a2.gt(Expression.ZERO)))
-                .or((a1.gt(Expression.ZERO)).and(a2.lt(Expression.ZERO)));
+								.or((a1.gt(Expression.ZERO)).and(a2.lt(Expression.ZERO)));
 						continue;
 					}
 					if (expandABS) {
@@ -963,7 +917,7 @@ public class Decomposer {
 						}
 					}
 					exps = decomposeComparison(seq.get(2).sub(seq.get(1))
-                                     .add(Expression.create(1)),
+																		 .add(Expression.create(1)),
 																		 Expression.LE);
 					break;
 				} else if (seq.isSequence(Expression.ALLDIFFERENT) && ! negative) {
@@ -1027,7 +981,7 @@ public class Decomposer {
 			decomposeConstraint(x);
 		}
 	}
-	
+
 	public List<Expression> decompose(List<Expression> expressions) throws SugarException {
 		int n = expressions.size();
 		int percent = 10;

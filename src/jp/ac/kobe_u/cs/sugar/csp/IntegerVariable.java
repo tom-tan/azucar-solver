@@ -1,11 +1,8 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.io.IOException;
-import java.util.BitSet;
 import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-
 
 /**
  * This class implements an integer variable of CSP.
@@ -13,7 +10,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class IntegerVariable implements Comparable<IntegerVariable> {
-  private static final String AUX_PRE = "_$I";
+	private static final String AUX_PRE = "_$I";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
 	private static int auxIntegerVariablesSize = 0;
 	private String name;
@@ -24,16 +21,16 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	private int code;
 	private int value;
 	private int offset;
-  private boolean isDigit_;
+	private boolean isDigit_;
 	private List<IntegerVariable> vs = null;
 
-  public static void setPrefix(String pre) {
-    AUX_NAME_PREFIX = AUX_PRE + pre;
-  }
+	public static void setPrefix(String pre) {
+		AUX_NAME_PREFIX = AUX_PRE + pre;
+	}
 
-  public static void setIndex(int index) {
-    auxIntegerVariablesSize = 0;
-  }
+	public static void setIndex(int index) {
+		auxIntegerVariablesSize = 0;
+	}
 
 	public IntegerVariable(String name, IntegerDomain domain) throws SugarException {
 		this.name = name;
@@ -50,10 +47,10 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		aux = true;
 	}
 
-  public IntegerVariable(String name, List<IntegerVariable> digits) {
-    this.name = name;
-    vs = digits;
-  }
+	public IntegerVariable(String name, List<IntegerVariable> digits) {
+		this.name = name;
+		vs = digits;
+	}
 
 	/**
 	 * Returns the name of the integer variable. 
@@ -67,7 +64,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		return domain;
 	}
 
-  public void setDomain(IntegerDomain d) {
+	public void setDomain(IntegerDomain d) {
 		domain = d;
 	}
 
@@ -102,7 +99,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	public void setComment(String comment) {
 		this.comment = comment;
 	}
-	
+
 	/**
 	 * @return the modified
 	 */
@@ -147,8 +144,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * @return the value
 	 */
 	public int getValue() {
-    // 値はただ1つに決まっている
-    assert(domain.size() == 1);
+		// 値はただ1つに決まっている
+		assert(domain.size() == 1);
 		return value;
 	}
 
@@ -164,17 +161,21 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		return domain.isEmpty();
 	}
 
-  public List<IntegerVariable> getDigits() {
-    return vs;
-  }
+	public List<IntegerVariable> getDigits() {
+		return vs;
+	}
 
-  public void setDigits(List<IntegerVariable> ds) {
-    vs = ds;
-  }
+	public void setDigits(List<IntegerVariable> ds) {
+		vs = ds;
+	}
 
-  public boolean isDigit() {
-    return isDigit_;
-  }
+	public boolean isDigit() {
+		return isDigit_;
+	}
+
+	public void isDigit(boolean b) {
+		isDigit_ = b;
+	}
 
 	public int compareTo(IntegerVariable v) {
 		if (this == v)
@@ -229,5 +230,4 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		sb.append(")");
 		return sb.toString();
 	}
-
 }

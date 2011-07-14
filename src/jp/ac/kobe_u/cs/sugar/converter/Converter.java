@@ -1,9 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.converter;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.SortedSet;
@@ -29,9 +27,9 @@ public class Converter {
 	public static boolean OPT_PIGEON = true;
 	public static boolean INCREMENTAL_PROPAGATE = true;
 	public static boolean ESTIMATE_SATSIZE = false; // bad
-    public static boolean NEW_VARIABLE = true;
-    public static int SPLITS = 2;
-	
+	public static boolean NEW_VARIABLE = true;
+	public static int SPLITS = 2;
+
 	private class EquivMap extends LinkedHashMap<Expression,IntegerVariable> {
 
 		private static final long serialVersionUID = -4882267868872050198L;
@@ -47,21 +45,20 @@ public class Converter {
 		protected boolean removeEldestEntry(Entry<Expression, IntegerVariable> eldest) {
 			return size() > MAX_EQUIVMAP_SIZE;
 		}
-		
 	}
-	
+
 	private CSP csp;
 	private Map<String,IntegerDomain> domainMap;
 	private Map<String,IntegerVariable> intMap;
 	private Map<String,BooleanVariable> boolMap;
-	
+
 	public Converter(CSP csp) {
 		this.csp = csp;
 		domainMap = new HashMap<String,IntegerDomain>();
 		intMap = new HashMap<String,IntegerVariable>();
 		boolMap = new HashMap<String,BooleanVariable>();
 	}
-	
+
 	private void convertIntDefinition(Sequence seq) throws SugarException {
 		String name = null;
 		IntegerDomain domain = null;
@@ -155,11 +152,11 @@ public class Converter {
 	protected void syntaxError(String s) throws SugarException {
 		throw new SugarException("Syntax error " + s);
 	}
-	
+
 	protected void syntaxError(Expression x) throws SugarException {
 		syntaxError(x.toString());
 	}
-	
+
 	protected void checkArity(Expression x, int arity) throws SugarException {
 		if (! x.isSequence(arity)) {
 			syntaxError(x);
@@ -173,11 +170,11 @@ public class Converter {
 		v.setComment(v.getName() + " : " + x.toString());
 		return v;
 	}
-	
+
 	private LinearSum convertInteger(Atom x) throws SugarException {
 		return new LinearSum(x.integerValue());
 	}
-	
+
 	private LinearSum convertString(Atom x) throws SugarException {
 		String s = x.stringValue();
 		if (csp.getIntegerVariable(s) == null) {
@@ -195,7 +192,7 @@ public class Converter {
 	private LinearSum convertLinearSum(LinearExpression x)
 		throws SugarException {
 		LinearSum ls = new LinearSum(x.getB());
-		for(Atom atom: x.getVariables()) {
+		for (Atom atom: x.getVariables()) {
 			IntegerVariable v = intMap.get(atom.stringValue());
 			if (v == null) throw new SugarException("!!!");
 			int a = x.getA(atom);
@@ -258,7 +255,7 @@ public class Converter {
 		}
 		assert(false);
 	}
-	
+
 	public void convert(List<Expression> expressions) throws SugarException {
 		int n = expressions.size();
 		int percent = 10;

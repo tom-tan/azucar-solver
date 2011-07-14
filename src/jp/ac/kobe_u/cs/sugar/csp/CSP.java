@@ -16,9 +16,8 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class CSP {
-	// public static boolean simplifyAll = true;
-  private List<Integer> bases;
-	
+	private List<Integer> bases;
+
 	private List<IntegerVariable> integerVariables;
 
 	private List<BooleanVariable> booleanVariables;
@@ -55,7 +54,7 @@ public class CSP {
 	 * Constructs a new CSP.
 	 */
 	public CSP() {
-    bases = new ArrayList<Integer>();
+		bases = new ArrayList<Integer>();
 		integerVariables = new ArrayList<IntegerVariable>();
 		booleanVariables = new ArrayList<BooleanVariable>();
 		clauses = new ArrayList<Clause>();
@@ -77,14 +76,14 @@ public class CSP {
 		this.objectiveVariable = objectiveVariable;
 	}
 
-  public List<Integer> getBases() {
-    return bases;
-  }
+	public List<Integer> getBases() {
+		return bases;
+	}
 
-  public void setBases(List<Integer> bases) {
-    this.bases.addAll(bases);
-  }
-	
+	public void setBases(List<Integer> bases) {
+		this.bases.addAll(bases);
+	}
+
 	/**
 	 * Returns the objective.
 	 * @return the objective
@@ -96,7 +95,7 @@ public class CSP {
 	public void setObjective(Objective objective) {
 		this.objective = objective;
 	}
-	
+
 	/**
 	 * Returns the integer variables.
 	 * @return the integer variables
@@ -117,7 +116,7 @@ public class CSP {
 	public void add(IntegerVariable v) throws SugarException {
 		String name = v.getName();
 		if (integerVariableMap.containsKey(name)) {
-			throw new SugarException("Duplicated integer variable " + name); 
+			throw new SugarException("Duplicated integer variable " + name);
 		}
 		integerVariableMap.put(v.getName(), v);
 		integerVariables.add(v);
@@ -134,7 +133,7 @@ public class CSP {
 	public void add(BooleanVariable v) throws SugarException {
 		String name = v.getName();
 		if (booleanVariableMap.containsKey(name)) {
-			throw new SugarException("Duplicated boolean variable " + name); 
+			throw new SugarException("Duplicated boolean variable " + name);
 		}
 		booleanVariableMap.put(v.getName(), v);
 		booleanVariables.add(v);
@@ -157,7 +156,7 @@ public class CSP {
 		return clauses;
 	}
 
-  public void setClauses(List<Clause> cls) {
+	public void setClauses(List<Clause> cls) {
 		clauses = cls;
 	}
 
@@ -194,7 +193,7 @@ public class CSP {
 				if (clause.isModified()) {
 					modifiedClauses.add(clause);
 				}
-			}		
+			}
 			for (IntegerVariable v : integerVariables) {
 				v.setModified(false);
 			}
@@ -219,12 +218,12 @@ public class CSP {
 				i++;
 			}
 		}
-		Logger.fine(removedValues + " values, " 
+		Logger.fine(removedValues + " values, "
 				+ removedLiterals + " unsatisfiable literals, and "
 				+ removedClauses + " valid clauses are removed");
 		return removedValues + removedLiterals + removedClauses;
 	}
-	
+
 	public void output(PrintStream out, String pre) {
 		for (IntegerVariable v : integerVariables) {
 			if (v.getComment() != null) {
@@ -270,7 +269,7 @@ public class CSP {
 		getClauses().size() + " clauses, " +
 		"largest domain size " + size;
 	}
-	
+
 	/**
 	 * Returns the string representation of the CSP.
 	 * @return the string representation
@@ -282,5 +281,4 @@ public class CSP {
 		output(out, "");
 		return bs.toString();
 	}
-
 }
