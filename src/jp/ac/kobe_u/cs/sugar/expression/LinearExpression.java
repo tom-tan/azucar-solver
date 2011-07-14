@@ -12,7 +12,6 @@ import java.util.TreeMap;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 
 public class LinearExpression extends Expression {

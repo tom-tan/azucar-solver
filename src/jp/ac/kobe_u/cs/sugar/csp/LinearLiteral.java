@@ -6,7 +6,7 @@ import java.util.Set;
 
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 import jp.ac.kobe_u.cs.sugar.expression.*;
 
 /**
@@ -54,32 +54,39 @@ public class LinearLiteral extends Literal {
 
 	@Override
 	public int[] getBound(IntegerVariable v) throws SugarException {
-		int a = linearSum.getA(v);
-		int lb = v.getDomain().getLowerBound();
-		int ub = v.getDomain().getUpperBound();
-		if (a != 0) {
-			IntegerDomain d = linearSum.getDomainExcept(v);
-			d = d.neg();
-			int b = d.getUpperBound();
-			if (a >= 0) {
-				// ub = (int)Math.floor((double)b / a);
-				if (b >= 0) {
-					ub = b/a;
-				} else {
-					ub = (b-a+1)/a;
-				}
-			} else {
-				// lb = (int)Math.ceil((double)b / a);
-				if (b >= 0) {
-					lb = b/a;
-				} else {
-					lb = (b+a+1)/a;
-				}
-			}
-		}
-		if (lb > ub)
-			return null;
-		return new int[] { lb, ub };
+    switch(op) {
+		case LE:{
+      int a = linearSum.getA(v);
+      int lb = v.getDomain().getLowerBound();
+      int ub = v.getDomain().getUpperBound();
+      if (a != 0) {
+        IntegerDomain d = linearSum.getDomainExcept(v);
+        d = d.neg();
+        int b = d.getUpperBound();
+        if (a >= 0) {
+          // ub = (int)Math.floor((double)b / a);
+          if (b >= 0) {
+            ub = b/a;
+          } else {
+            ub = (b-a+1)/a;
+          }
+        } else {
+          // lb = (int)Math.ceil((double)b / a);
+          if (b >= 0) {
+            lb = b/a;
+          } else {
+            lb = (b+a+1)/a;
+          }
+        }
+      }
+      if (lb > ub)
+        return null;
+      return new int[] { lb, ub };
+    }
+		case EQ: return null;
+		case NE: return null;
+		default: throw new SugarException("!!!");
+    }
 	}
 
 	/**
@@ -106,10 +113,15 @@ public class LinearLiteral extends Literal {
 	@Override
 	public boolean isValid() throws SugarException {
 		switch(op) {
-		case LE: return linearSum.getDomain().getUpperBound() <= 0;
-		case EQ: return false;
-		case NE: return false;
-		default: throw new SugarException("!!!");
+		case LE:
+      return linearSum.getDomain().getUpperBound() <= 0;
+		case EQ:
+      return linearSum.getDomain().contains(0)
+        && linearSum.getDomain().size() == 1;
+		case NE:
+      return !linearSum.getDomain().contains(0);
+		default:
+      throw new SugarException("!!!");
 		}
 	}
 	
@@ -119,77 +131,12 @@ public class LinearLiteral extends Literal {
 		case LE:
 			return linearSum.getDomain().getLowerBound() > 0;
 		case EQ:
-			return linearSum.getDomain().getLowerBound() > 0
-				|| 0 > linearSum.getDomain().getUpperBound();
+			return !linearSum.getDomain().contains(0);
 		case NE:
-			return linearSum.getDomain().size() == 1
-				&& linearSum.getDomain().contains(0);
+			return linearSum.getDomain().contains(0)
+        && linearSum.getDomain().size() == 1;
 		default: throw new SugarException("!!!");
 		}
-	}
-	
-	@Override
-	public int propagate() throws SugarException {
-		if (linearSum.size() == 0) {
-			return 0;
-		/*
-		} else if (linearSum.size() == 1) {
-			int b = linearSum.getB(); 
-			IntegerVariable v = linearSum.getCoef().firstKey();
-			int a = linearSum.getA(v);
-			if (a > 0) {
-				int ub = (int)Math.floor(-(double)b/a);
-				return v.bound(v.getDomain().getLowerBound(), ub);
-			} else {
-				int lb = (int)Math.ceil(-(double)b/a);
-				return v.bound(lb, v.getDomain().getUpperBound());
-			}
-		*/
-		}
-		if (op == Operator.EQ || op == Operator.NE) return 0; // TODO
-		int removed = 0;
-		for (IntegerVariable v : linearSum.getCoef().keySet()) {
-			IntegerDomain d = linearSum.getDomainExcept(v);
-			d = d.neg();
-			int a = linearSum.getA(v);
-			int lb = v.getDomain().getLowerBound();
-			int ub = v.getDomain().getUpperBound();
-			if (a >= 0) {
-				// ub = (int)Math.floor((double)d.getUpperBound()/a);
-				int b = d.getUpperBound();
-				if (b >= 0) {
-					ub = b/a;
-				} else {
-					ub = (b-a+1)/a;
-				}
-			} else {
-				// lb = (int)Math.ceil((double)d.getUpperBound()/a);
-				int b = d.getUpperBound();
-				if (b >= 0) {
-					lb = b/a;
-				} else {
-					lb = (b+a+1)/a;
-				}
-			}
-			// if (lb > v.getDomain().getLowerBound() || ub < v.getDomain().getUpperBound()) {
-			if (lb > ub) {
-				// XXX debug				
-				System.out.println(linearSum);
-				for (IntegerVariable v1 : linearSum.getCoef().keySet()) {
-					System.out.println(v1.toString());
-				}
-				System.out.println(linearSum.getDomainExcept(v).toString());
-				// System.out.println(d.toString());
-				System.out.println(v.getName() + " " + lb + " " + ub);
-				System.out.println("==>");
-				removed += v.bound(lb, ub);
-				System.out.println(v.toString());
-				System.out.println();
-			} else {
-				removed += v.bound(lb, ub);
-			}
-		}
-		return removed;
 	}
 
 	@Override
@@ -203,7 +150,7 @@ public class LinearLiteral extends Literal {
 		int b = linearSum.getB(); 
 		int code;
 		if (linearSum.size() == 0) {
-			code = b <= 0 ? Encoder.TRUE_CODE : Encoder.FALSE_CODE; 
+			code = b <= 0 ? AbstractEncoder.TRUE_CODE : AbstractEncoder.FALSE_CODE; 
 		} else {
 			IntegerVariable v = linearSum.getCoef().firstKey();
 			int a = linearSum.getA(v);
@@ -219,7 +166,7 @@ public class LinearLiteral extends Literal {
 	 * <--> v1>=c1 -> v2>=c2 -> a3*v3+b+a1*c1+a2*c2<= 0 (when a1>0, a2>0)
 	 * 
 	 */
-	private void encode(Encoder encoder, IntegerVariable[] vs, int i, int s, int[] clause)
+	private void encode(AbstractEncoder encoder, IntegerVariable[] vs, int i, int s, int[] clause)
 		throws IOException, SugarException {
 		if (op == Operator.EQ || op == Operator.NE) {
 			throw new SugarException("Internal error " + toString()); 
@@ -272,13 +219,13 @@ public class LinearLiteral extends Literal {
 					lb = Math.max(lb, (-lb0+a+1)/a);
 				}
 				// XXX
-				clause[i] = Encoder.negateCode(vs[i].getCodeLE(lb - 1));
+				clause[i] = AbstractEncoder.negateCode(vs[i].getCodeLE(lb - 1));
 				encode(encoder, vs, i+1, s+a*(lb-1), clause);
 				Iterator<Integer> iter = domain.values(lb, ub); 
 				while (iter.hasNext()) {
 					int c = iter.next();
 					// vs[i]<=c -> ...
-					clause[i] = Encoder.negateCode(vs[i].getCodeLE(c));
+					clause[i] = AbstractEncoder.negateCode(vs[i].getCodeLE(c));
 					encode(encoder, vs, i+1, s+a*c, clause);
 				}
 			}
@@ -286,7 +233,7 @@ public class LinearLiteral extends Literal {
 	}
 	
 	@Override
-	public void encode(Encoder encoder, int[] clause) throws SugarException, IOException {
+	public void encode(AbstractEncoder encoder, int[] clause) throws SugarException, IOException {
 		if (op == Operator.EQ || op == Operator.NE) {
 			throw new SugarException("Internal error " + toString()); 
 		}
@@ -301,21 +248,6 @@ public class LinearLiteral extends Literal {
 			clause = expand(clause, n);
 			encode(encoder, vs, 0, linearSum.getB(), clause);
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see Literal#isSatisfied()
-	 */
-	@Override
-	public boolean isSatisfied() {
-		switch(op) {
-		case LE: return linearSum.getValue() <= 0;
-		case EQ: return linearSum.getValue() == 0;
-		case NE: return linearSum.getValue() != 0;
-			//default: throw new SugarException("!!!!");
-		}
-		assert(false);
-		return false;
 	}
 
 	/**

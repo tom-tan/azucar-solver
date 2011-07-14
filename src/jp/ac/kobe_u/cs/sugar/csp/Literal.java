@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This is an abstract class for literals of CSP.
@@ -33,20 +33,12 @@ public abstract class Literal {
 	
 	public abstract boolean isUnsatisfiable() throws SugarException;
 
-	public abstract int propagate() throws SugarException;
-
 	public int getCode() throws SugarException {
 		throw new SugarException("Internal error " + toString()); 
 	}
 
-	public abstract void encode(Encoder encoder, int[] clause)
+	public abstract void encode(AbstractEncoder encoder, int[] clause)
 	throws SugarException, IOException;
-
-	/**
-	 * Returns true when the literal is satisfied.
-	 * @return true when the literal is satisfied
-	 */
-	public abstract boolean isSatisfied();
 
 	protected int[] expand(int[] clause0, int n) {
 		int[] clause = new int[clause0.length + n];

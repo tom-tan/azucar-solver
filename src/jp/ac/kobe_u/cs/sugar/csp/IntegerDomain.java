@@ -512,8 +512,45 @@ public class IntegerDomain {
 
 	public void appendValues(StringBuilder sb) {
 		if (domain == null) {
-			sb.append("(" + lb + " " + ub + ")");
+			sb.append(lb + ".." + ub);
 		} else {
+			String delim = "";
+			int value0 = Integer.MIN_VALUE;
+			int value1 = Integer.MIN_VALUE;
+			for (int value : domain) {
+				if (value0 == Integer.MIN_VALUE) {
+					value0 = value1 = value;
+				} else if (value1 + 1 == value) {
+					value1 = value;
+				} else {
+					sb.append(delim);
+					if (value0 == value1) {
+						sb.append(value0);
+					} else {
+						sb.append(value0 + ".." + value1);
+					}
+					delim = " ";
+					value0 = value1 = value;
+				}
+			}
+			if (value0 != Integer.MIN_VALUE) {
+				sb.append(delim);
+				if (value0 == value1) {
+					sb.append(value0);
+				} else {
+					sb.append(value0 + ".." + value1);
+				}
+			}
+		}
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		if (domain == null) {
+			sb.append(lb + " " + ub);
+		} else {
+      sb.append("(");
 			String delim = "";
 			int value0 = Integer.MIN_VALUE;
 			int value1 = Integer.MIN_VALUE;
@@ -541,15 +578,8 @@ public class IntegerDomain {
 					sb.append("(" + value0 + " " + value1 + ")");
 				}
 			}
+      sb.append(")");
 		}
-	}
-	
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("(");
-		appendValues(sb);
-		sb.append(")");
 		return sb.toString();
 	}
 

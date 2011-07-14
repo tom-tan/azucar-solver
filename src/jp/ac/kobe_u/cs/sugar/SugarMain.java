@@ -19,7 +19,8 @@ import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
+import jp.ac.kobe_u.cs.sugar.encoder.oe.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
@@ -131,16 +132,6 @@ public class SugarMain {
 			}
 			Logger.status();
 
-			// if (Encoder.OPT_COMPACT) {
-			// 	Logger.fine("Compacting CSP");
-			// 	csp.compact();
-			// 	Logger.info("CSP : " + csp.summary());
-			// 	if (debug > 0) {
-			// 		csp.output(System.out, "c ");
-			// 	}
-			// 	Logger.status();
-			// }
-
 			parser = null;
 			converter = null;
 			expressions = null;
@@ -155,6 +146,8 @@ public class SugarMain {
 			} else {
 				Logger.fine("Encoding CSP to SAT : " + satFileName);
 				Encoder encoder = new Encoder(csp);
+        encoder.reduce();
+        System.out.println(csp);
 				encoder.encode(satFileName, incremental);
 				Logger.fine("Writing map file : " + mapFileName);
 				encoder.outputMap(mapFileName);
@@ -289,10 +282,10 @@ public class SugarMain {
 						if (opt.matches("(no_)?pigeon")) {
 							Converter.OPT_PIGEON = ! opt.startsWith("no_");
 						} else if (opt.matches("(no_)?compact")) {
-							Encoder.OPT_COMPACT = ! opt.startsWith("no_");
+							//Encoder.OPT_COMPACT = ! opt.startsWith("no_");
 						} else if (opt.matches("(no_)?estimate_satsize")) {
 							Converter.ESTIMATE_SATSIZE = ! opt.startsWith("no_");
-                            Encoder.OPT_COMPACT = ! opt.startsWith("no_");
+              //Encoder.OPT_COMPACT = ! opt.startsWith("no_");
                         } else if (opt.matches("(no_)?new_variable")) {
                             Converter.NEW_VARIABLE = ! opt.startsWith("no_");
 						} else if (opt.matches("equiv=(\\d+)")) {

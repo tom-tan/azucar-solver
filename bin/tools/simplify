@@ -3,7 +3,7 @@
 require'optparse'
 
 JAR = '~/azucar/bin/azucar-v0.000.jar'
-Simplifier = 'jp.ac.kobe_u.cs.sugar.Simplifier'
+Simplifier = 'jp.ac.kobe_u.cs.sugar.encoder.Simplifier'
 
 if $0 == __FILE__
   outfile = '/dev/stdout'

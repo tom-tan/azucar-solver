@@ -10,7 +10,6 @@ import java.util.TreeMap;
 
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 
 /**
@@ -364,18 +363,6 @@ public class LinearSum {
 		return x;
 	}
 	
-	/**
-	 * Returns the value of the linear expression.
-	 * @return the value of the linear expression
-	 */
-	public int getValue() {
-		int value = b;
-		for (IntegerVariable v : coef.keySet()) {
-			value += getA(v) * v.getValue();
-		}
-		return value;
-	}
-
 	/**
 	 * Returns true when the linear expression is equal to the given linear expression.
 	 * @param linearSum the linear expression to be compared

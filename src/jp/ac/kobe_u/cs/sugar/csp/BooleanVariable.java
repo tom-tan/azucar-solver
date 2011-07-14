@@ -3,7 +3,7 @@ package jp.ac.kobe_u.cs.sugar.csp;
 import java.util.BitSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This class implements a boolean variable of CSP.
@@ -111,7 +111,7 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 		return 1;
 	}
 
-	public void encode(Encoder encoder) {
+	public void encode(AbstractEncoder encoder) {
 	}
 
 	public void decode(BitSet satValues) {

@@ -24,7 +24,6 @@ import jp.ac.kobe_u.cs.sugar.csp.Literal;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
@@ -59,11 +58,11 @@ class Simplifier{
 	}
 
   private List<Clause> simplify(Clause clause) throws SugarException {
-		List<Literal> literals = clause.getLiterals();
 		List<Clause> newClauses = new ArrayList<Clause>();
-		clause = new Clause();
+		clause = new Clause(clause.getBooleanLiterals());
+
 		int complex = 0;
-		for (Literal literal : literals) {
+		for (Literal literal : clause.getArithmeticLiterals()) {
 			if (literal.isSimple()) {
 				clause.add(literal);
 			} else {

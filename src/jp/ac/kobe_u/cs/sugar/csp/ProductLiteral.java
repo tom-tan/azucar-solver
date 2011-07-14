@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Set;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * NOT IMPLEMENTED YET.
@@ -40,18 +40,7 @@ public class ProductLiteral extends Literal {
 	}
 	
 	@Override
-	public int propagate() {
-		// TODO propagate
-		return 0;
-	}
-
-	@Override
-	public boolean isSatisfied() {
-		return v.getValue() == v1.getValue() * v2.getValue();
-	}
-
-	@Override
-	public void encode(Encoder encoder, int[] clause) throws SugarException, IOException {
+	public void encode(AbstractEncoder encoder, int[] clause) throws SugarException, IOException {
 		// TODO encode
 	}
 

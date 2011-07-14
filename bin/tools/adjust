@@ -3,7 +3,7 @@
 require'optparse'
 
 JAR = '~/azucar/bin/azucar-v0.000.jar'
-Adjuster = 'jp.ac.kobe_u.cs.sugar.Adjuster'
+Adjuster = 'jp.ac.kobe_u.cs.sugar.encoder.Adjuster'
 
 if $0 == __FILE__
   outfile = '/dev/stdout'

@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This class implements a clause in CSP.
@@ -15,7 +15,9 @@ import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class Clause {
-	private List<Literal> literals;
+  private List<BooleanLiteral> boolLiterals;
+  // 本来は ProductLiteral もとれるべき
+	private List<LinearLiteral>  arithLiterals;
 	private Set<IntegerVariable> commonVariables = null;
 	private String comment = null;
 	
@@ -23,48 +25,64 @@ public class Clause {
 	 * Constructs a new clause with give literals.
 	 * @param literals the literals of the clause
 	 */
-	public Clause(List<Literal> literals) {
-		this.literals = literals;
+	// public Clause(List<Literal> literals) {
+  //   this();
+  //   addAll(literals);
+	// }
+
+	public Clause(List<BooleanLiteral> literals) {
+    this();
+    addAll(literals);
 	}
 
 	/**
 	 * Constructs a new clause.
 	 */
 	public Clause() {
-		literals = new ArrayList<Literal>();
+    boolLiterals = new ArrayList<BooleanLiteral>();
+    arithLiterals = new ArrayList<LinearLiteral>();
 	}
 	
 	public Clause(Literal literal) {
 		this();
-		literals.add(literal);
+		add(literal);
 	}
 
-	/**
-	 * Returns the literals of the clause.
-	 * @return literals the literals
-	 */
-	public List<Literal> getLiterals() {
-		return literals;
-	}
+  public List<BooleanLiteral> getBooleanLiterals() {
+    return boolLiterals;
+  }
+
+  public List<LinearLiteral> getArithmeticLiterals() {
+    return arithLiterals;
+  }
 
 	/**
 	 * Adds all given literals to the clause.
 	 * @param literals the literals to be added
 	 */
-	public void addAll(List<Literal> literals) {
-		this.literals.addAll(literals);
+	// public void addAll(List<Literal> literals) {
+  //   for(Literal l: literals) {
+  //     add(l);
+  //   }
+	// }
+
+	public void addAll(List<BooleanLiteral> literals) {
+    boolLiterals.addAll(literals);
 	}
 
-	/**
-	 * Adds the given literal to the clause.
-	 * @param literal the literal to be added.
-	 */
-	public void add(Literal literal) {
-		literals.add(literal);
-	}
+	// public void addAll(List<LinearLiteral> literals) {
+  //   arithLiterals.addAll(literals);
+	// }
+
+  public void add(Literal literal) {
+    if (literal instanceof BooleanLiteral)
+      boolLiterals.add((BooleanLiteral)literal);
+    else
+      arithLiterals.add((LinearLiteral)literal);
+  }
 
 	public int size() {
-		return literals.size();
+		return boolLiterals.size()+arithLiterals.size();
 	}
 	
 	/**
@@ -84,7 +102,7 @@ public class Clause {
 	}
 
 	public boolean isModified() {
-		for (Literal lit : literals) {
+		for (Literal lit : arithLiterals) {
 			Set<IntegerVariable> vs = lit.getVariables();
 			if (vs != null) {
 				for (IntegerVariable v : vs) {
@@ -99,7 +117,7 @@ public class Clause {
 	
 	public Set<IntegerVariable> getCommonVariables() {
 		if (commonVariables == null && size() > 0) {
-			for (Literal lit : literals) {
+			for (Literal lit : arithLiterals) {
 				Set<IntegerVariable> vs = lit.getVariables();
 				if (vs == null) {
 					commonVariables = null;
@@ -107,7 +125,7 @@ public class Clause {
 				} else if (commonVariables == null) {
 					commonVariables = vs;
 				} else {
-					Set<IntegerVariable> vars = new TreeSet<IntegerVariable>(); 
+					Set<IntegerVariable> vars = new TreeSet<IntegerVariable>();
 					for (IntegerVariable v : commonVariables) {
 						if (vs.contains(v)) {
 							vars.add(v);
@@ -124,8 +142,8 @@ public class Clause {
 	}
 	
 	public int simpleSize() {
-		int simpleLiterals = 0;
-		for (Literal literal : literals) {
+		int simpleLiterals = boolLiterals.size();
+		for (Literal literal : arithLiterals) {
 			if (literal.isSimple()) {
 				simpleLiterals++;
 			}
@@ -144,7 +162,12 @@ public class Clause {
 	}
 	
 	public boolean isValid() throws SugarException {
-		for (Literal lit : literals) {
+		for (Literal lit : boolLiterals) {
+			if (lit.isValid()) {
+				return true;
+			}
+		}
+		for (Literal lit : arithLiterals) {
 			if (lit.isValid()) {
 				return true;
 			}
@@ -153,7 +176,12 @@ public class Clause {
 	}
 	
 	public boolean isUnsatisfiable() throws SugarException {
-		for (Literal lit : literals) {
+		for (Literal lit : boolLiterals) {
+			if (! lit.isUnsatisfiable()) {
+				return false;
+			}
+		}
+		for (Literal lit : arithLiterals) {
 			if (! lit.isUnsatisfiable()) {
 				return false;
 			}
@@ -168,15 +196,16 @@ public class Clause {
 		// return literals.get(0).propagate();
 		int count = 0;
 		for (IntegerVariable v : getCommonVariables()) {
+      assert(boolLiterals.isEmpty());
 			int[] bound = null;
-			for (Literal lit : literals) {
+			for (Literal lit : arithLiterals) {
 				int[] b = lit.getBound(v);
 				if (b == null) {
 					bound = null;
 					break;
 				} else {
 					// System.out.println("Bound " + v + " " + b[0] + " " + b[1] + " by " + lit);
-					if (bound == null){
+					if (bound == null) {
 						bound = b;
 					} else {
 						bound[0] = Math.min(bound[0], b[0]);
@@ -195,9 +224,17 @@ public class Clause {
 	public int removeFalsefood() throws SugarException {
 		int count = 0;
 		int i = 0;
-		while (i < literals.size()) {
-			if (literals.get(i).isUnsatisfiable()) {
-				literals.remove(i);
+		while (i < boolLiterals.size()) {
+			if (boolLiterals.get(i).isUnsatisfiable()) {
+				boolLiterals.remove(i);
+				count++;
+			} else {
+				i++;
+			}
+		}
+		while (i < arithLiterals.size()) {
+			if (arithLiterals.get(i).isUnsatisfiable()) {
+				arithLiterals.remove(i);
 				count++;
 			} else {
 				i++;
@@ -206,20 +243,7 @@ public class Clause {
 		return count;
 	}
 
-	/**
-	 * Returns true when the clause is satisfied.
-	 * @return true when the clause is satisfied
-	 */
-	public boolean isSatisfied() {
-		for (Literal literal : literals) {
-			if (literal.isSatisfied()) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	public void encode(Encoder encoder) throws SugarException, IOException {
+	public void encode(AbstractEncoder encoder) throws SugarException, IOException {
 		if (! isSimple()) {
 			throw new SugarException("Cannot encode non-simple clause " + toString());
 		}
@@ -230,7 +254,12 @@ public class Clause {
 		int[] clause = new int[simpleSize()];
 		Literal lit = null;
 		int i = 0;
-		for (Literal literal : literals) {
+    for (Literal literal : boolLiterals) {
+      assert(literal.isSimple());
+      clause[i] = literal.getCode();
+      i++;
+    }
+		for (Literal literal : arithLiterals) {
 			if (literal.isSimple()) {
 				clause[i] = literal.getCode();
 				i++;
@@ -253,7 +282,11 @@ public class Clause {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(or");
-		for (Literal literal : literals) {
+    for (Literal literal : boolLiterals) {
+			sb.append(" ");
+			sb.append(literal.toString());
+    }
+		for (Literal literal : arithLiterals) {
 			sb.append(" ");
 			sb.append(literal.toString());
 		}

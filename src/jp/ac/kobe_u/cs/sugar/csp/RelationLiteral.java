@@ -15,7 +15,7 @@ import java.util.TreeSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarMain;
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 
 /**
@@ -123,13 +123,6 @@ public class RelationLiteral extends Literal {
 	public boolean isUnsatisfiable() throws SugarException {
 		// TODO
 		return false;
-	}
-
-	@Override
-	public int propagate() throws SugarException {
-		int count = 0;
-		// TODO
-		return count;
 	}
 
 	private boolean contactInside(Brick brick1, Brick brick2, int i) {
@@ -278,7 +271,7 @@ public class RelationLiteral extends Literal {
 	}
 	
 	@Override
-	public void encode(Encoder encoder, int[] clause0) throws SugarException, IOException {
+	public void encode(AbstractEncoder encoder, int[] clause0) throws SugarException, IOException {
 		int[] clause = new int[2*arity + clause0.length];
 		for (int i = 0; i < clause0.length; i++) {
 			clause[2*arity + i] = clause0[i];
@@ -288,19 +281,10 @@ public class RelationLiteral extends Literal {
 			for (int i = 0; i < arity; i++) {
 				IntegerVariable v = vs[i];
 				clause[2*i + 0] = v.getCodeLE(brick.lb[i] - 1);
-				clause[2*i + 1] = Encoder.negateCode(v.getCodeLE(brick.ub[i]));
+				clause[2*i + 1] = AbstractEncoder.negateCode(v.getCodeLE(brick.ub[i]));
 			}
 			encoder.writeClause(clause);
 		}
-	}
-
-	@Override
-	public boolean isSatisfied() {
-		int[] point = new int[vs.length];
-		for (int i = 0; i < vs.length; i++) {
-			point[i] = vs[i].getValue();
-		}
-		return conflicts(new Tuple(point));
 	}
 
 	@Override

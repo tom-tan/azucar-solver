@@ -30,7 +30,6 @@ import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
@@ -95,16 +94,17 @@ class Adjuster{
         newCls = c;
       }else{
         assert(c.simpleSize() == 1);
-        Pair<LinearLiteral, List<Literal>>
-          pair = splitLiterals(c);
-        assert(pair.first() != null);
-        LinearSum ls = pair.first().getLinearExpression();
+        List<LinearLiteral> lls = c.getArithmeticLiterals();
+        List<BooleanLiteral> bls = c.getBooleanLiterals();
+        assert(lls.size() == 1);
+        LinearLiteral ll = lls.get(0);
+        LinearSum ls = ll.getLinearExpression();
         for(Entry<IntegerVariable,
               Integer> es : ls.getCoef().entrySet()) {
           ls.setB(ls.getB()+es.getKey().getOffset()*es.getValue());
         }
-        newCls = new Clause(new LinearLiteral(ls, pair.first().getOperator()));
-        newCls.addAll(pair.second());
+        newCls = new Clause(new LinearLiteral(ls, ll.getOperator()));
+        newCls.addAll(bls);
       }
       assert(newCls != null);
       newClauses.add(newCls);
@@ -114,40 +114,6 @@ class Adjuster{
     Logger.info("CSP : " + csp.summary());
 		return csp;
 	}
-
-  static class Pair<P1, P2> {
-    private P1 fst;
-    private P2 snd;
-    public Pair(P1 f, P2 s) {
-      fst = f;
-      snd = s;
-    }
-
-    public P1 first() {
-      return fst;
-    }
-    public P2 second() {
-      return snd;
-    }
-  }
-
-  static Pair<LinearLiteral, List<Literal>>
-    splitLiterals(Clause c)throws SugarException{
-    assert(!c.isSimple());
-    LinearLiteral ll = null;
-    List<Literal> bls = new ArrayList<Literal>();
-    for(Literal l: c.getLiterals()) {
-      if(l instanceof LinearLiteral) {
-        if(ll != null) throw new SugarException("Clauses must be simple");
-        ll = (LinearLiteral)l;
-      }else{
-        assert(l instanceof BooleanLiteral);
-        bls.add(l);
-      }
-    }
-    assert((ll == null ?  bls.size() : bls.size()+1) == c.size());
-    return new Pair<LinearLiteral, List<Literal>>(ll, bls);
-  }
 
 	public static void main(String[] args)
 		throws SugarException, IOException {

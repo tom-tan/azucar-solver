@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.BitSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * This class implements an integer variable of CSP.
@@ -140,6 +140,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * @return the value
 	 */
 	public int getValue() {
+    // 値はただ1つに決まっている
+    assert(domain.size() == 1);
 		return value;
 	}
 
@@ -155,38 +157,6 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		return domain.isEmpty();
 	}
 
-	/**
-	 * Returns true when the value is within the bounds.
-	 * @return true when the value is within the bounds
-	 */
-	public boolean isSatisfied() {
-		return domain.contains(value);
-	}
-
-	// public void compact(CSP csp) throws SugarException {
-	// 	if (! domain.isContiguous() || domain.size() <= Encoder.BASE) {
-	// 		return;
-	// 	}
-	// 	vs = new IntegerVariable[2];
-	// 	offset = domain.getLowerBound();
-	// 	int max = domain.getUpperBound() - offset;
-	// 	int ub0 = Encoder.BASE - 1;
-	// 	int ub1 = max / Encoder.BASE;
-	// 	vs[0] = new IntegerVariable(new IntegerDomain(0, ub0));
-	// 	csp.add(vs[0]);
-	// 	vs[1] = new IntegerVariable(new IntegerDomain(0, ub1));
-	// 	csp.add(vs[1]);
-	// 	int c = max % Encoder.BASE;
-	// 	if (c != Encoder.BASE - 1) {
-	// 		Clause clause = new Clause();
-	// 		clause.add(new LinearLiteral(
-	// 				new LinearSum(1, vs[1], -ub1+1)));
-	// 		clause.add(new LinearLiteral(
-	// 				new LinearSum(1, vs[0], -c)));
-	// 		csp.add(clause);
-	// 	}
-	// }
-	
 	public int getSatVariablesSize() {
 		if (vs != null)
 			return 0;
@@ -195,9 +165,9 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 
 	public int getCodeLE(int value) {
 		if (value < domain.getLowerBound()) {
-			return Encoder.FALSE_CODE;
+			return AbstractEncoder.FALSE_CODE;
 		} else if (value >= domain.getUpperBound()) {
-			return Encoder.TRUE_CODE;
+			return AbstractEncoder.TRUE_CODE;
 		}
 		return code + domain.sizeLE(value) - 1;
 	}
@@ -221,19 +191,19 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 			} else {
 				c = (b+a+1)/a - 1;
 			}
-			code = Encoder.negateCode(getCodeLE(c));
+			code = AbstractEncoder.negateCode(getCodeLE(c));
 		}
 		return code;
 	}
 
-	public void encode(Encoder encoder) throws IOException {
+	public void encode(AbstractEncoder encoder) throws IOException {
 		encoder.writeComment(toString());
 		if (vs == null) {
 			int[] clause = new int[2];
 			int a0 = domain.getLowerBound();
 			for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
 				if (domain.contains(a)) {
-					clause[0] = Encoder.negateCode(getCodeLE(a0));
+					clause[0] = AbstractEncoder.negateCode(getCodeLE(a0));
 					clause[1] = getCodeLE(a);
 					encoder.writeClause(clause);
 					a0 = a;

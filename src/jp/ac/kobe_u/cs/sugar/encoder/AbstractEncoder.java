@@ -30,7 +30,7 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
  * @see CSP 
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class Encoder {
+public abstract class AbstractEncoder {
 	public static final int FALSE_CODE = 0;
 
 	public static final int TRUE_CODE = Integer.MIN_VALUE;
@@ -41,7 +41,7 @@ public class Encoder {
 	
 	public static long MAX_SAT_SIZE = 3*1024*1024*1024L;
 	
-	private CSP csp;
+	protected CSP csp;
 	
 	// private String satFileName;
 
@@ -74,7 +74,7 @@ public class Encoder {
 		return code;
 	}
 
-	public Encoder(CSP csp) {
+	public AbstractEncoder(CSP csp) {
 		this.csp = csp;
 		// this.satFileName = satFileName;
 		// this.outFileName = outFileName;
@@ -163,13 +163,9 @@ public class Encoder {
 		return s.toString();
 	}
 
-  public void encode(IntegerVariable ivar) {
-    ivar.encode(this);
-  }
+  public abstract void encode(IntegerVariable ivar) throws SugarException, IOException;
 
-  public void encode(Clause cl) {
-    cl.encode(this);
-  }
+  public abstract void encode(Clause cl) throws SugarException, IOException;
 
   public int getSatVariablesSize(IntegerVariable ivar) {
     return ivar.getSatVariablesSize();
@@ -178,6 +174,8 @@ public class Encoder {
   public int getSatVariablesSize(BooleanVariable bvar) {
     return bvar.getSatVariablesSize();
   }
+
+  public abstract void reduce()throws SugarException;
 
 	public void encode(String satFileName, boolean incremental) throws SugarException, IOException {
 		satFileSize = 0;
@@ -262,118 +260,120 @@ public class Encoder {
 		satFile1.close();
 	}
 
-	public void outputMap(String mapFileName) throws SugarException, IOException {
-		BufferedWriter mapWriter = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(mapFileName), "UTF-8"));
-//		BufferedOutputStream mapFile =
-//			new BufferedOutputStream(new FileOutputStream(mapFileName));
-		if (csp.getObjectiveVariable() != null) {
-			String s = "objective ";
-			if (csp.getObjective().equals(CSP.Objective.MINIMIZE)) {
-				s += SugarConstants.MINIMIZE;
-			} else if (csp.getObjective().equals(CSP.Objective.MAXIMIZE)) {
-				s += SugarConstants.MAXIMIZE;
-			}
-			s += " " + csp.getObjectiveVariable().getName();
-//			mapFile.write(s.getBytes());
-//			mapFile.write('\n');
-			mapWriter.write(s);
-			mapWriter.write('\n');
-		}
-		for (IntegerVariable v : csp.getIntegerVariables()) {
-			if (! v.isAux() || SugarMain.debug > 0) {
-				int code = v.getCode();
-				StringBuilder sb = new StringBuilder();
-				sb.append("int " + v.getName() + " " + code + " ");
-				v.getDomain().appendValues(sb);
-//				mapFile.write(sb.toString().getBytes());
-//				mapFile.write('\n');
-				mapWriter.write(sb.toString());
-				mapWriter.write('\n');
-			}
-		}
-		for (BooleanVariable v : csp.getBooleanVariables()) {
-			if (! v.isAux() || SugarMain.debug > 0) {
-				int code = v.getCode();
-				String s = "bool " + v.getName() + " " + code;
-//				mapFile.write(s.getBytes());
-//				mapFile.write('\n');
-				mapWriter.write(s);
-				mapWriter.write('\n');
-			}
-		}
-//		mapFile.close();
-		mapWriter.close();
-	}
+  public abstract void outputMap(String mapFileName) throws SugarException, IOException;
+  public abstract boolean decode(String outFileName) throws SugarException, IOException;
+// 	public void outputMap(String mapFileName) throws SugarException, IOException {
+// 		BufferedWriter mapWriter = new BufferedWriter(
+// 				new OutputStreamWriter(new FileOutputStream(mapFileName), "UTF-8"));
+// //		BufferedOutputStream mapFile =
+// //			new BufferedOutputStream(new FileOutputStream(mapFileName));
+// 		if (csp.getObjectiveVariable() != null) {
+// 			String s = "objective ";
+// 			if (csp.getObjective().equals(CSP.Objective.MINIMIZE)) {
+// 				s += SugarConstants.MINIMIZE;
+// 			} else if (csp.getObjective().equals(CSP.Objective.MAXIMIZE)) {
+// 				s += SugarConstants.MAXIMIZE;
+// 			}
+// 			s += " " + csp.getObjectiveVariable().getName();
+// //			mapFile.write(s.getBytes());
+// //			mapFile.write('\n');
+// 			mapWriter.write(s);
+// 			mapWriter.write('\n');
+// 		}
+// 		for (IntegerVariable v : csp.getIntegerVariables()) {
+// 			if (! v.isAux() || SugarMain.debug > 0) {
+// 				int code = v.getCode();
+// 				StringBuilder sb = new StringBuilder();
+// 				sb.append("int " + v.getName() + " " + code + " ");
+// 				v.getDomain().appendValues(sb);
+// //				mapFile.write(sb.toString().getBytes());
+// //				mapFile.write('\n');
+// 				mapWriter.write(sb.toString());
+// 				mapWriter.write('\n');
+// 			}
+// 		}
+// 		for (BooleanVariable v : csp.getBooleanVariables()) {
+// 			if (! v.isAux() || SugarMain.debug > 0) {
+// 				int code = v.getCode();
+// 				String s = "bool " + v.getName() + " " + code;
+// //				mapFile.write(s.getBytes());
+// //				mapFile.write('\n');
+// 				mapWriter.write(s);
+// 				mapWriter.write('\n');
+// 			}
+// 		}
+// //		mapFile.close();
+// 		mapWriter.close();
+// 	}
 
-	public boolean decode(String outFileName) throws SugarException, IOException {
-		String result = null;
-		boolean sat = false;
-		BufferedReader rd = new BufferedReader(new FileReader(outFileName));
-		StreamTokenizer st = new StreamTokenizer(rd);
-		st.eolIsSignificant(true);
-		while (result == null) {
-			st.nextToken();
-			if (st.ttype == StreamTokenizer.TT_WORD) {
-				if (st.sval.equals("c")) {
-					do {
-						st.nextToken();
-					} while (st.ttype != StreamTokenizer.TT_EOL);
-				} else if (st.sval.equals("s")) {
-					st.nextToken();
-					result = st.sval;
-				} else {
-					result = st.sval;
-				}
-			} else {
-				throw new SugarException("Unknown output " + st.sval);
-			}
-		} 
-		if (result.startsWith("SAT")) {
-			sat = true;
-			BitSet satValues = new BitSet();
-			while (true) {
-				st.nextToken();
-				if (st.ttype == StreamTokenizer.TT_EOF)
-					break;
-				switch (st.ttype) {
-				case StreamTokenizer.TT_EOL:
-					break;
-				case StreamTokenizer.TT_WORD:
-					if (st.sval.equals("v")) {
-					} else if (st.sval.equals("c")) {
-						do {
-							st.nextToken();
-						} while (st.ttype != StreamTokenizer.TT_EOL);
-					} else {
-						throw new SugarException("Unknown output " + st.sval);
-					}
-					break;
-				case StreamTokenizer.TT_NUMBER:
-					int value = (int)st.nval;
-					int i = Math.abs(value);
-					if (i > 0) {
-						satValues.set(i, value > 0);
-					}
-					break;
-				default:
-					throw new SugarException("Unknown output " + st.sval);
-				}
-			}
-			for (IntegerVariable v : csp.getIntegerVariables()) {
-				v.decode(satValues);
-			}
-			for (BooleanVariable v : csp.getBooleanVariables()) {
-				v.decode(satValues);
-			}
-		} else if (result.startsWith("UNSAT")) {
-			sat = false;
-		} else {
-			throw new SugarException("Unknown output result " + result);
-		}
-		rd.close();
-		return sat;
-	}
+// 	public boolean decode(String outFileName) throws SugarException, IOException {
+// 		String result = null;
+// 		boolean sat = false;
+// 		BufferedReader rd = new BufferedReader(new FileReader(outFileName));
+// 		StreamTokenizer st = new StreamTokenizer(rd);
+// 		st.eolIsSignificant(true);
+// 		while (result == null) {
+// 			st.nextToken();
+// 			if (st.ttype == StreamTokenizer.TT_WORD) {
+// 				if (st.sval.equals("c")) {
+// 					do {
+// 						st.nextToken();
+// 					} while (st.ttype != StreamTokenizer.TT_EOL);
+// 				} else if (st.sval.equals("s")) {
+// 					st.nextToken();
+// 					result = st.sval;
+// 				} else {
+// 					result = st.sval;
+// 				}
+// 			} else {
+// 				throw new SugarException("Unknown output " + st.sval);
+// 			}
+// 		} 
+// 		if (result.startsWith("SAT")) {
+// 			sat = true;
+// 			BitSet satValues = new BitSet();
+// 			while (true) {
+// 				st.nextToken();
+// 				if (st.ttype == StreamTokenizer.TT_EOF)
+// 					break;
+// 				switch (st.ttype) {
+// 				case StreamTokenizer.TT_EOL:
+// 					break;
+// 				case StreamTokenizer.TT_WORD:
+// 					if (st.sval.equals("v")) {
+// 					} else if (st.sval.equals("c")) {
+// 						do {
+// 							st.nextToken();
+// 						} while (st.ttype != StreamTokenizer.TT_EOL);
+// 					} else {
+// 						throw new SugarException("Unknown output " + st.sval);
+// 					}
+// 					break;
+// 				case StreamTokenizer.TT_NUMBER:
+// 					int value = (int)st.nval;
+// 					int i = Math.abs(value);
+// 					if (i > 0) {
+// 						satValues.set(i, value > 0);
+// 					}
+// 					break;
+// 				default:
+// 					throw new SugarException("Unknown output " + st.sval);
+// 				}
+// 			}
+// 			for (IntegerVariable v : csp.getIntegerVariables()) {
+// 				v.decode(satValues);
+// 			}
+// 			for (BooleanVariable v : csp.getBooleanVariables()) {
+// 				v.decode(satValues);
+// 			}
+// 		} else if (result.startsWith("UNSAT")) {
+// 			sat = false;
+// 		} else {
+// 			throw new SugarException("Unknown output result " + result);
+// 		}
+// 		rd.close();
+// 		return sat;
+// 	}
 
 	public String summary() {
 		return
