@@ -26,6 +26,7 @@ import jp.ac.kobe_u.cs.sugar.csp.CSP.Objective;
 import jp.ac.kobe_u.cs.sugar.expression.*;
 
 public class Decomposer {
+	public static boolean OPT_PIGEON = true;
 	public static int MAX_EQUIVMAP_SIZE = 1000;
 	public static boolean expandABS = true;
 	private final String IAUX_PREFIX = "_$ID";
