@@ -29,7 +29,7 @@ public class Encoder extends AbstractEncoder {
 	}
 
 	@Override
-	protected int getCode(LinearLiteral lit) throws SugarException {
+	public int getCode(LinearLiteral lit) throws SugarException {
 		if (! lit.isSimple()) {
 			throw new SugarException("Internal error " + lit.toString()); 
 		}
@@ -74,7 +74,7 @@ public class Encoder extends AbstractEncoder {
 
 
 	@Override
-	protected void encode(IntegerVariable ivar) throws SugarException, IOException {
+	public void encode(IntegerVariable ivar) throws SugarException, IOException {
 		writeComment(ivar.toString());
 		if (ivar.getDigits() == null) {
 			IntegerDomain domain = ivar.getDomain();
@@ -88,8 +88,6 @@ public class Encoder extends AbstractEncoder {
 					a0 = a;
 				}
 			}
-		} else {
-			throw new SugarException("Internal Error");
 		}
 	}
 
@@ -164,7 +162,7 @@ public class Encoder extends AbstractEncoder {
 	}
 
 	@Override
-	protected void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
+	public void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
 		if (lit.getOperator() == Operator.EQ
 		    || lit.getOperator() == Operator.NE) {
 			throw new SugarException("Internal error " + lit.toString());
@@ -226,9 +224,9 @@ public class Encoder extends AbstractEncoder {
 
 		List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
-			if(c.getArithmeticLiterals().size() == 0) {
+			if (c.getArithmeticLiterals().size() == 0) {
 				newClauses.add(c);
-			}else{
+			} else {
 				assert(c.getArithmeticLiterals().size() == 1);
 				LinearLiteral ll = c.getArithmeticLiterals().get(0);
 				List<BooleanLiteral> bls = c.getBooleanLiterals();
@@ -278,7 +276,7 @@ public class Encoder extends AbstractEncoder {
 	}
 
 	@Override
-	protected void decode(IntegerVariable v, BitSet satValues) {
+	public void decode(IntegerVariable v, BitSet satValues) {
 		assert(v.getDigits() == null);
 		assert(!v.isDigit());
 		IntegerDomain domain = v.getDomain();
@@ -299,7 +297,7 @@ public class Encoder extends AbstractEncoder {
 	}
 
 	@Override
-	protected int getSatVariablesSize(IntegerVariable v) {
+	public int getSatVariablesSize(IntegerVariable v) {
 		if (v.getDigits() != null)
 			return 0;
 		return v.getDomain().size()-1;

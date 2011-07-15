@@ -59,11 +59,11 @@ public abstract class AbstractEncoder {
 	
 	private long satFileSize = 0;
 
-	protected abstract int getCode(LinearLiteral lit) throws SugarException;
-	protected abstract void encode(IntegerVariable v) throws SugarException, IOException;
-	protected abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
-	protected abstract int getSatVariablesSize(IntegerVariable ivar);
-	protected abstract void decode(IntegerVariable v, BitSet satValues);
+	public abstract int getCode(LinearLiteral lit) throws SugarException;
+	public abstract void encode(IntegerVariable v) throws SugarException, IOException;
+	public abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
+	public abstract int getSatVariablesSize(IntegerVariable ivar);
+	public abstract void decode(IntegerVariable v, BitSet satValues);
 	public abstract void reduce() throws SugarException;
 
 	public static int negateCode(int code) {
