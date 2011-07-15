@@ -137,7 +137,7 @@ public class Decomposer {
 							int value1 = ((Sequence)x.get(i)).get(1).integerValue();
 							for (int value = value0; value <= value1; value++) {
 								d.add(value);
-								w}
+							}
 						} else {
 							throw new SugarException("Bad definition " + seq);
 							}
