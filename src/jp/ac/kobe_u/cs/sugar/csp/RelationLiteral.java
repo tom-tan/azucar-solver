@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,7 +14,6 @@ import java.util.TreeSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarMain;
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 
 /**

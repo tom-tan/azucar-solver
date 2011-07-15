@@ -1,4 +1,4 @@
-package jp.ac.kobe_u.cs.sugar;
+package jp.ac.kobe_u.cs.sugar.encoder;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
+import jp.ac.kobe_u.cs.sugar.SugarException;
+import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
 import jp.ac.kobe_u.cs.sugar.converter.Decomposer;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;

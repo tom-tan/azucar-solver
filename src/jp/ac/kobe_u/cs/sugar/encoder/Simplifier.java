@@ -1,4 +1,4 @@
-package jp.ac.kobe_u.cs.sugar;
+package jp.ac.kobe_u.cs.sugar.encoder;
 
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -16,6 +16,8 @@ import java.io.OutputStreamWriter;
 import java.util.List;
 import java.util.ArrayList;
 
+import jp.ac.kobe_u.cs.sugar.SugarException;
+import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
 import jp.ac.kobe_u.cs.sugar.converter.Decomposer;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
@@ -27,7 +29,7 @@ import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
-class Simplifier{
+public class Simplifier{
 	public static boolean simplifyAll = true;
 	private CSP csp;
 

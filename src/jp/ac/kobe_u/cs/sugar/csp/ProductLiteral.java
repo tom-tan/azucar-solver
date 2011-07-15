@@ -1,10 +1,8 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.io.IOException;
 import java.util.Set;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
 
 /**
  * NOT IMPLEMENTED YET.

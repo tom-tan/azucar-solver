@@ -6,7 +6,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
+import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
@@ -23,19 +23,19 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
  * @see CSP 
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class Encoder extends AbstractEncoder {
-	public Encoder(CSP csp) {
+public class OEEncoder extends Encoder {
+	public OEEncoder(CSP csp) {
 		super(csp);
 	}
 
 	@Override
 	public int getCode(LinearLiteral lit) throws SugarException {
 		if (! lit.isSimple()) {
-			throw new SugarException("Internal error " + lit.toString()); 
+			throw new SugarException("Internal error " + lit.toString());
 		}
 		if (lit.getOperator() == Operator.EQ ||
 		    lit.getOperator() == Operator.NE) {
-			throw new SugarException("Internal error " + lit.toString()); 
+			throw new SugarException("Internal error " + lit.toString());
 		}
 		LinearSum ls = lit.getLinearExpression();
 		int b = ls.getB();
@@ -71,7 +71,6 @@ public class Encoder extends AbstractEncoder {
 			return d.headSet(value + 1).size();
 		}
 	}
-
 
 	@Override
 	public void encode(IntegerVariable ivar) throws SugarException, IOException {
@@ -273,27 +272,6 @@ public class Encoder extends AbstractEncoder {
 			}
 		}
 		csp.setClauses(newClauses);
-	}
-
-	@Override
-	public void decode(IntegerVariable v, BitSet satValues) {
-		assert(v.getDigits() == null);
-		assert(!v.isDigit());
-		IntegerDomain domain = v.getDomain();
-		int lb = domain.getLowerBound();
-		int ub = domain.getUpperBound();
-		int code = v.getCode();
-		v.setValue(ub);
-		for (int c = lb; c < ub; c++) {
-			if (domain.contains(c)) {
-				if (satValues.get(code)) {
-					v.setValue(c);
-					break;
-				}
-				code++;
-			}
-		}
-		v.setValue(v.getValue()+v.getOffset());
 	}
 
 	@Override

@@ -17,8 +17,12 @@ import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
-import jp.ac.kobe_u.cs.sugar.encoder.AbstractEncoder;
-import jp.ac.kobe_u.cs.sugar.encoder.oe.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.EncodingFactory;
+import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.Decoder;
+import jp.ac.kobe_u.cs.sugar.encoder.Simplifier;
+import jp.ac.kobe_u.cs.sugar.encoder.oe.OrderEncodingFactory;
+import jp.ac.kobe_u.cs.sugar.encoder.coe.CompactOrderEncodingFactory;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
@@ -32,6 +36,7 @@ public class SugarMain {
 	boolean incremental = false;
 	boolean propagate = true;
 	public static int debug = 0;
+	public EncodingFactory ef = CompactOrderEncodingFactory.getInstance();
 
 	private List<Expression> toMaxCSP(List<Expression> expressions0) throws SugarException {
 		List<Expression> expressions = new ArrayList<Expression>();
@@ -121,7 +126,7 @@ public class SugarMain {
 			Logger.println("s UNSATISFIABLE");
 		} else {
 			Logger.fine("Simplifing CSP by introducing new Boolean variables");
-			Simplifier simp = new Simplifier(csp);
+			Simplifier simp = ef.createSimplifier(csp);
 			simp.simplify();
 			//csp.simplify();
 			Logger.info("CSP : " + csp.summary());
@@ -143,7 +148,7 @@ public class SugarMain {
 				Logger.println("s UNSATISFIABLE");
 			} else {
 				Logger.fine("Encoding CSP to SAT : " + satFileName);
-				AbstractEncoder encoder = new Encoder(csp);
+				Encoder encoder = ef.createEncoder(csp);
 				encoder.reduce();
 				encoder.encode(satFileName, incremental);
 				Logger.fine("Writing map file : " + mapFileName);
@@ -244,7 +249,7 @@ public class SugarMain {
 			}
 		}
 		rd.close();
-		AbstractEncoder encoder = new Encoder(csp);
+		Decoder encoder = ef.createDecoder(csp);
 		if (encoder.decode(outFileName)) {
 			if (csp.getObjectiveVariable() == null) {
 				Logger.println("s SATISFIABLE");

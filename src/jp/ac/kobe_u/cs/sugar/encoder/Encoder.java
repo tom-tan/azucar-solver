@@ -1,14 +1,11 @@
 package jp.ac.kobe_u.cs.sugar.encoder;
 
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
-import java.io.StreamTokenizer;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -32,7 +29,7 @@ import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
  * @see CSP 
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public abstract class AbstractEncoder {
+public abstract class Encoder {
 	public static final int FALSE_CODE = 0;
 
 	public static final int TRUE_CODE = Integer.MIN_VALUE;
@@ -63,7 +60,6 @@ public abstract class AbstractEncoder {
 	public abstract void encode(IntegerVariable v) throws SugarException, IOException;
 	public abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
 	public abstract int getSatVariablesSize(IntegerVariable ivar);
-	public abstract void decode(IntegerVariable v, BitSet satValues);
 	public abstract void reduce() throws SugarException;
 
 	public static int negateCode(int code) {
@@ -77,7 +73,7 @@ public abstract class AbstractEncoder {
 		return code;
 	}
 
-	public AbstractEncoder(CSP csp) {
+	public Encoder(CSP csp) {
 		this.csp = csp;
 	}
 
@@ -140,10 +136,6 @@ public abstract class AbstractEncoder {
 	}
 
 	protected void encode(BooleanVariable v) {
-	}
-
-	protected void decode(BooleanVariable v, BitSet satValues) {
-		v.setValue(satValues.get(v.getCode()));
 	}
 
 	protected int getSatVariablesSize(BooleanVariable bvar) {
@@ -285,75 +277,6 @@ public abstract class AbstractEncoder {
 			}
 		}
 		mapWriter.close();
-	}
-
-	public boolean decode(String outFileName) throws SugarException, IOException {
-		String result = null;
-		boolean sat = false;
-		BufferedReader rd = new BufferedReader(new FileReader(outFileName));
-		StreamTokenizer st = new StreamTokenizer(rd);
-		st.eolIsSignificant(true);
-		while (result == null) {
-			st.nextToken();
-			if (st.ttype == StreamTokenizer.TT_WORD) {
-				if (st.sval.equals("c")) {
-					do {
-						st.nextToken();
-					} while (st.ttype != StreamTokenizer.TT_EOL);
-				} else if (st.sval.equals("s")) {
-					st.nextToken();
-					result = st.sval;
-				} else {
-					result = st.sval;
-				}
-			} else {
-				throw new SugarException("Unknown output " + st.sval);
-			}
-		}
-		if (result.startsWith("SAT")) {
-			sat = true;
-			BitSet satValues = new BitSet();
-			while (true) {
-				st.nextToken();
-				if (st.ttype == StreamTokenizer.TT_EOF)
-					break;
-				switch (st.ttype) {
-				case StreamTokenizer.TT_EOL:
-					break;
-				case StreamTokenizer.TT_WORD:
-					if (st.sval.equals("v")) {
-					} else if (st.sval.equals("c")) {
-						do {
-							st.nextToken();
-						} while (st.ttype != StreamTokenizer.TT_EOL);
-					} else {
-						throw new SugarException("Unknown output " + st.sval);
-					}
-					break;
-				case StreamTokenizer.TT_NUMBER:
-					int value = (int)st.nval;
-					int i = Math.abs(value);
-					if (i > 0) {
-						satValues.set(i, value > 0);
-					}
-					break;
-				default:
-					throw new SugarException("Unknown output " + st.sval);
-				}
-			}
-			for (IntegerVariable v : csp.getIntegerVariables()) {
-				decode(v, satValues);
-			}
-			for (BooleanVariable v : csp.getBooleanVariables()) {
-				decode(v, satValues);
-			}
-		} else if (result.startsWith("UNSAT")) {
-			sat = false;
-		} else {
-			throw new SugarException("Unknown output result " + result);
-		}
-		rd.close();
-		return sat;
 	}
 
 	public String summary() {
