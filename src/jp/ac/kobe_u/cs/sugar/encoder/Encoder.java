@@ -23,6 +23,7 @@ import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
+import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
 
 /**
  * Encoder encodes CSP into SAT.
@@ -116,16 +117,16 @@ public abstract class Encoder {
 		LinearLiteral lit = null;
 		int i = 0;
 		for (BooleanLiteral literal : cl.getBooleanLiterals()) {
-			assert(literal.isSimple());
+			assert literal.isSimple();
 			clause[i] = getCode(literal);
 			i++;
 		}
-		for (LinearLiteral literal : cl.getArithmeticLiterals()) {
+		for (ArithmeticLiteral literal : cl.getArithmeticLiterals()) {
 			if (literal.isSimple()) {
-				clause[i] = getCode(literal);
+				clause[i] = getCode((LinearLiteral)literal);
 				i++;
 			} else {
-				lit = literal;
+				lit = (LinearLiteral)literal;
 			}
 		}
 		if (lit == null) {

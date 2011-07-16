@@ -14,8 +14,8 @@ public class OEDecoder extends Decoder {
 
 	@Override
 	public void decode(IntegerVariable v, BitSet satValues) {
-		assert(v.getDigits() == null);
-		assert(!v.isDigit());
+		assert v.getDigits() == null;
+		assert !v.isDigit();
 		IntegerDomain domain = v.getDomain();
 		int lb = domain.getLowerBound();
 		int ub = domain.getUpperBound();

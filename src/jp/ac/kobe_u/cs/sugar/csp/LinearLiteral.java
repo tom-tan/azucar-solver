@@ -13,7 +13,7 @@ import jp.ac.kobe_u.cs.sugar.expression.Atom;
  * @see LinearSum
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class LinearLiteral extends Literal {
+public class LinearLiteral extends ArithmeticLiteral {
 	private LinearSum linearSum;
 	private Operator op;
 
@@ -22,9 +22,9 @@ public class LinearLiteral extends Literal {
 	 * @param linearSum the linear expression
 	 */
 	public LinearLiteral(LinearSum linearSum, Atom op) {
-		assert(op.equals(Expression.LE)
-		       || op.equals(Expression.EQ)
-		       || op.equals(Expression.NE));
+		assert op.equals(Expression.LE)
+			|| op.equals(Expression.EQ)
+			|| op.equals(Expression.NE);
 		int factor = linearSum.factor();
 		if (factor > 1) {
 			linearSum.divide(factor);

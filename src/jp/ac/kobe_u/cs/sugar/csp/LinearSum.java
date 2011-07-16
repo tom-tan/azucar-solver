@@ -276,82 +276,82 @@ public class LinearSum {
 		return vs;
 	}
 	
-	private long calcSatSize(long limit, IntegerVariable[] vs, int i, int s) throws SugarException {
-		long size = 0;
-		if (i >= vs.length - 1) {
-			size = 1;
-		} else {
-			int lb0 = s;
-			int ub0 = s;
-			for (int j = i + 1; j < vs.length; j++) {
-				int a = getA(vs[j]); 
-				if (a > 0) {
-					lb0 += a * vs[j].getDomain().getLowerBound();
-					ub0 += a * vs[j].getDomain().getUpperBound();
-				} else {
-					lb0 += a * vs[j].getDomain().getUpperBound();
-					ub0 += a * vs[j].getDomain().getLowerBound();
-				}
-			}
-			int a = getA(vs[i]);
-			IntegerDomain domain = vs[i].getDomain();
-			int lb = domain.getLowerBound();
-			int ub = domain.getUpperBound();
-			if (a >= 0) {
-				// ub = Math.min(ub, (int)Math.floor(-(double)lb0 / a));
-				if (-lb0 >= 0) {
-					ub = Math.min(ub, -lb0/a);
-				} else {
-					ub = Math.min(ub, (-lb0-a+1)/a);
-				}
-				Iterator<Integer> iter = domain.values(lb, ub); 
-				while (iter.hasNext()) {
-					int c = iter.next();
-					// vs[i]>=c -> ...
-					// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
-					size += calcSatSize(limit, vs, i+1, s+a*c);
-					if (size > limit) {
-						return size;
-					}
-				}
-				size += calcSatSize(limit, vs, i+1, s+a*(ub+1));
-				if (size > limit) {
-					return size;
-				}
-			} else {
-				// lb = Math.max(lb, (int)Math.ceil(-(double)lb0/a));
-				if (-lb0 >= 0) {
-					lb = Math.max(lb, -lb0/a);
-				} else {
-					lb = Math.max(lb, (-lb0+a+1)/a);
-				}
-				size += calcSatSize(limit, vs, i+1, s+a*(lb-1));
-				if (size > limit) {
-					return size;
-				}
-				Iterator<Integer> iter = domain.values(lb, ub); 
-				while (iter.hasNext()) {
-					int c = iter.next();
-					// vs[i]<=c -> ...
-					size += calcSatSize(limit, vs, i+1, s+a*c);
-					if (size > limit) {
-						return size;
-					}
-				}
-			}
-		}
-		return size;
-	}
+	// private long calcSatSize(long limit, IntegerVariable[] vs, int i, int s) throws SugarException {
+	// 	long size = 0;
+	// 	if (i >= vs.length - 1) {
+	// 		size = 1;
+	// 	} else {
+	// 		int lb0 = s;
+	// 		int ub0 = s;
+	// 		for (int j = i + 1; j < vs.length; j++) {
+	// 			int a = getA(vs[j]); 
+	// 			if (a > 0) {
+	// 				lb0 += a * vs[j].getDomain().getLowerBound();
+	// 				ub0 += a * vs[j].getDomain().getUpperBound();
+	// 			} else {
+	// 				lb0 += a * vs[j].getDomain().getUpperBound();
+	// 				ub0 += a * vs[j].getDomain().getLowerBound();
+	// 			}
+	// 		}
+	// 		int a = getA(vs[i]);
+	// 		IntegerDomain domain = vs[i].getDomain();
+	// 		int lb = domain.getLowerBound();
+	// 		int ub = domain.getUpperBound();
+	// 		if (a >= 0) {
+	// 			// ub = Math.min(ub, (int)Math.floor(-(double)lb0 / a));
+	// 			if (-lb0 >= 0) {
+	// 				ub = Math.min(ub, -lb0/a);
+	// 			} else {
+	// 				ub = Math.min(ub, (-lb0-a+1)/a);
+	// 			}
+	// 			Iterator<Integer> iter = domain.values(lb, ub); 
+	// 			while (iter.hasNext()) {
+	// 				int c = iter.next();
+	// 				// vs[i]>=c -> ...
+	// 				// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
+	// 				size += calcSatSize(limit, vs, i+1, s+a*c);
+	// 				if (size > limit) {
+	// 					return size;
+	// 				}
+	// 			}
+	// 			size += calcSatSize(limit, vs, i+1, s+a*(ub+1));
+	// 			if (size > limit) {
+	// 				return size;
+	// 			}
+	// 		} else {
+	// 			// lb = Math.max(lb, (int)Math.ceil(-(double)lb0/a));
+	// 			if (-lb0 >= 0) {
+	// 				lb = Math.max(lb, -lb0/a);
+	// 			} else {
+	// 				lb = Math.max(lb, (-lb0+a+1)/a);
+	// 			}
+	// 			size += calcSatSize(limit, vs, i+1, s+a*(lb-1));
+	// 			if (size > limit) {
+	// 				return size;
+	// 			}
+	// 			Iterator<Integer> iter = domain.values(lb, ub); 
+	// 			while (iter.hasNext()) {
+	// 				int c = iter.next();
+	// 				// vs[i]<=c -> ...
+	// 				size += calcSatSize(limit, vs, i+1, s+a*c);
+	// 				if (size > limit) {
+	// 					return size;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// 	return size;
+	// }
 	
-	public boolean satSizeLE(long limit) throws SugarException {
-		if (isSimple()) {
-			return 1 <= limit;
-		} else {
-			IntegerVariable[] vs = getVariablesSorted();
-			long size = calcSatSize(limit, vs, 0, getB());
-			return size <= limit;
-		}
-	}
+	// public boolean satSizeLE(long limit) throws SugarException {
+	// 	if (isSimple()) {
+	// 		return 1 <= limit;
+	// 	} else {
+	// 		IntegerVariable[] vs = getVariablesSorted();
+	// 		long size = calcSatSize(limit, vs, 0, getB());
+	// 		return size <= limit;
+	// 	}
+	// }
 	
 	public Expression toExpression() {
 		Expression x = Expression.create(b);

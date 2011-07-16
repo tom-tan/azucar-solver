@@ -10,7 +10,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @see CSP
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class ProductLiteral extends Literal {
+public class ProductLiteral extends ArithmeticLiteral {
 	private IntegerVariable v;
 	private IntegerVariable v1;
 	private IntegerVariable v2;
@@ -28,6 +28,11 @@ public class ProductLiteral extends Literal {
 	}
 
 	@Override
+	public int[] getBound(IntegerVariable v) throws SugarException {
+		return null;
+	}
+
+	@Override
 	public boolean isValid() throws SugarException {
 		return false;
 	}
@@ -36,7 +41,7 @@ public class ProductLiteral extends Literal {
 	public boolean isUnsatisfiable() throws SugarException {
 		return false;
 	}
-	
+
 	@Override
 	public boolean isSimple() {
 		return false;

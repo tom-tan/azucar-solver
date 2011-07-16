@@ -145,7 +145,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 */
 	public int getValue() {
 		// 値はただ1つに決まっている
-		assert(domain.size() == 1);
+		assert domain.size() == 1;
 		return value;
 	}
 
@@ -177,6 +177,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		isDigit_ = b;
 	}
 
+	@Override
 	public int compareTo(IntegerVariable v) {
 		if (this == v)
 			return 0;

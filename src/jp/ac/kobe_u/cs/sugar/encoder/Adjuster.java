@@ -20,6 +20,7 @@ import jp.ac.kobe_u.cs.sugar.converter.Converter;
 import jp.ac.kobe_u.cs.sugar.converter.Decomposer;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
+import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
@@ -29,7 +30,7 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
-
+  
 public class Adjuster {
 	private static CSP readCSP(String cspFileName)
 		throws SugarException, IOException {
@@ -90,11 +91,11 @@ public class Adjuster {
 			if((c.size() - c.simpleSize()) == 0) {
 				newCls = c;
 			}else{
-				assert(c.simpleSize() == 1);
-				List<LinearLiteral> lls = c.getArithmeticLiterals();
+				assert c.simpleSize() == 1;
+				List<ArithmeticLiteral> lls = c.getArithmeticLiterals();
 				List<BooleanLiteral> bls = c.getBooleanLiterals();
-				assert(lls.size() == 1);
-				LinearLiteral ll = lls.get(0);
+				assert lls.size() == 1;
+				LinearLiteral ll = (LinearLiteral)lls.get(0);
 				LinearSum ls = ll.getLinearExpression();
 				for (Entry<IntegerVariable, Integer> es :
 				       ls.getCoef().entrySet()) {
@@ -103,7 +104,7 @@ public class Adjuster {
 				newCls = new Clause(new LinearLiteral(ls, ll.getOperator()));
 				newCls.addAll(bls);
 			}
-			assert(newCls != null);
+			assert newCls != null;
 			newClauses.add(newCls);
 		}
 

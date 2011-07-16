@@ -226,8 +226,8 @@ public class OEEncoder extends Encoder {
 			if (c.getArithmeticLiterals().size() == 0) {
 				newClauses.add(c);
 			} else {
-				assert(c.getArithmeticLiterals().size() == 1);
-				LinearLiteral ll = c.getArithmeticLiterals().get(0);
+				assert c.getArithmeticLiterals().size() == 1;
+				LinearLiteral ll = (LinearLiteral)c.getArithmeticLiterals().get(0);
 				List<BooleanLiteral> bls = c.getBooleanLiterals();
 				switch(ll.getOperator()) {
 				case LE:{

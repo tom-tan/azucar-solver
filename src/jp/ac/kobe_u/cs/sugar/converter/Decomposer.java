@@ -552,9 +552,9 @@ public class Decomposer {
 	}
 
 	private List<Expression> decomposeComparison(Expression x, Expression op) throws SugarException {
-		assert(op.equals(Expression.LE)
-					 || op.equals(Expression.EQ)
-					 || op.equals(Expression.NE));
+		assert op.equals(Expression.LE)
+			|| op.equals(Expression.EQ)
+			|| op.equals(Expression.NE);
 		LinearExpression e = decomposeFormula(x);
 		List<Expression> exps = new ArrayList<Expression>();
 		IntegerDomain d = e.getDomain(expDomainMap);

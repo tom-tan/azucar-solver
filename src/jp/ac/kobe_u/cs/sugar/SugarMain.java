@@ -191,7 +191,7 @@ public class SugarMain {
 				List<IntegerVariable> digits = new ArrayList<IntegerVariable>();
 				for (int i=3; i<s.length ; i++) {
 					IntegerVariable di = csp.getIntegerVariable(s[i]);
-					assert(di != null);
+					assert di != null;
 					di.isDigit(true);
 					digits.add(di);
 				}

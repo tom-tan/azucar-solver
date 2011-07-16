@@ -10,11 +10,16 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @see CSP
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class PowerLiteral extends Literal {
+public class PowerLiteral extends ArithmeticLiteral {
 
 	@Override
 	public Set<IntegerVariable> getVariables() {
 		// TODO
+		return null;
+	}
+
+	@Override
+	public int[] getBound(IntegerVariable v) throws SugarException {
 		return null;
 	}
 

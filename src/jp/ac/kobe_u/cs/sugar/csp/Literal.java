@@ -10,15 +10,6 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public abstract class Literal {
-
-	public Set<IntegerVariable> getVariables() {
-		return null;
-	}
-
-	public int[] getBound(IntegerVariable v) throws SugarException {
-		return null;
-	}
-
 	/**
 	 * Returns true when the literal is simple.
 	 * A literal is simple when it is a boolean literal or

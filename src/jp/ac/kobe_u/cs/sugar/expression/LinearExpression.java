@@ -189,7 +189,7 @@ public class LinearExpression extends Expression {
 		Iterator<Atom> it1 = coef.keySet().iterator();
 		Iterator<Atom> it2 = coef.keySet().iterator();
 		while(it1.hasNext()) {
-			assert(it2.hasNext());
+			assert it2.hasNext();
 			Atom v1 = it1.next();
 			Atom v2 = it2.next();
 			int cv = v1.compareTo(v2);

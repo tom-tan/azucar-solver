@@ -14,8 +14,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  */
 public class Clause {
 	private List<BooleanLiteral> boolLiterals;
-	// 本来は ProductLiteral もとれるべき
-	private List<LinearLiteral>  arithLiterals;
+	private List<ArithmeticLiteral> arithLiterals;
 	private Set<IntegerVariable> commonVariables = null;
 	private String comment = null;
 
@@ -33,7 +32,7 @@ public class Clause {
 	 */
 	public Clause() {
 		boolLiterals = new ArrayList<BooleanLiteral>();
-		arithLiterals = new ArrayList<LinearLiteral>();
+		arithLiterals = new ArrayList<ArithmeticLiteral>();
 	}
 
 	public Clause(Literal literal) {
@@ -45,7 +44,7 @@ public class Clause {
 		return boolLiterals;
 	}
 
-	public List<LinearLiteral> getArithmeticLiterals() {
+	public List<ArithmeticLiteral> getArithmeticLiterals() {
 		return arithLiterals;
 	}
 
@@ -61,7 +60,7 @@ public class Clause {
 		if (literal instanceof BooleanLiteral)
 			boolLiterals.add((BooleanLiteral)literal);
 		else
-			arithLiterals.add((LinearLiteral)literal);
+			arithLiterals.add((ArithmeticLiteral)literal);
 	}
 
 	public int size() {
@@ -85,7 +84,7 @@ public class Clause {
 	}
 
 	public boolean isModified() {
-		for (Literal lit : arithLiterals) {
+		for (ArithmeticLiteral lit : arithLiterals) {
 			Set<IntegerVariable> vs = lit.getVariables();
 			if (vs != null) {
 				for (IntegerVariable v : vs) {
@@ -100,7 +99,7 @@ public class Clause {
 
 	public Set<IntegerVariable> getCommonVariables() {
 		if (commonVariables == null && size() > 0) {
-			for (Literal lit : arithLiterals) {
+			for (ArithmeticLiteral lit : arithLiterals) {
 				Set<IntegerVariable> vs = lit.getVariables();
 				if (vs == null) {
 					commonVariables = null;
@@ -177,9 +176,9 @@ public class Clause {
 			return 0;
 		int count = 0;
 		for (IntegerVariable v : getCommonVariables()) {
-			assert(boolLiterals.isEmpty());
+			assert boolLiterals.isEmpty();
 			int[] bound = null;
-			for (Literal lit : arithLiterals) {
+			for (ArithmeticLiteral lit : arithLiterals) {
 				int[] b = lit.getBound(v);
 				if (b == null) {
 					bound = null;

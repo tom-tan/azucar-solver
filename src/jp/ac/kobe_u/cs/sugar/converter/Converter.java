@@ -225,7 +225,7 @@ public class Converter {
 							|| x.isSequence(Expression.NE)) {
 			checkArity(x, 2);
 			Sequence seq = (Sequence)x;
-			assert(seq.get(2).equals(Expression.ZERO));
+			assert seq.get(2).equals(Expression.ZERO);
 			LinearSum ls = convertLinearSum((LinearExpression)seq.get(1));
 			return new LinearLiteral(ls, (Atom)seq.get(0));
 		}
@@ -234,7 +234,7 @@ public class Converter {
 	}
 
 	private void convertClause(Sequence x) throws SugarException {
-		assert(x.isSequence(Expression.OR));
+		assert x.isSequence(Expression.OR);
 		Clause c = new Clause();
 		for(int i=1 ; i < x.length(); i++) {
 			c.add(convertLiteral(x.get(i)));
@@ -253,7 +253,7 @@ public class Converter {
 		} else if (x.isSequence(Expression.OR)) {
 			convertClause((Sequence)x);
 		}
-		assert(false);
+		assert false;
 	}
 
 	public void convert(List<Expression> expressions) throws SugarException {
