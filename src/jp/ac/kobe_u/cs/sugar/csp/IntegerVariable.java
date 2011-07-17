@@ -22,7 +22,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	private int value;
 	private int offset;
 	private boolean isDigit_;
-	private List<IntegerVariable> vs = null;
+	private IntegerVariable[] vs = null;
 
 	public static void setPrefix(String pre) {
 		AUX_NAME_PREFIX = AUX_PRE + pre;
@@ -47,9 +47,13 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		aux = true;
 	}
 
-	public IntegerVariable(String name, List<IntegerVariable> digits) {
+	public IntegerVariable(String name, IntegerVariable[] digits) {
 		this.name = name;
 		vs = digits;
+		// 以下は必要ないかも
+		for (IntegerVariable d : digits) {
+			d.isDigit(true);
+		}
 	}
 
 	/**
@@ -161,11 +165,11 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		return domain.isEmpty();
 	}
 
-	public List<IntegerVariable> getDigits() {
+	public IntegerVariable[] getDigits() {
 		return vs;
 	}
 
-	public void setDigits(List<IntegerVariable> ds) {
+	public void setDigits(IntegerVariable[] ds) {
 		vs = ds;
 	}
 
@@ -175,6 +179,26 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 
 	public void isDigit(boolean b) {
 		isDigit_ = b;
+	}
+
+	public void splitToDigits(CSP csp) throws SugarException {
+		int ub = domain.getUpperBound();
+		int b = csp.getBases().get(0);
+		int m = (int)Math.ceil(Math.log(b)/Math.log(ub+1));
+
+		vs = new IntegerVariable[m];
+		if (m == 1) {
+			vs[0] = this;
+		} else {
+			for (int i=0; i<m; i++, ub /= b) {
+				assert ub > 0;
+				int ubi = (i == m-1) ? ub : b-1;
+				IntegerDomain dom = new IntegerDomain(0, ubi);
+				vs[i] = new IntegerVariable(dom);
+				vs[i].isDigit(true);
+				csp.add(vs[i]);
+			}
+		}
 	}
 
 	@Override

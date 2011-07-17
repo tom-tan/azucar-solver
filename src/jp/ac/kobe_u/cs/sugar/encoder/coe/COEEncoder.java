@@ -55,16 +55,10 @@ public class COEEncoder extends Encoder {
 	@Override
 	public void reduce() throws SugarException {
 		csp = Adjuster.adjust(csp);
-		System.out.println("========= Input =====");
-		System.out.println(csp);
 		toTernary();
-		System.out.println("========= 3CSP =====");
-		System.out.println(csp);
 		toRCSP();
-		System.out.println("========== RCSP =========");
-		System.out.println(csp);
-		throw new SugarException("Finished");
-		//toCCSP();
+		// どこかで CSP.bases に基底をセットする必要あり
+		toCCSP();
 	}
 
 	private void toTernary() throws SugarException {
@@ -200,12 +194,37 @@ public class COEEncoder extends Encoder {
 		csp.setClauses(newClauses);
 	}
 
-	private void toCCSP() {
+	private void toCCSP() throws SugarException {
 		final String AUX_PREFIX = "RC";
 		BooleanVariable.setPrefix(AUX_PREFIX);
 		BooleanVariable.setIndex(0);
 		IntegerVariable.setPrefix(AUX_PREFIX);
 		IntegerVariable.setIndex(0);
+
+		List<Clause> newClauses = new ArrayList<Clause>();
+		for (IntegerVariable v : csp.getIntegerVariables()) {
+			v.splitToDigits(csp);
+			RCSPLiteral le = new OpXY(Operator.LE, v, v.getDomain().getUpperBound());
+			newClauses.addAll(le.toCCSP(csp));
+		}
+
+		for (Clause cls : csp.getClauses()) {
+			if (cls.getArithmeticLiterals().size() == 0) {
+				newClauses.add(cls);
+			} else {
+				assert cls.getArithmeticLiterals().size() == 1;
+				assert cls.getArithmeticLiterals().get(0) instanceof RCSPLiteral;
+
+				RCSPLiteral ll = (RCSPLiteral)cls.getArithmeticLiterals().get(0);
+				List<BooleanLiteral> bls = cls.getBooleanLiterals();
+				List<Clause> ccspClss = ll.toCCSP(csp);
+				for (Clause c : ccspClss) {
+					c.addAll(bls);
+				}
+				newClauses.addAll(ccspClss);
+			}
+		}
+		csp.setClauses(newClauses);
 	}
 
 	private LinearSum simplifyLinearExpression(LinearSum e, List<Clause> clss) throws SugarException {

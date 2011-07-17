@@ -188,12 +188,12 @@ public class SugarMain {
 			} else if (s[0].equals("bigint")) {
 				String name = s[1];
 				int offset = Integer.parseInt(s[2]);
-				List<IntegerVariable> digits = new ArrayList<IntegerVariable>();
-				for (int i=3; i<s.length ; i++) {
+				IntegerVariable[] digits = new IntegerVariable[s.length-3];
+				for (int i=3, j=0; i<s.length ; i++) {
 					IntegerVariable di = csp.getIntegerVariable(s[i]);
 					assert di != null;
 					di.isDigit(true);
-					digits.add(di);
+					digits[j] = di;
 				}
 				IntegerVariable v = new IntegerVariable(name, digits);
 				v.setOffset(offset);

@@ -5,6 +5,7 @@ import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
+import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 
 /**
@@ -32,7 +33,7 @@ public class EqMul extends RCSPLiteral {
 	}
 
 	@Override
-	public List<Clause> toCCSP() {
+	public List<Clause> toCCSP(CSP csp) {
 		return null;
 	}
 

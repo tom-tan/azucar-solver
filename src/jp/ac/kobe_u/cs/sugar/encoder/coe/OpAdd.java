@@ -5,6 +5,7 @@ import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
+import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
 
@@ -33,8 +34,24 @@ public class OpAdd extends RCSPLiteral {
 	}
 
 	@Override
-	public List<Clause> toCCSP() {
-		return null;
+	public List<Clause> toCCSP(CSP csp) {
+		int b = csp.getBases().get(0);
+		List<Clause> ret = new ArrayList<Clause>();
+		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
+										 z.nDigits(b));
+		switch(op) {
+		case LE:
+			return ret;
+		case EQ:
+			for (int i=0; i<m; i++) {
+				//hogehoge
+			}
+			return ret;
+		case NE:
+			return ret;
+		default:
+			throw new SugarException("Internal Error");
+		}
 	}
 
 	@Override

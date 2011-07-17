@@ -10,6 +10,7 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 public class IntegerHolder implements Comparable<IntegerHolder>{
 	private boolean isConstant_;
 	private int constant;
+	private int[] digits;
 	private IntegerVariable variable;
 
 	public IntegerHolder(int v) {
@@ -27,6 +28,41 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 			return new IntegerDomain(constant, constant);
 		} else {
 			return variable.getDomain();
+		}
+	}
+
+	private void intToDigits(int b) {
+		assert digits == null;
+		assert isConstant_;
+		int m = Math.ceil(Math.log(b)/Math.log(constant+1));
+		int ub = constant;
+		digits = new int[m];
+		for (int i=0; i<m; i++, ub /= b) {
+			digits[i] = ub%b;
+		}
+		assert digits[m-1] > 0;
+	}
+
+	public int nDigits(int b) {
+		if (isConstant_) {
+			if (digits == null)
+				intToDigits(b);
+			return digits.length;
+		} else {
+			return variable.getDigits().length;
+		}
+	}
+
+	public LLExpression nth(int n) {
+		assert digits != null;
+		if (isConstant_) {
+			return new LLExpression(digits.length < n ? digits[n] : 0);
+		} else {
+			if (variable.getDigits().length < n) {
+				return new LLExpression(variable.getDigits()[n]);
+			} else {
+				return new LLExpression(0);
+			}
 		}
 	}
 
