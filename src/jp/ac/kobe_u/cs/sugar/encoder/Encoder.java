@@ -63,8 +63,9 @@ public abstract class Encoder {
 	public abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
 	public abstract int getSatVariablesSize(IntegerVariable ivar);
 	public abstract void reduce() throws SugarException;
-	public abstract boolean isSimple(Literal lit);
-	public abstract boolean isSimple(Clause c);
+	protected abstract boolean isSimple(Literal lit);
+	protected abstract boolean isSimple(Clause c);
+	protected abstract int simpleSize (Clause c);
 
 	public static int negateCode(int code) {
 		if (code == FALSE_CODE) {
@@ -116,7 +117,7 @@ public abstract class Encoder {
 		if (cl.isValid()) {
 			return;
 		}
-		int[] clause = new int[cl.simpleSize()];
+		int[] clause = new int[simpleSize(cl)];
 		LinearLiteral lit = null;
 		int i = 0;
 		for (BooleanLiteral literal : cl.getBooleanLiterals()) {

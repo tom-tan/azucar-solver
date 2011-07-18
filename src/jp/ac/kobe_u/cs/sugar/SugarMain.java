@@ -184,11 +184,12 @@ public class SugarMain {
 				for (int i=1; i<s.length ; i++) {
 					bases[i-1] = Integer.parseInt(s[i]);
 				}
+				ef.setBases(bases);
 			} else if (s[0].equals("bigint")) {
 				String name = s[1];
 				int offset = Integer.parseInt(s[2]);
 				IntegerVariable[] digits = new IntegerVariable[s.length-3];
-				for (int i=3, j=0; i<s.length ; i++) {
+				for (int i=3, j=0; i<s.length ; i++, j++) {
 					IntegerVariable di = csp.getIntegerVariable(s[i]);
 					assert di != null;
 					di.isDigit(true);

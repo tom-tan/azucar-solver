@@ -30,7 +30,7 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public boolean isSimple(Literal lit) {
+	protected boolean isSimple(Literal lit) {
 		if (lit instanceof BooleanLiteral)
 			return true;
 		else if (lit instanceof LinearLiteral) {
@@ -43,11 +43,12 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public boolean isSimple(Clause c) {
+	protected boolean isSimple(Clause c) {
 		return (c.size()-simpleSize(c)) <= 1;
 	}
 
-	private int simpleSize(Clause c) {
+	@Override
+	protected int simpleSize(Clause c) {
 		int simpleLiterals = c.getBooleanLiterals().size();
 		for (Literal lit : c.getArithmeticLiterals()) {
 			if (isSimple(lit)) {

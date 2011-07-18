@@ -22,12 +22,12 @@ public class CompactOrderEncodingFactory extends EncodingFactory {
 	@Override
 	public Encoder createEncoder(CSP csp) {
 		if (encoder == null) {
-      if (bases == null && ndigits == 0)
-        encoder = new COEEncoder(csp);
-      else if (bases != null)
-        encoder = new COEEncoder(csp, bases);
-      else
-        encoder = new COEEncoder(csp, ndigits);
+			if (bases == null && ndigits == 0)
+				encoder = new COEEncoder(csp);
+			else if (bases != null)
+				encoder = new COEEncoder(csp, bases);
+			else
+				encoder = new COEEncoder(csp, ndigits);
 		}
 		return encoder;
 	}
