@@ -43,14 +43,15 @@ public class OpAdd extends RCSPLiteral {
 		List<Clause> ret = new ArrayList<Clause>();
 		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
 										 z.nDigits(b));
+
+		IntegerVariable[] c = new IntegerVariable[m];
+		for (int i=1; i<m; i++) {
+			c[i] = new IntegerVariable(new IntegerDomain(0, 1));
+			csp.add(c[i]);
+		}
+
 		switch(op) {
 		case LE:{
-			IntegerVariable[] c = new IntegerVariable[m];
-			for (int i=1; i<m; i++) {
-				c[i] = new IntegerVariable(new IntegerDomain(0, 1));
-				csp.add(c[i]);
-			}
-
 			BooleanVariable[] s = new BooleanVariable[m-1];
 			for (int i=1; i<m; i++) {
 				s[i] = new BooleanVariable();
@@ -100,7 +101,6 @@ public class OpAdd extends RCSPLiteral {
 				ret.add(cls);
 			}
 
-			// c(i+1) >= 1 <=> x(i)+y(i)+c(i) >= B
 			for (int i=0; i<m-1; i++) {
 				LLExpression lhs = (i == 0) ?
 													 x.nth(i).add(y.nth(i)) :
@@ -118,15 +118,74 @@ public class OpAdd extends RCSPLiteral {
 			return ret;
 		}
 
-		case GE:
+		case GE:{
+			BooleanVariable[] s = new BooleanVariable[m-1];
+			for (int i=1; i<m; i++) {
+				s[i] = new BooleanVariable();
+				csp.add(s[i]);
+			}
+
+			// -s(i+1) or (z(i)+B*c(i+1) >= x(i)+y(i)+c(i)) (when 0 <= i < m-1)
+			for (int i=0; i<m-1; i++) {
+				Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+				LLExpression lhs = z.nth(i).add(lle(c[i+1]).mul(b));
+				LLExpression rhs = (i == 0) ?
+													 x.nth(i).add(y.nth(i)) :
+													 x.nth(i).add(y.nth(i)).add(lle(c[i]));
+				cls.add(lhs.ge(rhs));
+				ret.add(cls);
+			}
+			// z(i) >= x(i)+y(i)+c(i) (when i == m-1)
+			{
+				int i = m-1;
+				LLExpression lhs = z.nth(i);
+				LLExpression rhs = (i == 0) ?
+													 x.nth(i).add(y.nth(i)) :
+													 x.nth(i).add(y.nth(i)).add(lle(c[i]));
+				Clause cls = new Clause(lhs.ge(rhs));
+				ret.add(cls);
+			}
+
+			// -s(i+1) or (z(i)+B*c(i+1)-1 >= x(i)+y(i)+c(i)) or s(i)
+			// (when 1 <= i < m-1)
+			for (int i=1; i<m-1; i++) {
+				Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+				LLExpression lhs = z.nth(i).add(lle(c[i+1]).mul(b)).sub(1);
+				LLExpression rhs = x.nth(i).add(y.nth(i)).add(lle(c[i]));
+				cls.add(lhs.ge(rhs));
+				cls.add(new BooleanLiteral(s[i], false));
+				ret.add(cls);
+			}
+			// (z(i)-1 >= x(i)+y(i)+c(i)) or s(i) (when i == m-1)
+			{
+				int i = m-1;
+				LLExpression lhs = z.nth(i).sub(1);
+				LLExpression rhs = (i == 0) ?
+													 x.nth(i).add(y.nth(i)) :
+													 x.nth(i).add(y.nth(i)).add(lle(c[i]));
+				Clause cls = new Clause(lhs.ge(rhs));
+				cls.add(new BooleanLiteral(s[i], false));
+				ret.add(cls);
+			}
+
+			for (int i=0; i<m-1; i++) {
+				LLExpression lhs = (i == 0) ?
+													 x.nth(i).add(y.nth(i)) :
+													 x.nth(i).add(y.nth(i)).add(lle(c[i]));
+				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
+				Clause ltor = new Clause(lle(c[i+1]).le(0));
+				ltor.add(lhs.ge(b));
+				ret.add(ltor);
+
+				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
+				Clause rtol = new Clause(lle(c[i+1]).ge(1));
+				rtol.add(lhs.le(b-1));
+				ret.add(rtol);
+			}
 			return ret;
+		}
 
 		case EQ:{
-			IntegerVariable[] c = new IntegerVariable[m];
-			for (int i=1; i<m; i++) {
-				c[i] = new IntegerVariable(new IntegerDomain(0, 1));
-				csp.add(c[i]);
-			}
 			for (int i=0; i<m; i++) {
 				LLExpression lhs = (i == m-1) ?
 													 z.nth(i) :
