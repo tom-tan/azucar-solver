@@ -60,4 +60,9 @@ public class LLExpression {
 		linearSum.multiply(c);
 		return this;
 	}
+
+	@Override
+	public String toString() {
+		return linearSum.toString();
+	}
 }

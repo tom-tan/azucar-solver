@@ -43,7 +43,7 @@ public class OpXY extends RCSPLiteral {
 	public List<Clause> toCCSP(CSP csp) throws SugarException {
 		assert op != Operator.GE;
 		List<Clause> ret = new ArrayList<Clause>();
-		int b = csp.getBases().get(0);
+		int b = csp.getBases()[0];
 		int m = Math.max(x.nDigits(b), y.nDigits(b));
 
 		switch(op) {

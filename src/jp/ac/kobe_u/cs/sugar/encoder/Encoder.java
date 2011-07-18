@@ -17,6 +17,7 @@ import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.SugarMain;
+import jp.ac.kobe_u.cs.sugar.csp.Literal;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
@@ -49,7 +50,7 @@ public abstract class Encoder {
 	
 	private FileChannel satFileChannel; 
 
-	private ByteBuffer satByteBuffer;
+	protected ByteBuffer satByteBuffer;
 	
 	private int satVariablesCount = 0;
 
@@ -62,6 +63,8 @@ public abstract class Encoder {
 	public abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
 	public abstract int getSatVariablesSize(IntegerVariable ivar);
 	public abstract void reduce() throws SugarException;
+	public abstract boolean isSimple(Literal lit);
+	public abstract boolean isSimple(Clause c);
 
 	public static int negateCode(int code) {
 		if (code == FALSE_CODE) {
@@ -106,7 +109,7 @@ public abstract class Encoder {
 	}
 
 	protected void encode(Clause cl) throws SugarException, IOException {
-		if (! cl.isSimple()) {
+		if (! isSimple(cl)) {
 			throw new SugarException("Cannot encode non-simple clause " + cl.toString());
 		}
 		writeComment(cl.toString());
@@ -117,12 +120,11 @@ public abstract class Encoder {
 		LinearLiteral lit = null;
 		int i = 0;
 		for (BooleanLiteral literal : cl.getBooleanLiterals()) {
-			assert literal.isSimple();
 			clause[i] = getCode(literal);
 			i++;
 		}
 		for (ArithmeticLiteral literal : cl.getArithmeticLiterals()) {
-			if (literal.isSimple()) {
+			if (isSimple(literal)) {
 				clause[i] = getCode((LinearLiteral)literal);
 				i++;
 			} else {
@@ -223,7 +225,7 @@ public abstract class Encoder {
 	public void outputMap(String mapFileName) throws SugarException, IOException {
 		BufferedWriter mapWriter = new BufferedWriter(
 				new OutputStreamWriter(new FileOutputStream(mapFileName), "UTF-8"));
-		if (!csp.getBases().isEmpty()) {
+		if (csp.getBases() != null) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("bases");
 			for (int base : csp.getBases()) {
@@ -304,6 +306,7 @@ public abstract class Encoder {
 
 	public void write(String s) throws IOException {
 		if (USE_NEWIO) {
+			assert satByteBuffer != null: "Assertion failure";
 			if (satByteBuffer.position() + s.length() > SAT_BUFFER_SIZE) {
 				flush();
 			}

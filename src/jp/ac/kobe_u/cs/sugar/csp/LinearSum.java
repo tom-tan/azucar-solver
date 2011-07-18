@@ -54,7 +54,7 @@ public class LinearSum {
 	public int size() {
 		return coef.size();
 	}
-	
+
 	public int getB() {
 		return b;
 	}
@@ -62,7 +62,7 @@ public class LinearSum {
 	public void setB(int b) {
 		this.b = b;
 	}
-	
+
 	public SortedMap<IntegerVariable,Integer> getCoef() {
 		return coef;
 	}
@@ -74,7 +74,7 @@ public class LinearSum {
 	public boolean isIntegerVariable() {
 		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;  
 	}
-	
+
 	/**
 	 * Returns true when the linear expression is simple.
 	 * A linear expression is simple if it has at most one integer variable.
@@ -91,7 +91,7 @@ public class LinearSum {
 		}
 		return a;
 	}
-	
+
 	public void setA(int a, IntegerVariable v) {
 		if (a == 0) {
 			coef.remove(v);
@@ -110,7 +110,7 @@ public class LinearSum {
 		}
 		return false;
 	}
-	
+
 	public boolean isDomainLargerThanExcept(long limit, IntegerVariable v) {
 		long size = 1;
 		for (IntegerVariable v0 : coef.keySet()) {
@@ -122,12 +122,12 @@ public class LinearSum {
 		}
 		return false;
 	}
-	
+
 	public boolean isDomainLargerThanExcept(long limit) {
 		IntegerVariable v = getLargestDomainVariable();
 		return isDomainLargerThanExcept(limit, v);
 	}
-	
+
 	/**
 	 * Adds the given linear expression.
 	 * @param linearSum the linear expression to be added.
@@ -186,7 +186,7 @@ public class LinearSum {
 		}
 		return q;
 	}
-	
+
 	public int factor() {
 		if (size() == 0) {
 			return b == 0 ? 1 : Math.abs(b);
@@ -209,7 +209,7 @@ public class LinearSum {
 			divide(factor);
 		}
 	}
-	
+
 	public IntegerDomain getDomain() throws SugarException {
 		if (domain == null) {
 			domain = new IntegerDomain(b, b);
@@ -220,7 +220,7 @@ public class LinearSum {
 		}
 		return domain;
 	}
-	
+
 	public IntegerDomain getDomainExcept(IntegerVariable v) throws SugarException {
 		// Re-calculation is needed since variable domains might be modified. 
 		IntegerDomain d = new IntegerDomain(b, b);
@@ -255,7 +255,7 @@ public class LinearSum {
 		}
 		return var;
 	}
-	
+
 	public IntegerVariable[] getVariablesSorted() {
 		int n = coef.size();
 		IntegerVariable[] vs = new IntegerVariable[n];
@@ -275,84 +275,7 @@ public class LinearSum {
 		});
 		return vs;
 	}
-	
-	// private long calcSatSize(long limit, IntegerVariable[] vs, int i, int s) throws SugarException {
-	// 	long size = 0;
-	// 	if (i >= vs.length - 1) {
-	// 		size = 1;
-	// 	} else {
-	// 		int lb0 = s;
-	// 		int ub0 = s;
-	// 		for (int j = i + 1; j < vs.length; j++) {
-	// 			int a = getA(vs[j]); 
-	// 			if (a > 0) {
-	// 				lb0 += a * vs[j].getDomain().getLowerBound();
-	// 				ub0 += a * vs[j].getDomain().getUpperBound();
-	// 			} else {
-	// 				lb0 += a * vs[j].getDomain().getUpperBound();
-	// 				ub0 += a * vs[j].getDomain().getLowerBound();
-	// 			}
-	// 		}
-	// 		int a = getA(vs[i]);
-	// 		IntegerDomain domain = vs[i].getDomain();
-	// 		int lb = domain.getLowerBound();
-	// 		int ub = domain.getUpperBound();
-	// 		if (a >= 0) {
-	// 			// ub = Math.min(ub, (int)Math.floor(-(double)lb0 / a));
-	// 			if (-lb0 >= 0) {
-	// 				ub = Math.min(ub, -lb0/a);
-	// 			} else {
-	// 				ub = Math.min(ub, (-lb0-a+1)/a);
-	// 			}
-	// 			Iterator<Integer> iter = domain.values(lb, ub); 
-	// 			while (iter.hasNext()) {
-	// 				int c = iter.next();
-	// 				// vs[i]>=c -> ...
-	// 				// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
-	// 				size += calcSatSize(limit, vs, i+1, s+a*c);
-	// 				if (size > limit) {
-	// 					return size;
-	// 				}
-	// 			}
-	// 			size += calcSatSize(limit, vs, i+1, s+a*(ub+1));
-	// 			if (size > limit) {
-	// 				return size;
-	// 			}
-	// 		} else {
-	// 			// lb = Math.max(lb, (int)Math.ceil(-(double)lb0/a));
-	// 			if (-lb0 >= 0) {
-	// 				lb = Math.max(lb, -lb0/a);
-	// 			} else {
-	// 				lb = Math.max(lb, (-lb0+a+1)/a);
-	// 			}
-	// 			size += calcSatSize(limit, vs, i+1, s+a*(lb-1));
-	// 			if (size > limit) {
-	// 				return size;
-	// 			}
-	// 			Iterator<Integer> iter = domain.values(lb, ub); 
-	// 			while (iter.hasNext()) {
-	// 				int c = iter.next();
-	// 				// vs[i]<=c -> ...
-	// 				size += calcSatSize(limit, vs, i+1, s+a*c);
-	// 				if (size > limit) {
-	// 					return size;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// 	return size;
-	// }
-	
-	// public boolean satSizeLE(long limit) throws SugarException {
-	// 	if (isSimple()) {
-	// 		return 1 <= limit;
-	// 	} else {
-	// 		IntegerVariable[] vs = getVariablesSorted();
-	// 		long size = calcSatSize(limit, vs, 0, getB());
-	// 		return size <= limit;
-	// 	}
-	// }
-	
+
 	public Expression toExpression() {
 		Expression x = Expression.create(b);
 		for (IntegerVariable v : coef.keySet()) {
@@ -362,7 +285,7 @@ public class LinearSum {
 		}
 		return x;
 	}
-	
+
 	/**
 	 * Returns true when the linear expression is equal to the given linear expression.
 	 * @param linearSum the linear expression to be compared
@@ -375,7 +298,7 @@ public class LinearSum {
 			return true;
 		return b == linearSum.b && coef.equals(linearSum.coef);
 	}
-	
+
 	/**
 	 * Returns true when the linear expression is equal to the given object.
 	 * @param obj the object to be compared
@@ -430,24 +353,23 @@ public class LinearSum {
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-    sb.append("(add ");
+		sb.append("(add ");
 		for (IntegerVariable v : coef.keySet()) {
 			int c = getA(v);
 			if (c == 0) {
 			}else if(c == 1) {
-        sb.append(v.getName());
-      }else{
-        sb.append("(mul ");
-        sb.append(c);
-        sb.append(" ");
-        sb.append(v.getName());
-        sb.append(")");
-      }
-      sb.append(" ");
+				sb.append(v.getName());
+			}else{
+				sb.append("(mul ");
+				sb.append(c);
+				sb.append(" ");
+				sb.append(v.getName());
+				sb.append(")");
+			}
+			sb.append(" ");
 		}
-    sb.append(b);
-    sb.append(")");
+		sb.append(b);
+		sb.append(")");
 		return sb.toString();
 	}
-
 }

@@ -99,21 +99,25 @@ public class Clause {
 
 	public Set<IntegerVariable> getCommonVariables() {
 		if (commonVariables == null && size() > 0) {
-			for (ArithmeticLiteral lit : arithLiterals) {
-				Set<IntegerVariable> vs = lit.getVariables();
-				if (vs == null) {
-					commonVariables = null;
-					break;
-				} else if (commonVariables == null) {
-					commonVariables = vs;
-				} else {
-					Set<IntegerVariable> vars = new TreeSet<IntegerVariable>();
-					for (IntegerVariable v : commonVariables) {
-						if (vs.contains(v)) {
-							vars.add(v);
+			if (!boolLiterals.isEmpty()) {
+				commonVariables = null;
+			} else {
+				for (ArithmeticLiteral lit : arithLiterals) {
+					Set<IntegerVariable> vs = lit.getVariables();
+					if (vs == null) {
+						commonVariables = null;
+						break;
+					} else if (commonVariables == null) {
+						commonVariables = vs;
+					} else {
+						Set<IntegerVariable> vars = new TreeSet<IntegerVariable>();
+						for (IntegerVariable v : commonVariables) {
+							if (vs.contains(v)) {
+								vars.add(v);
+							}
 						}
+						commonVariables = vars;
 					}
-					commonVariables = vars;
 				}
 			}
 			if (commonVariables == null) {

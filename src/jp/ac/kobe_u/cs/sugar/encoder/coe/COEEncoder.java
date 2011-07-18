@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Map.Entry;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
+import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
@@ -22,43 +23,52 @@ import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.encoder.Adjuster;
 import jp.ac.kobe_u.cs.sugar.encoder.oe.OEEncoder;
 
-public class COEEncoder extends Encoder {
-	private Encoder encoder;
+public class COEEncoder extends OEEncoder {
+	private int[] bases;
+	private int ndigits;
 
 	public COEEncoder(CSP csp) {
 		super(csp);
-		encoder = new OEEncoder(csp);
+		ndigits = 2;
 	}
 
-	@Override
-	public int getCode(LinearLiteral lit) throws SugarException {
-		return encoder.getCode(lit);
+	public COEEncoder(CSP csp, int[] bases) {
+		this(csp);
+		this.bases = bases;
+		ndigits = 0;
 	}
 
-	@Override
-	public void encode(IntegerVariable v) throws SugarException, IOException {
-		if (v.getDigits() == null) {
-			encoder.encode(v);
-		}
-	}
-
-	@Override
-	public void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
-		encoder.encode(lit, clause);
-	}
-
-	@Override
-	public int getSatVariablesSize(IntegerVariable v) {
-		return encoder.getSatVariablesSize(v);
+	public COEEncoder(CSP csp, int ndigits) {
+		this(csp);
+		this.ndigits = ndigits;
 	}
 
 	@Override
 	public void reduce() throws SugarException {
+		System.out.println("======= adjusted====");
+		System.out.println(csp);
 		csp = Adjuster.adjust(csp);
+		System.out.println("======= adjusted====");
+		System.out.println(csp);
 		toTernary();
+		System.out.println("======= 3csp====");
+		System.out.println(csp);
 		toRCSP();
-		// どこかで CSP.bases に基底をセットする必要あり
+		System.out.println("======= rcsp====");
+		System.out.println(csp);
+		if (bases == null) {
+			int size = 0;
+			for (IntegerVariable v : csp.getIntegerVariables()) {
+				size = Math.max(size, v.getDomain().size());
+			}
+			bases = new int[1];
+			bases[0] = (int)Math.ceil(Math.pow(size+1, 1.0/ndigits));
+		}
+		Logger.fine("Base: "+ bases[0]);
+		csp.setBases(bases);
 		toCCSP();
+		System.out.println("======= ccsp====");
+		System.out.println(csp);
 	}
 
 	private void toTernary() throws SugarException {
@@ -202,10 +212,14 @@ public class COEEncoder extends Encoder {
 		IntegerVariable.setIndex(0);
 
 		List<Clause> newClauses = new ArrayList<Clause>();
+		List<IntegerVariable> newVars = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-			v.splitToDigits(csp);
+			newVars.addAll(v.splitToDigits(csp));
 			RCSPLiteral le = new OpXY(Operator.LE, v, v.getDomain().getUpperBound());
 			newClauses.addAll(le.toCCSP(csp));
+		}
+		for (IntegerVariable v: newVars) {
+			csp.add(v);
 		}
 
 		for (Clause cls : csp.getClauses()) {
@@ -268,13 +282,12 @@ public class COEEncoder extends Encoder {
 
 		int esize = e.size() + (e.getB() == 0 ? 0 : 1);
 
-		assert (esize == 4 && maxlen == 2)
-			|| (esize == 3 && maxlen == 2)
-			|| (esize == 2 && maxlen == 1);
-
 		if (esize <= maxlen) {
 			return e;
 		}
+		assert (esize == 4 && maxlen == 2)
+			|| (esize == 3 && maxlen == 2)
+			|| (esize == 2 && maxlen == 1);
 
 		List<IntegerHolder> holders = getHolders(e);
 		assert holders.size() <= 4;

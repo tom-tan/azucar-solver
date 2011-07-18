@@ -12,6 +12,7 @@ import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
+import jp.ac.kobe_u.cs.sugar.csp.Literal;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
@@ -29,8 +30,36 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
+	public boolean isSimple(Literal lit) {
+		if (lit instanceof BooleanLiteral)
+			return true;
+		else if (lit instanceof LinearLiteral) {
+			LinearLiteral l = (LinearLiteral)lit;
+			return l.getLinearExpression().getCoef().size() <= 1
+				&& (l.getOperator() == Operator.LE
+						|| l.getOperator() == Operator.GE);
+		}
+		return false;
+	}
+
+	@Override
+	public boolean isSimple(Clause c) {
+		return (c.size()-simpleSize(c)) <= 1;
+	}
+
+	private int simpleSize(Clause c) {
+		int simpleLiterals = c.getBooleanLiterals().size();
+		for (Literal lit : c.getArithmeticLiterals()) {
+			if (isSimple(lit)) {
+				simpleLiterals++;
+			}
+		}
+		return simpleLiterals;
+	}
+
+	@Override
 	public int getCode(LinearLiteral lit) throws SugarException {
-		if (! lit.isSimple()) {
+		if (! isSimple(lit)) {
 			throw new SugarException("Internal error " + lit.toString());
 		}
 		if (lit.getOperator() == Operator.EQ ||
@@ -73,16 +102,16 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public void encode(IntegerVariable ivar) throws SugarException, IOException {
-		writeComment(ivar.toString());
-		if (ivar.getDigits() == null) {
-			IntegerDomain domain = ivar.getDomain();
+	public void encode(IntegerVariable v) throws SugarException, IOException {
+		writeComment(v.toString());
+		if (v.getDigits() == null || v.getDigits().length == 1) {
+			IntegerDomain domain = v.getDomain();
 			int[] clause = new int[2];
 			int a0 = domain.getLowerBound();
 			for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
 				if (domain.contains(a)) {
-					clause[0] = negateCode(getCodeLE(ivar, a0));
-					clause[1] = getCodeLE(ivar, a);
+					clause[0] = negateCode(getCodeLE(v, a0));
+					clause[1] = getCodeLE(v, a);
 					writeClause(clause);
 					a0 = a;
 				}
@@ -167,7 +196,7 @@ public class OEEncoder extends Encoder {
 			throw new SugarException("Internal error " + lit.toString());
 		}
 		if (lit.isValid()) {
-		} if (lit.isSimple()) {
+		} if (isSimple(lit)) {
 			clause = expand(clause, 1);
 			clause[0] = getCode(lit);
 			writeClause(clause);

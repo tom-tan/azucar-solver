@@ -45,7 +45,7 @@ public class EqMul extends RCSPLiteral {
 
 	@Override
 	public List<Clause> toCCSP(CSP csp) throws SugarException {
-		int b = csp.getBases().get(0);
+		int b = csp.getBases()[0];
 		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
 										 z.nDigits(b));
 		List<Clause> ret = new ArrayList<Clause>();
@@ -167,7 +167,7 @@ public class EqMul extends RCSPLiteral {
 																			IntegerHolder t,
 																			IntegerHolder u, CSP csp)
 	throws SugarException {
-		int b = csp.getBases().get(0);
+		int b = csp.getBases()[0];
 		int m = Math.max(Math.max(s.nDigits(b), t.nDigits(b)),
 										 u.nDigits(b));
 		List<Clause> ret = new ArrayList<Clause>();

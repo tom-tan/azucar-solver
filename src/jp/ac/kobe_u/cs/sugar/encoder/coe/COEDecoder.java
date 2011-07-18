@@ -10,10 +10,12 @@ import jp.ac.kobe_u.cs.sugar.encoder.oe.OEDecoder;
 
 public class COEDecoder extends Decoder {
 	private Decoder decoder;
+	private int[] bases;
 
-	public COEDecoder(CSP csp) {
+	public COEDecoder(CSP csp, int[] bases) {
 		super(csp);
 		decoder = new OEDecoder(csp);
+		this.bases = bases;
 	}
 
 	@Override

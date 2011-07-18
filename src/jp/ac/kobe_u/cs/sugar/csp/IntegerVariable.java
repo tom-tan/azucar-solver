@@ -1,6 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 
@@ -181,10 +182,10 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		isDigit_ = b;
 	}
 
-	public void splitToDigits(CSP csp) throws SugarException {
+	public List<IntegerVariable> splitToDigits(CSP csp) throws SugarException {
 		int ub = domain.getUpperBound();
-		int b = csp.getBases().get(0);
-		int m = (int)Math.ceil(Math.log(b)/Math.log(ub+1));
+		int b = csp.getBases()[0];
+		int m = (int)Math.ceil(Math.log(ub+1)/Math.log(b));
 
 		vs = new IntegerVariable[m];
 		if (m == 1) {
@@ -196,9 +197,13 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 				IntegerDomain dom = new IntegerDomain(0, ubi);
 				vs[i] = new IntegerVariable(dom);
 				vs[i].isDigit(true);
-				csp.add(vs[i]);
 			}
 		}
+		List<IntegerVariable> ret = new ArrayList<IntegerVariable>();
+		for (IntegerVariable v: vs) {
+			ret.add(v);
+		}
+		return ret;
 	}
 
 	@Override

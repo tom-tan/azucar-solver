@@ -180,11 +180,10 @@ public class SugarMain {
 				}
 				objectiveVariableName = s[2];
 			} else if (s[0].equals("bases")) {
-				List<Integer> bases = new ArrayList<Integer>();
+				int[] bases = new int[s.length-1];
 				for (int i=1; i<s.length ; i++) {
-					bases.add(Integer.parseInt(s[i]));
+					bases[i-1] = Integer.parseInt(s[i]);
 				}
-				csp.setBases(bases);
 			} else if (s[0].equals("bigint")) {
 				String name = s[1];
 				int offset = Integer.parseInt(s[2]);
@@ -292,6 +291,8 @@ public class SugarMain {
 		try {
 			SugarMain sugarMain = new SugarMain();
 			String option = null;
+			int base = 0;
+			int ndigits = 0;
 			int i = 0;
 			while (i < args.length) {
 				if (args[i].equals("-max")) {
@@ -332,6 +333,25 @@ public class SugarMain {
 				} else if (args[i].equals("-debug") && i + 1 < args.length) {
 					debug = Integer.parseInt(args[i+1]);
 					i++;
+				} else if (args[i].equals("-m") && i+1 < args.length) {
+					ndigits = Integer.parseInt(args[i+1]);
+					if (base != 0) {
+						throw new SugarException("Base and NDigits are exclusive");
+					}
+				} else if (args[i].equals("-b") && i+1 < args.length) {
+					base = Integer.parseInt(args[i+1]);
+					if (ndigits != 0) {
+						throw new SugarException("Base and NDigits are exclusive");
+					}
+				} else if (args[i].equals("-encoding") && i+1 < args.length) {
+					String enc = args[i+1];
+					if (enc == "oe") {
+						sugarMain.ef = OrderEncodingFactory.getInstance();
+					} else if (enc == "coe") {
+						sugarMain.ef = CompactOrderEncodingFactory.getInstance();
+					} else {
+						throw new SugarException("Not supported encoding: "+ enc);
+					}
 				} else if (args[i].equals("-v") || args[i].equals("-verbose")) {
 					Logger.verboseLevel++;
 				} else if (args[i].startsWith("-")) {
@@ -339,6 +359,14 @@ public class SugarMain {
 					break;
 				}
 				i++;
+			}
+
+			if (base != 0) {
+				int[] bases = new int[1];
+				bases[0] = base;
+				sugarMain.ef.setBases(bases);
+			}else if (ndigits != 0) {
+				sugarMain.ef.setNDigits(ndigits);
 			}
 			int n = args.length - i;
 			if (option.equals("-encode") && n == 4) {

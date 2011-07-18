@@ -34,7 +34,7 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 	private void intToDigits(int b) {
 		assert digits == null;
 		assert isConstant_;
-		int m = (int)Math.ceil(Math.log(b)/Math.log(constant+1));
+		int m = (int)Math.ceil(Math.log(constant+1)/Math.log(b));
 		int ub = constant;
 		digits = new int[m];
 		for (int i=0; i<m; i++, ub /= b) {
@@ -54,11 +54,11 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 	}
 
 	public LLExpression nth(int n) {
-		assert digits != null;
 		if (isConstant_) {
-			return new LLExpression(digits.length < n ? digits[n] : 0);
+			assert digits != null;
+			return new LLExpression(digits.length > n ? digits[n] : 0);
 		} else {
-			if (variable.getDigits().length < n) {
+			if (variable.getDigits().length > n) {
 				return new LLExpression(variable.getDigits()[n]);
 			} else {
 				return new LLExpression(0);

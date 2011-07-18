@@ -16,7 +16,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public class CSP {
-	private List<Integer> bases;
+	private int[] bases;
 
 	private List<IntegerVariable> integerVariables;
 
@@ -54,7 +54,6 @@ public class CSP {
 	 * Constructs a new CSP.
 	 */
 	public CSP() {
-		bases = new ArrayList<Integer>();
 		integerVariables = new ArrayList<IntegerVariable>();
 		booleanVariables = new ArrayList<BooleanVariable>();
 		clauses = new ArrayList<Clause>();
@@ -62,6 +61,14 @@ public class CSP {
 		objective = Objective.NONE;
 		integerVariableMap = new HashMap<String,IntegerVariable>();
 		booleanVariableMap = new HashMap<String,BooleanVariable>();
+	}
+
+	public void setBases(int[] bases) {
+		this.bases = bases;
+	}
+
+	public int[] getBases() {
+		return bases;
 	}
 
 	/**
@@ -74,14 +81,6 @@ public class CSP {
 
 	public void setObjectiveVariable(IntegerVariable objectiveVariable) {
 		this.objectiveVariable = objectiveVariable;
-	}
-
-	public List<Integer> getBases() {
-		return bases;
-	}
-
-	public void setBases(List<Integer> bases) {
-		this.bases.addAll(bases);
 	}
 
 	/**

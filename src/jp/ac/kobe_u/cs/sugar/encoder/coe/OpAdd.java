@@ -39,7 +39,7 @@ public class OpAdd extends RCSPLiteral {
 
 	@Override
 	public List<Clause> toCCSP(CSP csp) throws SugarException {
-		int b = csp.getBases().get(0);
+		int b = csp.getBases()[0];
 		List<Clause> ret = new ArrayList<Clause>();
 		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
 										 z.nDigits(b));

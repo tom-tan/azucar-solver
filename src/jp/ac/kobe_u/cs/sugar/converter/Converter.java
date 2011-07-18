@@ -253,7 +253,6 @@ public class Converter {
 		} else if (x.isSequence(Expression.OR)) {
 			convertClause((Sequence)x);
 		}
-		assert false;
 	}
 
 	public void convert(List<Expression> expressions) throws SugarException {

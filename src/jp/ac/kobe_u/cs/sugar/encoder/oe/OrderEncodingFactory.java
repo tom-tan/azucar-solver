@@ -6,7 +6,7 @@ import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.encoder.Decoder;
 import jp.ac.kobe_u.cs.sugar.encoder.Simplifier;
 
-public class OrderEncodingFactory implements EncodingFactory {
+public class OrderEncodingFactory extends EncodingFactory {
 	static EncodingFactory ef;
 	private Encoder encoder;
 	private Decoder decoder;
