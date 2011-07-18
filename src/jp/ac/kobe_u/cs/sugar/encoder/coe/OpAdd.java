@@ -2,6 +2,7 @@ package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
 import java.util.Set;
 import java.util.List;
+import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
@@ -34,7 +35,7 @@ public class OpAdd extends RCSPLiteral {
 	}
 
 	@Override
-	public List<Clause> toCCSP(CSP csp) {
+	public List<Clause> toCCSP(CSP csp) throws SugarException {
 		int b = csp.getBases().get(0);
 		List<Clause> ret = new ArrayList<Clause>();
 		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),

@@ -34,7 +34,7 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 	private void intToDigits(int b) {
 		assert digits == null;
 		assert isConstant_;
-		int m = Math.ceil(Math.log(b)/Math.log(constant+1));
+		int m = (int)Math.ceil(Math.log(b)/Math.log(constant+1));
 		int ub = constant;
 		digits = new int[m];
 		for (int i=0; i<m; i++, ub /= b) {
