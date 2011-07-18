@@ -201,8 +201,53 @@ public class OpAdd extends RCSPLiteral {
 			return ret;
 		}
 
-		case NE:
+		case NE:{
+			BooleanVariable[] p = new BooleanVariable[m];
+			BooleanVariable[] q = new BooleanVariable[m];
+			Clause at_least_one = new Clause();
+			for (int i=0; i<m; i++) {
+				p[i] = new BooleanVariable();
+				q[i] = new BooleanVariable();
+				at_least_one.add(new BooleanLiteral(p[i], false));
+				at_least_one.add(new BooleanLiteral(q[i], false));
+			}
+			ret.add(at_least_one);
+
+			for (int i=0; i<m; i++) {
+				LLExpression lhs = (i == m-1) ?
+													 z.nth(i) :
+													 z.nth(i).add(lle(c[i+1]).mul(b));
+
+				LLExpression rhs =  (i == 0) ?
+														x.nth(i).add(y.nth(i)) :
+														x.nth(i).add(y.nth(i)).add(lle(c[i]));
+
+				Clause cls0 = new Clause(new BooleanLiteral(p[i], true));
+				cls0.add(lhs.le(rhs.sub(1)));
+				ret.add(cls0);
+
+				Clause cls1 = new Clause(new BooleanLiteral(q[i], true));
+				cls1.add(lhs.sub(1).ge(rhs));
+				ret.add(cls1);
+			}
+
+			for (int i=0; i<m-1; i++) {
+				LLExpression lhs = (i == 0) ?
+													 x.nth(i).add(y.nth(i)) :
+													 x.nth(i).add(y.nth(i)).add(lle(c[i]));
+				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
+				Clause ltor = new Clause(lle(c[i+1]).le(0));
+				ltor.add(lhs.ge(b));
+				ret.add(ltor);
+
+				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
+				Clause rtol = new Clause(lle(c[i+1]).ge(1));
+				rtol.add(lhs.le(b-1));
+				ret.add(rtol);
+			}
 			return ret;
+		}
+
 		default:
 			throw new SugarException("Internal Error");
 		}
