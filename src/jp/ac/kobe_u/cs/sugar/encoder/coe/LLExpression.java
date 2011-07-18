@@ -27,8 +27,19 @@ public class LLExpression {
 		return new LinearLiteral(linearSum, Operator.LE);
 	}
 
+	public LinearLiteral le(int e) {
+		linearSum.setB(linearSum.getB()-e);
+		return new LinearLiteral(linearSum, Operator.LE);
+	}
+
 	public LinearLiteral ge(LLExpression rhs) {
 		return rhs.le(this);
+	}
+
+	public LinearLiteral ge(int e) {
+		linearSum.setB(linearSum.getB()-e);
+		linearSum.multiply(-1);
+		return new LinearLiteral(linearSum, Operator.LE);
 	}
 
 	public LLExpression add(int e) {

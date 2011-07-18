@@ -82,7 +82,7 @@ public class OpXY extends RCSPLiteral {
 					cls.add(new BooleanLiteral(s[i], false));
 					ret.add(cls);
 				}
-				if (m >= 1) {
+				if (m > 1) {
 					// (x(i) <= y(i)-1) or s(i) (when i == m-1)
 					Clause cls0 = new Clause(x.nth(m-1).le(y.nth(m-1).sub(1)));
 					cls0.add(new BooleanLiteral(s[m-1], false));
