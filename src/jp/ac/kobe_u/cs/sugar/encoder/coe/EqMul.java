@@ -56,6 +56,7 @@ public class EqMul extends RCSPLiteral {
 			for (int i=0; i<m; i++) {
 				IntegerDomain d = new IntegerDomain(0, a*y.nth(i).getDomain().getUpperBound());
 				IntegerVariable vi = new IntegerVariable(d);
+				vi.splitToDigits(csp);
 				csp.add(vi);
 				v[i] = new IntegerHolder(vi);
 			}
@@ -108,6 +109,7 @@ public class EqMul extends RCSPLiteral {
 					d = new IntegerDomain(0, Math.min((b-1)*uby, ubz));
 				}
 				w[i] = new IntegerVariable(d);
+				w[i].splitToDigits(csp);
 				csp.add(w[i]);
 			}
 
@@ -120,6 +122,7 @@ public class EqMul extends RCSPLiteral {
 				IntegerVariable[] ya = new IntegerVariable[b];
 				for (int a=0; a<b; a++) {
 					ya[a] = new IntegerVariable(new IntegerDomain(0, a*uby));
+					ya[a].splitToDigits(csp);
 					csp.add(ya[a]);
 				}
 
@@ -144,6 +147,7 @@ public class EqMul extends RCSPLiteral {
 			for (int i=m-2; i>0; i--) {
 				IntegerDomain d = new IntegerDomain(0, zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
 				IntegerVariable zii = new IntegerVariable(d);
+				zii.splitToDigits(csp);
 				csp.add(zii);
 				zi[i] = new IntegerHolder(zii);
 			}
@@ -205,12 +209,6 @@ public class EqMul extends RCSPLiteral {
 
 	private LLExpression lle(IntegerVariable v) {
 		return new LLExpression(v);
-	}
-
-	private LLExpression lle(IntegerHolder v) {
-		if (v.isConstant())
-			return new LLExpression(v.getValue());
-		return new LLExpression(v.getVariable());
 	}
 
 	@Override
