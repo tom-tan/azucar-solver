@@ -46,9 +46,9 @@ public class EqMul extends RCSPLiteral {
 	@Override
 	public List<Clause> toCCSP(CSP csp) throws SugarException {
 		int b = csp.getBases().get(0);
-		List<Clause> ret = new ArrayList<Clause>();
 		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
 										 z.nDigits(b));
+		List<Clause> ret = new ArrayList<Clause>();
 
 		if (x.isConstant() && x.getValue() < b) {
 			IntegerHolder[] v = new IntegerHolder[m];
@@ -137,7 +137,68 @@ public class EqMul extends RCSPLiteral {
 					ret.addAll((new EqMul(ya[a], a, y)).toCCSP(csp));
 				}
 			}
+
 			// [z = Sum_(i=0)^(m-1)B^iw_i]
+			IntegerHolder[] zi = new IntegerHolder[m];
+			zi[m-1] = new IntegerHolder(w[m-1]);
+			for (int i=m-2; i>0; i--) {
+				IntegerDomain d = new IntegerDomain(0, zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
+				IntegerVariable zii = new IntegerVariable(d);
+				csp.add(zii);
+				zi[i] = new IntegerHolder(zii);
+			}
+			zi[0] = z;
+
+			for (int i=0; i<m-1; i++) {
+				ret.addAll(shiftAddtoCCSP(zi[i], zi[i+1], new IntegerHolder(w[i]), csp));
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * u = b*s+t
+	 */
+	private List<Clause> shiftAddtoCCSP(IntegerHolder s,
+																			IntegerHolder t,
+																			IntegerHolder u, CSP csp)
+	throws SugarException {
+		int b = csp.getBases().get(0);
+		int m = Math.max(Math.max(s.nDigits(b), t.nDigits(b)),
+										 u.nDigits(b));
+		List<Clause> ret = new ArrayList<Clause>();
+
+		IntegerVariable[] c = new IntegerVariable[m];
+		IntegerDomain d = new IntegerDomain(0, 1);
+		for (int i=2; i<m; i++) {
+			c[i] = new IntegerVariable(d);
+			csp.add(c[i]);
+		}
+
+		for (int i=0; i<m; i++) {
+			LLExpression lhs;
+			if (i == 0 || i == m-1) {
+				lhs = u.nth(i);
+			} else {
+				lhs = u.nth(i).add(lle(c[i+1]).mul(b));
+			}
+
+			LLExpression rhs;
+			if (i == 0) {
+				rhs = t.nth(i);
+			} else if (i == 1) {
+				rhs = t.nth(i).add(s.nth(i-1));
+			} else if (i == m-1) {
+				rhs = s.nth(i-1).add(lle(c[i]));
+			} else {
+				rhs = t.nth(i).add(s.nth(i-1)).add(lle(c[i]));
+			}
+
+			Clause cls0 = new Clause(lhs.le(rhs));
+			ret.add(cls0);
+
+			Clause cls1 = new Clause(lhs.ge(rhs));
+			ret.add(cls1);
 		}
 		return ret;
 	}
