@@ -20,7 +20,6 @@ import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
 import jp.ac.kobe_u.cs.sugar.csp.Literal;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
-import jp.ac.kobe_u.cs.sugar.encoder.Adjuster;
 import jp.ac.kobe_u.cs.sugar.encoder.oe.OEEncoder;
 
 public class COEEncoder extends OEEncoder {
@@ -44,9 +43,32 @@ public class COEEncoder extends OEEncoder {
 	}
 
 	@Override
+	protected boolean isSimple(Literal lit) {
+		if (lit instanceof BooleanLiteral)
+			return true;
+		if (lit instanceof LinearLiteral)
+			return super.isSimple(lit);
+
+		if (lit instanceof OpXY) {
+			OpXY l = (OpXY)lit;
+			assert !l.getVariables().isEmpty();
+			return l.getVariables().size() == 1
+				&& l.getVariables().iterator().next().getDigits().length <= 1;
+		}
+		return false;
+	}
+
+	@Override
+	protected void encode(IntegerVariable v) throws SugarException, IOException {
+		if (v.getDigits().length <= 1) {
+			super.encode(v);
+		}
+	}
+
+	@Override
 	public void reduce() throws SugarException {
 		Logger.fine("Compact Order Encoding: Recuding CSP");
-		csp = Adjuster.adjust(csp);
+		adjust();
 		toTernary();
 		toRCSP();
 		if (bases == null) {
@@ -60,6 +82,7 @@ public class COEEncoder extends OEEncoder {
 		}
 		Logger.fine("Compact Order Encoding: Base = "+ bases[0]);
 		csp.setBases(bases);
+		simplify();
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
 	}

@@ -20,7 +20,6 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.encoder.EncodingFactory;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.encoder.Decoder;
-import jp.ac.kobe_u.cs.sugar.encoder.Simplifier;
 import jp.ac.kobe_u.cs.sugar.encoder.oe.OrderEncodingFactory;
 import jp.ac.kobe_u.cs.sugar.encoder.coe.CompactOrderEncodingFactory;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
@@ -125,20 +124,16 @@ public class SugarMain {
 			Logger.info("CSP is unsatisfiable after propagation");
 			Logger.println("s UNSATISFIABLE");
 		} else {
-			Logger.fine("Simplifing CSP by introducing new Boolean variables");
-			Simplifier simp = ef.createSimplifier(csp);
-			simp.simplify();
-			Logger.info("CSP : " + csp.summary());
-			if (debug > 0) {
-				csp.output(System.out, "c ");
-			}
-			Logger.status();
+			// Logger.info("CSP : " + csp.summary());
+			// if (debug > 0) {
+			// 	csp.output(System.out, "c ");
+			// }
+			// Logger.status();
 
 			parser = null;
 			converter = null;
 			expressions = null;
 			decomposer = null;
-			simp = null;
 			Expression.clear();
 			Runtime.getRuntime().gc();
 
@@ -149,11 +144,15 @@ public class SugarMain {
 				Logger.fine("Encoding CSP to SAT : " + satFileName);
 				Encoder encoder = ef.createEncoder(csp);
 				encoder.reduce();
-				encoder.encode(satFileName, incremental);
-				Logger.fine("Writing map file : " + mapFileName);
-				encoder.outputMap(mapFileName);
-				Logger.status();
-				Logger.info("SAT : " + encoder.summary());
+				if (csp.isUnsatisfiable()) {
+					Logger.info("CSP is unsatisfiable after propagation");
+					Logger.println("s UNSATISFIABLE");
+				} else {
+					encoder.encode(satFileName, incremental);
+					Logger.fine("Writing map file : " + mapFileName);
+					encoder.outputMap(mapFileName);
+					Logger.status();
+					Logger.info("SAT : " + encoder.summary());}
 			}
 		}
 	}

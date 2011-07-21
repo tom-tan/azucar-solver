@@ -1,6 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -41,6 +42,18 @@ public class EqMul extends RCSPLiteral {
 
 	public EqMul(IntegerVariable z, int x, IntegerHolder y) {
 		this(new IntegerHolder(z), new IntegerHolder(x), y);
+	}
+
+	@Override
+	public Set<IntegerVariable> getVariables() {
+		Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
+		if (x.isVariable())
+			set.add(x.getVariable());
+		if (y.isVariable())
+			set.add(y.getVariable());
+		if (z.isVariable())
+			set.add(z.getVariable());
+		return set;
 	}
 
 	@Override

@@ -87,15 +87,6 @@ public class LinearLiteral extends ArithmeticLiteral {
 	}
 
 	/**
-	 * Returns true when the linear expression is simple.
-	 * @return true when the linear expression is simple
-	 * @see LinearSum#isSimple()
-	 */
-	public boolean isSimple() {
-		return linearSum.isSimple();
-	}
-
-	/**
 	 * Returns the linear expression of the comparison literal.
 	 * @return the linear expression
 	 */

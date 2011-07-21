@@ -43,11 +43,6 @@ public class ProductLiteral extends ArithmeticLiteral {
 	}
 
 	@Override
-	public boolean isSimple() {
-		return false;
-	}
-
-	@Override
 	public String toString() {
 		String s = "(product " + v.getName() + " " + v1.getName() + " " + v2.getName() + ")";
 		return s;

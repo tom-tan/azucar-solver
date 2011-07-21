@@ -13,20 +13,8 @@ public abstract class RCSPLiteral extends ArithmeticLiteral {
 	public abstract List<Clause> toCCSP(CSP csp) throws SugarException;
 
 	@Override
-	public Set<IntegerVariable> getVariables() {
-		assert false: "Not supported.";
-		return null;
-	}
-
-	@Override
 	public int[] getBound(IntegerVariable v) throws SugarException {
 		throw new SugarException("Not supported.");
-	}
-
-	@Override
-	public boolean isSimple() {
-		assert false: "Not supported.";
-		return false;
 	}
 
 	@Override

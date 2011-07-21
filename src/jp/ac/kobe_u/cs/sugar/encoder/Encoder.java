@@ -11,18 +11,23 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.BitSet;
 import java.util.List;
+import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Map.Entry;
 
 import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.SugarMain;
 import jp.ac.kobe_u.cs.sugar.csp.Literal;
+import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
+import jp.ac.kobe_u.cs.sugar.csp.Operator;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
+import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
 
@@ -32,6 +37,8 @@ import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public abstract class Encoder {
+	public static boolean simplifyAll = true;
+
 	public static final int FALSE_CODE = 0;
 
 	public static final int TRUE_CODE = Integer.MIN_VALUE;
@@ -59,13 +66,25 @@ public abstract class Encoder {
 	private long satFileSize = 0;
 
 	public abstract int getCode(LinearLiteral lit) throws SugarException;
-	public abstract void encode(IntegerVariable v) throws SugarException, IOException;
-	public abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
+	protected abstract void encode(IntegerVariable v) throws SugarException, IOException;
+	protected abstract void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException;
 	public abstract int getSatVariablesSize(IntegerVariable ivar);
 	public abstract void reduce() throws SugarException;
 	protected abstract boolean isSimple(Literal lit);
-	protected abstract boolean isSimple(Clause c);
-	protected abstract int simpleSize (Clause c);
+
+	protected boolean isSimple(Clause c) {
+		return (c.size()-simpleSize(c)) <= 1;
+	}
+
+	protected int simpleSize(Clause c) {
+		int simpleLiterals = c.getBooleanLiterals().size();
+		for (Literal lit : c.getArithmeticLiterals()) {
+			if (isSimple(lit)) {
+				simpleLiterals++;
+			}
+		}
+		return simpleLiterals;
+	}
 
 	public static int negateCode(int code) {
 		if (code == FALSE_CODE) {
@@ -145,6 +164,111 @@ public abstract class Encoder {
 	protected int getSatVariablesSize(BooleanVariable bvar) {
 		return 1;
 	}
+
+	protected void adjust() throws SugarException {
+		final String AUX_PREFIX = "$BA";
+		int idx = 0;
+		Logger.fine("Adjust the lower bound of integer variables to 0");
+		for (IntegerVariable v: csp.getIntegerVariables()) {
+			IntegerDomain d = v.getDomain();
+			int offset = d.getLowerBound();
+			v.setOffset(offset);
+			if (! d.isContiguous()) {
+				int lst = d.getLowerBound()-1;
+				Iterator<Integer> iter = d.values();
+				while(iter.hasNext()) {
+					int i = iter.next();
+					if (lst+1 != i) {
+						String name = AUX_PREFIX + Integer.toString(idx++);
+						BooleanVariable b = new BooleanVariable(name);
+						Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, lst),
+						                                         Operator.LE));
+						c1.add(new BooleanLiteral(b, true));
+						c1.setComment("; "+ v.getName() + " <= " + Integer.toString(lst)
+						              + " || "
+						              + v.getName() + " >= " + Integer.toString(i));
+						csp.add(c1);
+						Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, -i),
+						                                         Operator.LE));
+						c2.add(new BooleanLiteral(b, false));
+						csp.add(c2);
+					}
+					lst = i;
+				}
+			}
+			v.setDomain(new IntegerDomain(0, d.getUpperBound()-offset));
+		}
+
+		List<Clause> newClauses = new ArrayList<Clause>();
+		for (Clause c: csp.getClauses()) {
+			Clause newCls = null;
+			if((c.size() - simpleSize(c)) == 0) {
+				newCls = c;
+			}else{
+				newCls = new Clause(c.getBooleanLiterals());
+
+				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
+					LinearLiteral ll = (LinearLiteral)lit;
+					LinearSum ls = ll.getLinearExpression();
+					for (Entry<IntegerVariable, Integer> es :
+								 ls.getCoef().entrySet()) {
+						ls.setB(ls.getB()+es.getKey().getOffset()*es.getValue());
+					}
+					newCls.add(new LinearLiteral(ls, ll.getOperator()));
+				}
+			}
+			assert newCls != null;
+			newClauses.add(newCls);
+		}
+
+		csp.setClauses(newClauses);
+		Logger.info("CSP : " + csp.summary());
+	}
+
+	protected List<Clause> simplify(Clause clause) throws SugarException {
+		List<Clause> newClauses = new ArrayList<Clause>();
+		clause = new Clause(clause.getBooleanLiterals());
+
+		int complex = 0;
+		for (Literal literal : clause.getArithmeticLiterals()) {
+			if (isSimple(literal)) {
+				clause.add(literal);
+			} else {
+				complex++;
+				if (! simplifyAll && complex == 1) {
+					clause.add(literal);
+				} else {
+					BooleanVariable p = new BooleanVariable();
+					csp.add(p);
+					Literal posLiteral = new BooleanLiteral(p, false);
+					Literal negLiteral = new BooleanLiteral(p, true);
+					Clause newClause = new Clause();
+					newClause.add(negLiteral);
+					newClause.add(literal);
+					newClauses.add(newClause);
+					clause.add(posLiteral);
+				}
+			}
+		}
+		newClauses.add(clause);
+		return newClauses;
+	}
+
+	protected void simplify() throws SugarException {
+		BooleanVariable.setPrefix("S");
+		BooleanVariable.setIndex(0);
+		Logger.fine("Simplifing CSP by introducing new Boolean variables");
+		List<Clause> newClauses = new ArrayList<Clause>();
+		for (Clause clause : csp.getClauses()) {
+			if (isSimple(clause)) {
+				newClauses.add(clause);
+			} else {
+				newClauses.addAll(simplify(clause));
+			}
+		}
+		csp.setClauses(newClauses);
+	}
+
 
 	public void encode(String satFileName, boolean incremental) throws SugarException, IOException {
 		satFileSize = 0;
@@ -250,9 +374,9 @@ public abstract class Encoder {
 
 		List<IntegerVariable> bigints = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-			if (v.getDigits() != null) {
+			if (v.getDigits().length >= 2) {
 				bigints.add(v);
-			}else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
+			} else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
 				int code = v.getCode();
 				StringBuilder sb = new StringBuilder();
 				sb.append("int " + v.getName() + " " + v.getOffset()+ " " + code + " ");

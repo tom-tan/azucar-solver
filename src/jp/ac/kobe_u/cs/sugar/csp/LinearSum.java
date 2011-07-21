@@ -75,15 +75,6 @@ public class LinearSum {
 		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;  
 	}
 
-	/**
-	 * Returns true when the linear expression is simple.
-	 * A linear expression is simple if it has at most one integer variable.
-	 * @return true when the linear expression is simple
-	 */
-	public boolean isSimple() {
-		return coef.size() <= 0;
-	}
-
 	public Integer getA(IntegerVariable v) {
 		Integer a = coef.get(v);
 		if (a == null) {

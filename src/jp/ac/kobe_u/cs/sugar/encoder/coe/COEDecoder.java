@@ -18,7 +18,7 @@ public class COEDecoder extends OEDecoder {
 
 	@Override
 	public void decode(IntegerVariable v, BitSet satValues) {
-		if (v.getDigits() == null || v.getDigits().length == 1) {
+		if (v.getDigits().length <= 1) {
 			super.decode(v, satValues);
 		} else {
 			int b = bases[0];

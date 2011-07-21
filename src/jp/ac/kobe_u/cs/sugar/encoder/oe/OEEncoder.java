@@ -43,22 +43,6 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	protected boolean isSimple(Clause c) {
-		return (c.size()-simpleSize(c)) <= 1;
-	}
-
-	@Override
-	protected int simpleSize(Clause c) {
-		int simpleLiterals = c.getBooleanLiterals().size();
-		for (Literal lit : c.getArithmeticLiterals()) {
-			if (isSimple(lit)) {
-				simpleLiterals++;
-			}
-		}
-		return simpleLiterals;
-	}
-
-	@Override
 	public int getCode(LinearLiteral lit) throws SugarException {
 		if (! isSimple(lit)) {
 			throw new SugarException("Internal error " + lit.toString());
@@ -103,19 +87,17 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public void encode(IntegerVariable v) throws SugarException, IOException {
+	protected void encode(IntegerVariable v) throws SugarException, IOException {
 		writeComment(v.toString());
-		if (v.getDigits() == null || v.getDigits().length == 1) {
-			IntegerDomain domain = v.getDomain();
-			int[] clause = new int[2];
-			int a0 = domain.getLowerBound();
-			for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
-				if (domain.contains(a)) {
-					clause[0] = negateCode(getCodeLE(v, a0));
-					clause[1] = getCodeLE(v, a);
-					writeClause(clause);
-					a0 = a;
-				}
+		IntegerDomain domain = v.getDomain();
+		int[] clause = new int[2];
+		int a0 = domain.getLowerBound();
+		for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
+			if (domain.contains(a)) {
+				clause[0] = negateCode(getCodeLE(v, a0));
+				clause[1] = getCodeLE(v, a);
+				writeClause(clause);
+				a0 = a;
 			}
 		}
 	}
@@ -191,7 +173,7 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
+	protected void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
 		if (lit.getOperator() == Operator.EQ
 		    || lit.getOperator() == Operator.NE) {
 			throw new SugarException("Internal error " + lit.toString());
@@ -240,12 +222,28 @@ public class OEEncoder extends Encoder {
 	 * 1. 全ての LinearLiteral を
 	 *  a1*x1+a2*x2+...+b <= 0
 	 *  の形にする．
-	 * 2. TODO LinearLiteral 中の整数変数の数を制限する．
-	 *  (Not implemented)
 	 **/
 	@Override
 	public void reduce() throws SugarException {
-		final String AUX_PREFIX = "R";
+		split();
+		toLinearLe();
+		simplify();
+	}
+
+	/**
+	 * LinearLiteral 中の整数変数の数を制限する．
+	 */
+	private void split() {
+		final String AUX_PREFIX = "RS";
+		BooleanVariable.setPrefix(AUX_PREFIX);
+		BooleanVariable.setIndex(0);
+		IntegerVariable.setPrefix(AUX_PREFIX);
+		IntegerVariable.setIndex(0);
+		// TODO
+	}
+
+	private void toLinearLe() throws SugarException {
+		final String AUX_PREFIX = "RL";
 		BooleanVariable.setPrefix(AUX_PREFIX);
 		BooleanVariable.setIndex(0);
 		IntegerVariable.setPrefix(AUX_PREFIX);
@@ -278,23 +276,17 @@ public class OEEncoder extends Encoder {
 				}
 				case NE:{
 					Clause c1 = new Clause(bls);
+
 					LinearSum ls1 = new LinearSum(ll.getLinearExpression());
 					ls1.setB(ls1.getB()+1);
 					c1.add(new LinearLiteral(ls1, Operator.LE));
-					newClauses.add(c1);
 
 					LinearSum ls2 = new LinearSum(ll.getLinearExpression());
 					ls2.multiply(-1);
 					ls2.setB(ls2.getB()+1);
-					BooleanVariable p = new BooleanVariable();
-					csp.add(p);
-					BooleanLiteral posLiteral = new BooleanLiteral(p, false);
-					BooleanLiteral negLiteral = new BooleanLiteral(p, true);
-					Clause c2 = new Clause();
-					c2.add(negLiteral);
-					c2.add(new LinearLiteral(ls2, Operator.LE));
-					c1.add(posLiteral);
-					newClauses.add(c2);
+					c1.add(new LinearLiteral(ls2, Operator.LE));
+
+					newClauses.add(c1);
 					break;
 				}
 				default: new SugarException("Internal Error");
@@ -306,7 +298,7 @@ public class OEEncoder extends Encoder {
 
 	@Override
 	public int getSatVariablesSize(IntegerVariable v) {
-		if (v.getDigits() != null)
+		if (v.getDigits().length >= 2)
 			return 0;
 		return v.getDomain().size()-1;
 	}

@@ -24,11 +24,6 @@ public class PowerLiteral extends ArithmeticLiteral {
 	}
 
 	@Override
-	public boolean isSimple() {
-		return false;
-	}
-
-	@Override
 	public boolean isValid() throws SugarException {
 		return false;
 	}

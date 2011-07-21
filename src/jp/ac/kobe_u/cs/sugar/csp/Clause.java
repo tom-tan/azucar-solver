@@ -127,26 +127,6 @@ public class Clause {
 		return commonVariables;
 	}
 
-	public int simpleSize() {
-		int simpleLiterals = boolLiterals.size();
-		for (Literal literal : arithLiterals) {
-			if (literal.isSimple()) {
-				simpleLiterals++;
-			}
-		}
-		return simpleLiterals;
-	}
-
-	/**
-	 * Returns true when the clause is simple.
-	 * A clause is simple when there is at most one non-simple literals.
-	 * @return true when the clause is simple.
-	 * @see Literal#isSimple()
-	 */
-	public boolean isSimple() {
-		return (size() - simpleSize()) <= 1;
-	}
-
 	public boolean isValid() throws SugarException {
 		for (Literal lit : boolLiterals) {
 			if (lit.isValid()) {

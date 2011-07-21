@@ -23,15 +23,6 @@ public class BooleanLiteral extends Literal {
 	}
 
 	/**
-	 * Always returns true since boolean literals are simple.
-	 * @return always true
-	 */
-	@Override
-	public boolean isSimple() {
-		return true;
-	}
-
-	/**
 	 * Returns the boolean variable of CSP.
 	 * @return the boolean variable
 	 */

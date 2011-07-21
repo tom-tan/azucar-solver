@@ -103,13 +103,8 @@ public class RelationLiteral extends Literal {
 	private boolean conflicts(Tuple tuple) {
 		return (conflicts && tupleSet.contains(tuple))
 		|| (! conflicts && ! tupleSet.contains(tuple));
-		
 	}
-	
-	@Override
-	public boolean isSimple() {
-		return false;
-	}
+
 
 	@Override
 	public boolean isValid() throws SugarException {

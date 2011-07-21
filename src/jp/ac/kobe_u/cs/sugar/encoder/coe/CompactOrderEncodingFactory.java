@@ -4,14 +4,8 @@ import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.encoder.EncodingFactory;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.encoder.Decoder;
-import jp.ac.kobe_u.cs.sugar.encoder.Simplifier;
 
 public class CompactOrderEncodingFactory extends EncodingFactory {
-	static EncodingFactory ef;
-	private Encoder encoder;
-	private Decoder decoder;
-	private Simplifier simplifier;
-
 	public static EncodingFactory getInstance() {
 		if (ef == null) {
 			ef = new CompactOrderEncodingFactory();
@@ -38,13 +32,5 @@ public class CompactOrderEncodingFactory extends EncodingFactory {
 			decoder = new COEDecoder(csp, bases);
 		}
 		return decoder;
-	}
-
-	@Override
-	public Simplifier createSimplifier(CSP csp) {
-		if (simplifier == null) {
-			simplifier = new Simplifier(csp);
-		}
-		return simplifier;
 	}
 }

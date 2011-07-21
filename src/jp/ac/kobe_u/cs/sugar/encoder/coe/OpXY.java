@@ -1,6 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -40,6 +41,20 @@ public class OpXY extends RCSPLiteral {
 	}
 
 	@Override
+	public Set<IntegerVariable> getVariables() {
+		Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
+		if (x.isVariable())
+			set.add(x.getVariable());
+		if (y.isVariable())
+			set.add(y.getVariable());
+		return set;
+	}
+
+	public Operator getOperator() {
+		return op;
+	}
+
+	@Override
 	public List<Clause> toCCSP(CSP csp) throws SugarException {
 		assert op != Operator.GE;
 		List<Clause> ret = new ArrayList<Clause>();
@@ -61,7 +76,7 @@ public class OpXY extends RCSPLiteral {
 					ret.add(cls);
 				}
 			} else {
-				BooleanVariable[] s = new BooleanVariable[m-1];
+				BooleanVariable[] s = new BooleanVariable[m];
 				for (int i=1; i<m; i++) {
 					s[i] = new BooleanVariable();
 					csp.add(s[i]);
@@ -123,8 +138,7 @@ public class OpXY extends RCSPLiteral {
 					Clause cls0 = new Clause(new BooleanLiteral(p[i], true));
 					cls0.add(x.nth(i).le(y.nth(i).sub(1)));
 					ret.add(cls0);
-
-					Clause cls1 = new Clause(new BooleanLiteral(q[i+m], true));
+					Clause cls1 = new Clause(new BooleanLiteral(q[i], true));
 					cls1.add(x.nth(i).sub(1).ge(y.nth(i)));
 					ret.add(cls1);
 				}
