@@ -232,7 +232,7 @@ public class COEEncoder extends OEEncoder {
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			newVars.addAll(v.splitToDigits(csp));
 			RCSPLiteral le = new OpXY(Operator.LE, v, v.getDomain().getUpperBound());
-			newClauses.addAll(le.toCCSP(csp));
+			newClauses.addAll(le.toCCSP(csp, this));
 		}
 		for (IntegerVariable v: newVars) {
 			csp.add(v);
@@ -247,7 +247,7 @@ public class COEEncoder extends OEEncoder {
 
 				RCSPLiteral ll = (RCSPLiteral)cls.getArithmeticLiterals().get(0);
 				List<BooleanLiteral> bls = cls.getBooleanLiterals();
-				List<Clause> ccspClss = ll.toCCSP(csp);
+				List<Clause> ccspClss = ll.toCCSP(csp, this);
 				for (Clause c : ccspClss) {
 					c.addAll(bls);
 				}

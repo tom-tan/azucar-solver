@@ -51,7 +51,7 @@ public class OpAdd extends RCSPLiteral {
 	}
 
 	@Override
-	public List<Clause> toCCSP(CSP csp) throws SugarException {
+	public List<Clause> toCCSP(CSP csp, COEEncoder encoder) throws SugarException {
 		int b = csp.getBases()[0];
 		List<Clause> ret = new ArrayList<Clause>();
 		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
@@ -174,26 +174,12 @@ public class OpAdd extends RCSPLiteral {
 			return ret;
 
 		case NE:{
-			BooleanVariable[] p = new BooleanVariable[m];
-			BooleanVariable[] q = new BooleanVariable[m];
-			Clause at_least_one = new Clause();
+      Clause cls = new Clause();
 			for (int i=0; i<m; i++) {
-				p[i] = new BooleanVariable();
-				q[i] = new BooleanVariable();
-				at_least_one.add(new BooleanLiteral(p[i], false));
-				at_least_one.add(new BooleanLiteral(q[i], false));
+				cls.add(lhs[i].le(rhs[i].sub(1)));
+				cls.add(lhs[i].sub(1).ge(rhs[i]));
 			}
-			ret.add(at_least_one);
-
-			for (int i=0; i<m; i++) {
-				Clause cls0 = new Clause(new BooleanLiteral(p[i], true));
-				cls0.add(lhs[i].le(rhs[i].sub(1)));
-				ret.add(cls0);
-
-				Clause cls1 = new Clause(new BooleanLiteral(q[i], true));
-				cls1.add(lhs[i].sub(1).ge(rhs[i]));
-				ret.add(cls1);
-			}
+      ret.addAll(encoder.simplify(cls));
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B

@@ -55,7 +55,7 @@ public class OpXY extends RCSPLiteral {
 	}
 
 	@Override
-	public List<Clause> toCCSP(CSP csp) throws SugarException {
+	public List<Clause> toCCSP(CSP csp, COEEncoder encoder) throws SugarException {
 		assert op != Operator.GE;
 		List<Clause> ret = new ArrayList<Clause>();
 		int b = csp.getBases()[0];
@@ -113,37 +113,15 @@ public class OpXY extends RCSPLiteral {
 			}
 			return ret;
 
-		case NE:
-			if (x.isConstant() || y.isConstant()) {
-				Clause cls = new Clause();
-				for (int i=0; i<m; i++) {
-					cls.add(x.nth(i).le(y.nth(i).sub(1)));
-					cls.add(x.nth(i).sub(1).le(y.nth(i)));
-				}
-				ret.add(cls);
-
-			} else {
-				BooleanVariable[] p = new BooleanVariable[m];
-				BooleanVariable[] q = new BooleanVariable[m];
-				Clause at_least_one = new Clause();
-				for (int i=0; i<m; i++) {
-					p[i] = new BooleanVariable();
-					q[i] = new BooleanVariable();
-					at_least_one.add(new BooleanLiteral(p[i], false));
-					at_least_one.add(new BooleanLiteral(q[i], false));
-				}
-				ret.add(at_least_one);
-
-				for (int i=0; i<m; i++) {
-					Clause cls0 = new Clause(new BooleanLiteral(p[i], true));
-					cls0.add(x.nth(i).le(y.nth(i).sub(1)));
-					ret.add(cls0);
-					Clause cls1 = new Clause(new BooleanLiteral(q[i], true));
-					cls1.add(x.nth(i).sub(1).ge(y.nth(i)));
-					ret.add(cls1);
-				}
+		case NE:{
+			Clause cls = new Clause();
+			for (int i=0; i<m; i++) {
+				cls.add(x.nth(i).le(y.nth(i).sub(1)));
+				cls.add(x.nth(i).sub(1).ge(y.nth(i)));
 			}
+			ret.addAll(encoder.simplify(cls));
 			return ret;
+		}
 		default:
 			throw new SugarException("Internal Error");
 		}

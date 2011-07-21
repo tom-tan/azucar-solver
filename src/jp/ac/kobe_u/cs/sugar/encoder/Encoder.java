@@ -202,9 +202,9 @@ public abstract class Encoder {
 		List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
 			Clause newCls = null;
-			if((c.size() - simpleSize(c)) == 0) {
+			if(c.getArithmeticLiterals().isEmpty()) {
 				newCls = c;
-			}else{
+			} else {
 				newCls = new Clause(c.getBooleanLiterals());
 
 				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
@@ -225,7 +225,7 @@ public abstract class Encoder {
 		Logger.info("CSP : " + csp.summary());
 	}
 
-	protected List<Clause> simplify(Clause clause) throws SugarException {
+	public List<Clause> simplify(Clause clause) throws SugarException {
 		List<Clause> newClauses = new ArrayList<Clause>();
 		clause = new Clause(clause.getBooleanLiterals());
 
