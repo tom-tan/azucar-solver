@@ -102,7 +102,7 @@ public class SugarMain {
 		if (maxCSP) {
 			expressions = toMaxCSP(expressions);
 		}
-		Logger.fine("Decomposing");
+		Logger.fine("Decomposing CSP");
 		Decomposer decomposer = new Decomposer();
 		expressions = decomposer.decompose(expressions);
 
@@ -113,12 +113,12 @@ public class SugarMain {
 		converter.convert(expressions);
 		Logger.fine("CSP : " + csp.summary());
 		// csp.output(System.out, "c ");
-		if (propagate) {
-			Logger.status();
-			Logger.fine("Propagation in CSP");
-			csp.propagate();
-			Logger.fine("CSP : " + csp.summary());
-		}
+		// if (propagate) {
+		// 	Logger.status();
+		// 	Logger.fine("Propagation in CSP");
+		// 	csp.propagate();
+		// 	Logger.fine("CSP : " + csp.summary());
+		// }
 		// csp.output(System.out, "c ");
 		Logger.status();
 		if (csp.isUnsatisfiable()) {
@@ -128,7 +128,6 @@ public class SugarMain {
 			Logger.fine("Simplifing CSP by introducing new Boolean variables");
 			Simplifier simp = ef.createSimplifier(csp);
 			simp.simplify();
-			//csp.simplify();
 			Logger.info("CSP : " + csp.summary());
 			if (debug > 0) {
 				csp.output(System.out, "c ");

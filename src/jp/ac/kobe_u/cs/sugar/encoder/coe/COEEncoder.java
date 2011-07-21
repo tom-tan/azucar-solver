@@ -45,17 +45,10 @@ public class COEEncoder extends OEEncoder {
 
 	@Override
 	public void reduce() throws SugarException {
-		System.out.println("======= adjusted====");
-		System.out.println(csp);
+		Logger.fine("Compact Order Encoding: Recuding CSP");
 		csp = Adjuster.adjust(csp);
-		System.out.println("======= adjusted====");
-		System.out.println(csp);
 		toTernary();
-		System.out.println("======= 3csp====");
-		System.out.println(csp);
 		toRCSP();
-		System.out.println("======= rcsp====");
-		System.out.println(csp);
 		if (bases == null) {
 			int size = 0;
 			for (IntegerVariable v : csp.getIntegerVariables()) {
@@ -63,12 +56,12 @@ public class COEEncoder extends OEEncoder {
 			}
 			bases = new int[1];
 			bases[0] = (int)Math.ceil(Math.pow(size+1, 1.0/ndigits));
+			Logger.fine("Compact Order Encoding: Largest Domain size = "+ size);
 		}
-		Logger.fine("Base: "+ bases[0]);
+		Logger.fine("Compact Order Encoding: Base = "+ bases[0]);
 		csp.setBases(bases);
 		toCCSP();
-		System.out.println("======= ccsp====");
-		System.out.println(csp);
+		Logger.fine("Compact Order Encoding: Reduction finished");
 	}
 
 	private void toTernary() throws SugarException {
