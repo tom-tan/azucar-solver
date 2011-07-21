@@ -108,6 +108,9 @@ public class Converter {
 			throw new SugarException("Duplicated definition " + seq);
 		}
 		IntegerVariable v = new IntegerVariable(name, domain);
+		if (name.startsWith("_$")) {
+			v.isAux(true);
+		}
 		csp.add(v);
 		intMap.put(name, v);
 	}

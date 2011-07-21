@@ -129,7 +129,7 @@ public class EqMul extends RCSPLiteral {
 			if (x.isConstant()) {
 				// x(i) と x(j) が同じ時には共有したほうがいい
 				for (int i=0; i<m; i++) {
-					ret.addAll((new EqMul(w[i], x.nthValue(i), y)).toCCSP(csp));
+					ret.addAll((new EqMul(w[i], x.nthValue(i), y)).toCCSP(csp, encoder));
 				}
 			} else {
 				IntegerVariable[] ya = new IntegerVariable[b];
@@ -141,7 +141,7 @@ public class EqMul extends RCSPLiteral {
 
 				for (int i=0; i<m; i++) {
 					for (int a=0; a<b; a++) {
-						for (Clause c: (new OpXY(Operator.EQ, w[i], ya[a])).toCCSP(csp)) {
+						for (Clause c: (new OpXY(Operator.EQ, w[i], ya[a])).toCCSP(csp, encoder)) {
 							c.add(x.nth(i).le(a-1));
 							c.add(x.nth(i).ge(a+1));
 							ret.add(c);
@@ -150,7 +150,7 @@ public class EqMul extends RCSPLiteral {
 				}
 
 				for (int a=0; a<b; a++) {
-					ret.addAll((new EqMul(ya[a], a, y)).toCCSP(csp));
+					ret.addAll((new EqMul(ya[a], a, y)).toCCSP(csp, encoder));
 				}
 			}
 
@@ -169,6 +169,9 @@ public class EqMul extends RCSPLiteral {
 			for (int i=0; i<m-1; i++) {
 				ret.addAll(shiftAddtoCCSP(zi[i], zi[i+1], new IntegerHolder(w[i]), csp));
 			}
+		}
+		if (!ret.isEmpty()) {
+			ret.get(0).setComment(toString());
 		}
 		return ret;
 	}

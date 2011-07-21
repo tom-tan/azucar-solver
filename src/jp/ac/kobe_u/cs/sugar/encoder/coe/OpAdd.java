@@ -60,6 +60,7 @@ public class OpAdd extends RCSPLiteral {
 		IntegerVariable[] c = new IntegerVariable[m];
 		for (int i=1; i<m; i++) {
 			c[i] = new IntegerVariable(new IntegerDomain(0, 1));
+			c[i].setComment(i + "-th carry for " + toString());
 			csp.add(c[i]);
 		}
 
@@ -77,7 +78,7 @@ public class OpAdd extends RCSPLiteral {
 
 		switch(op) {
 		case LE:{
-			BooleanVariable[] s = new BooleanVariable[m-1];
+			BooleanVariable[] s = new BooleanVariable[m];
 			for (int i=1; i<m; i++) {
 				s[i] = new BooleanVariable();
 				csp.add(s[i]);
@@ -118,7 +119,7 @@ public class OpAdd extends RCSPLiteral {
 				rtol.add(lhs[i].le(b-1));
 				ret.add(rtol);
 			}
-			return ret;
+			break;
 		}
 
 		case GE:{
@@ -163,7 +164,7 @@ public class OpAdd extends RCSPLiteral {
 				rtol.add(lhs[i].le(b-1));
 				ret.add(rtol);
 			}
-			return ret;
+			break;
 		}
 
 		case EQ:
@@ -171,15 +172,15 @@ public class OpAdd extends RCSPLiteral {
 				ret.add(new Clause(lhs[i].le(rhs[i])));
 				ret.add(new Clause(lhs[i].ge(rhs[i])));
 			}
-			return ret;
+			break;
 
 		case NE:{
-      Clause cls = new Clause();
+			Clause cls = new Clause();
 			for (int i=0; i<m; i++) {
 				cls.add(lhs[i].le(rhs[i].sub(1)));
 				cls.add(lhs[i].sub(1).ge(rhs[i]));
 			}
-      ret.addAll(encoder.simplify(cls));
+			ret.addAll(encoder.simplify(cls));
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
@@ -192,12 +193,16 @@ public class OpAdd extends RCSPLiteral {
 				rtol.add(lhs[i].le(b-1));
 				ret.add(rtol);
 			}
-			return ret;
+			break;
 		}
 
 		default:
 			throw new SugarException("Internal Error");
 		}
+		if (!ret.isEmpty()) {
+			ret.get(0).setComment(toString());
+		}
+		return ret;
 	}
 
 	private LLExpression lle(IntegerVariable v) {

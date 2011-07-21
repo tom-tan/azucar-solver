@@ -77,6 +77,10 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		return aux;
 	}
 
+	public void isAux(boolean aux) {
+		this.aux = aux;
+	}
+
 	public int getOffset() {
 		return offset;
 	}
@@ -145,7 +149,6 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * @return the value
 	 */
 	public int getValue() {
-		// 値はただ1つに決まっている
 		assert domain.size() == 1;
 		return value;
 	}
@@ -195,6 +198,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 				IntegerDomain dom = new IntegerDomain(0, ubi);
 				vs[i] = new IntegerVariable(dom);
 				vs[i].isDigit(true);
+				vs[i].setComment(getName() + "["+i+"]");
 			}
 		}
 		List<IntegerVariable> ret = new ArrayList<IntegerVariable>();

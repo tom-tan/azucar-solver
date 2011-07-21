@@ -9,6 +9,7 @@ import java.util.Map.Entry;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.Logger;
+import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
@@ -71,6 +72,7 @@ public class COEEncoder extends OEEncoder {
 		adjust();
 		toTernary();
 		toRCSP();
+		// System.out.println("======== CSP =========\n"+csp);
 		if (bases == null) {
 			int size = 0;
 			for (IntegerVariable v : csp.getIntegerVariables()) {
@@ -85,6 +87,7 @@ public class COEEncoder extends OEEncoder {
 		simplify();
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
+		// System.out.println("======== CSP =========\n"+csp);
 	}
 
 	private void toTernary() throws SugarException {
@@ -99,16 +102,17 @@ public class COEEncoder extends OEEncoder {
 			if (c.getArithmeticLiterals().size() == 0) {
 				newClauses.add(c);
 			} else {
-				assert c.getArithmeticLiterals().size() == 1;
-				LinearLiteral ll = (LinearLiteral)c.getArithmeticLiterals().get(0);
-				if (ll.getLinearExpression().size() <= 3) {
-					newClauses.add(c);
-					continue;
+				Clause cls = new Clause(c.getBooleanLiterals());
+				cls.setComment(c.getComment());
+				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
+					LinearLiteral ll = (LinearLiteral)lit;
+					if (ll.getLinearExpression().size() <= 3) {
+						cls.add(ll);
+						continue;
+					}
+					LinearSum ls = simplifyLinearExpression(ll.getLinearExpression(), newClauses);
+					cls.add(new LinearLiteral(ls, ll.getOperator()));
 				}
-				List<BooleanLiteral> bls = c.getBooleanLiterals();
-				Clause cls = new Clause(bls);
-				LinearSum ls = simplifyLinearExpression(ll.getLinearExpression(), newClauses);
-				cls.add(new LinearLiteral(ls, ll.getOperator()));
 				newClauses.add(cls);
 			}
 		}
@@ -125,95 +129,102 @@ public class COEEncoder extends OEEncoder {
 		List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
 			if (c.getArithmeticLiterals().size() == 0) {
+				c.setComment(c.toString());
 				newClauses.add(c);
 			} else {
-				assert c.getArithmeticLiterals().size() == 1;
-				LinearLiteral ll = (LinearLiteral)c.getArithmeticLiterals().get(0);
-				LinearSum ls = ll.getLinearExpression();
-				LinearSum lhs, rhs;
-				if (ls.getB() > 0) {
-					lhs = new LinearSum(ls.getB());
-					rhs = new LinearSum(0);
+				Clause cls = new Clause(c.getBooleanLiterals());
+				if (c.getComment() == null) {
+					cls.setComment(c.toString());
 				} else {
-					lhs = new LinearSum(0);
-					rhs = new LinearSum(-ls.getB());
+					cls.setComment(c.getComment());
 				}
-				for (Entry<IntegerVariable, Integer> es :
-				       ls.getCoef().entrySet()) {
-					int a = es.getValue();
-					IntegerVariable v = es.getKey();
-					if (a == 1) {
-						lhs.setA(1, v);
-						continue;
-					} else if (a == -1) {
-						rhs.setA(1, v);
-						continue;
-					}
-					a = Math.abs(a);
-					IntegerDomain dom = v.getDomain().mul(a);
-					IntegerVariable av = new IntegerVariable(dom);
-					csp.add(av);
-					Literal lit = new EqMul(av, a, v);
-					newClauses.add(new Clause(lit));
-					if (es.getValue() > 0) {
-						lhs.add(new LinearSum(av));
+
+				for (ArithmeticLiteral al: c.getArithmeticLiterals()) {
+					LinearLiteral ll = (LinearLiteral)al;
+					LinearSum ls = ll.getLinearExpression();
+					LinearSum lhs, rhs;
+					if (ls.getB() > 0) {
+						lhs = new LinearSum(ls.getB());
+						rhs = new LinearSum(0);
 					} else {
-						rhs.add(new LinearSum(av));
+						lhs = new LinearSum(0);
+						rhs = new LinearSum(-ls.getB());
 					}
-				}
-
-				lhs = simplifyForRCSP(lhs, newClauses,
-															(lhs.getB() == 0) ? 2 : 1);
-				int lsize = lhs.size() + (lhs.getB() == 0 ? 0 : 1);
-				int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
-				if (rsize >= 3) {
-					rhs = simplifyForRCSP(rhs, newClauses,
-																(rhs.getB() == 0) ? 2 : 1);
-				} else if (rsize == 2 && lsize == 2) {
-					if (rhs.getB() == 0) {
-						rhs = simplifyForRCSP(rhs, newClauses, 1);
-					} else {
-						IntegerDomain dom = new IntegerDomain(0, rhs.getDomain().getUpperBound());
-						List<IntegerHolder> rh = getHolders(rhs);
-						IntegerVariable ax = new IntegerVariable(dom);
-						csp.add(ax);
-						Literal geB = new OpXY(Operator.GE, ax, rhs.getB());
-						newClauses.add(new Clause(geB));
-						Literal eqadd = new OpAdd(Operator.EQ, ax, rh.get(0),
-																			rh.get(1));
-						newClauses.add(new Clause(eqadd));
-						rhs = new LinearSum(ax);
+					for (Entry<IntegerVariable, Integer> es :
+								 ls.getCoef().entrySet()) {
+						int a = es.getValue();
+						IntegerVariable v = es.getKey();
+						if (a == 1) {
+							lhs.setA(1, v);
+							continue;
+						} else if (a == -1) {
+							rhs.setA(1, v);
+							continue;
+						}
+						a = Math.abs(a);
+						IntegerDomain dom = v.getDomain().mul(a);
+						IntegerVariable av = new IntegerVariable(dom);
+						csp.add(av);
+						Literal lit = new EqMul(av, a, v);
+						newClauses.add(new Clause(lit));
+						if (es.getValue() > 0) {
+							lhs.add(new LinearSum(av));
+						} else {
+							rhs.add(new LinearSum(av));
+						}
 					}
-				}
 
-				Operator op = ll.getOperator();
-				List<BooleanLiteral> bls = c.getBooleanLiterals();
-				List<IntegerHolder> lh = getHolders(lhs);
-				List<IntegerHolder> rh = getHolders(rhs);
-				assert lh.size()+rh.size() <= 3;
-
-				Literal lit = null;
-				if (lh.size() == 1 && rh.size() == 1) {
-					lit = new OpXY(op, lh.get(0), rh.get(0));
-
-				} else if (lh.size() == 1 && rh.size() == 2) {
-					lit = new OpAdd(op, lh.get(0), rh.get(0), rh.get(1));
-
-				} else if (lh.size() == 2 && rh.size() == 1) {
-					switch(op) {
-					case LE:
-						lit = new OpAdd(Operator.GE, rh.get(0),
-														lh.get(0), lh.get(1));
-					case GE:
-						lit = new OpAdd(Operator.LE, rh.get(0),
-														lh.get(0), lh.get(1));
-					default:
-						lit = new OpAdd(op, rh.get(0),
-														lh.get(0), lh.get(1));
+					lhs = simplifyForRCSP(lhs, newClauses,
+																(lhs.getB() == 0) ? 2 : 1);
+					int lsize = lhs.size() + (lhs.getB() == 0 ? 0 : 1);
+					int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
+					if (rsize >= 3) {
+						rhs = simplifyForRCSP(rhs, newClauses,
+																	(rhs.getB() == 0) ? 2 : 1);
+					} else if (rsize == 2 && lsize == 2) {
+						if (rhs.getB() == 0) {
+							rhs = simplifyForRCSP(rhs, newClauses, 1);
+						} else {
+							IntegerDomain dom = new IntegerDomain(0, rhs.getDomain().getUpperBound());
+							List<IntegerHolder> rh = getHolders(rhs);
+							IntegerVariable ax = new IntegerVariable(dom);
+							csp.add(ax);
+							Literal geB = new OpXY(Operator.GE, ax, rhs.getB());
+							newClauses.add(new Clause(geB));
+							Literal eqadd = new OpAdd(Operator.EQ, ax, rh.get(0),
+																				rh.get(1));
+							newClauses.add(new Clause(eqadd));
+							rhs = new LinearSum(ax);
+						}
 					}
+
+					Operator op = ll.getOperator();
+					List<IntegerHolder> lh = getHolders(lhs);
+					List<IntegerHolder> rh = getHolders(rhs);
+					assert lh.size()+rh.size() <= 3;
+
+					Literal lit = null;
+					if (lh.size() == 1 && rh.size() == 1) {
+						lit = new OpXY(op, lh.get(0), rh.get(0));
+
+					} else if (lh.size() == 1 && rh.size() == 2) {
+						lit = new OpAdd(op, lh.get(0), rh.get(0), rh.get(1));
+
+					} else if (lh.size() == 2 && rh.size() == 1) {
+						switch(op) {
+						case LE:
+							lit = new OpAdd(Operator.GE, rh.get(0),
+															lh.get(0), lh.get(1));
+						case GE:
+							lit = new OpAdd(Operator.LE, rh.get(0),
+															lh.get(0), lh.get(1));
+						default:
+							lit = new OpAdd(op, rh.get(0),
+															lh.get(0), lh.get(1));
+						}
+					}
+					cls.add(lit);
 				}
-				Clause cls = new Clause(bls);
-				cls.add(lit);
 				newClauses.add(cls);
 			}
 		}
@@ -231,11 +242,18 @@ public class COEEncoder extends OEEncoder {
 		List<IntegerVariable> newVars = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			newVars.addAll(v.splitToDigits(csp));
-			RCSPLiteral le = new OpXY(Operator.LE, v, v.getDomain().getUpperBound());
-			newClauses.addAll(le.toCCSP(csp, this));
+			int ub = v.getDomain().getUpperBound();
+			int m = v.getDigits().length;
+			if (m > 1 ||
+					ub <= Math.pow(bases[0], m)-1) {
+				RCSPLiteral le = new OpXY(Operator.LE, v, ub);
+				List<Clause> lst = le.toCCSP(csp, this);
+				newClauses.addAll(lst);
+			}
 		}
 		for (IntegerVariable v: newVars) {
-			csp.add(v);
+			if (v.isDigit())
+				csp.add(v);
 		}
 
 		for (Clause cls : csp.getClauses()) {

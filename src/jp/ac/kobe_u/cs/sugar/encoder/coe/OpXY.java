@@ -104,14 +104,14 @@ public class OpXY extends RCSPLiteral {
 					ret.add(cls0);
 				}
 			}
-			return ret;
+			break;
 
 		case EQ:
 			for (int i=0; i<m; i++) {
 				ret.add(new Clause(x.nth(i).le(y.nth(i))));
 				ret.add(new Clause(x.nth(i).ge(y.nth(i))));
 			}
-			return ret;
+			break;
 
 		case NE:{
 			Clause cls = new Clause();
@@ -120,11 +120,16 @@ public class OpXY extends RCSPLiteral {
 				cls.add(x.nth(i).sub(1).ge(y.nth(i)));
 			}
 			ret.addAll(encoder.simplify(cls));
-			return ret;
+			break;
 		}
 		default:
 			throw new SugarException("Internal Error");
 		}
+
+		if (!ret.isEmpty()) {
+			ret.get(0).setComment(toString());
+		}
+		return ret;
 	}
 
 	@Override

@@ -206,6 +206,7 @@ public abstract class Encoder {
 				newCls = c;
 			} else {
 				newCls = new Clause(c.getBooleanLiterals());
+				newCls.setComment(c.getComment());
 
 				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
 					LinearLiteral ll = (LinearLiteral)lit;
@@ -227,16 +228,17 @@ public abstract class Encoder {
 
 	public List<Clause> simplify(Clause clause) throws SugarException {
 		List<Clause> newClauses = new ArrayList<Clause>();
-		clause = new Clause(clause.getBooleanLiterals());
+		Clause c = new Clause(clause.getBooleanLiterals());
+		c.setComment(clause.getComment());
 
 		int complex = 0;
 		for (Literal literal : clause.getArithmeticLiterals()) {
 			if (isSimple(literal)) {
-				clause.add(literal);
+				c.add(literal);
 			} else {
 				complex++;
 				if (! simplifyAll && complex == 1) {
-					clause.add(literal);
+					c.add(literal);
 				} else {
 					BooleanVariable p = new BooleanVariable();
 					csp.add(p);
@@ -246,11 +248,11 @@ public abstract class Encoder {
 					newClause.add(negLiteral);
 					newClause.add(literal);
 					newClauses.add(newClause);
-					clause.add(posLiteral);
+					c.add(posLiteral);
 				}
 			}
 		}
-		newClauses.add(clause);
+		newClauses.add(c);
 		return newClauses;
 	}
 
@@ -374,7 +376,7 @@ public abstract class Encoder {
 
 		List<IntegerVariable> bigints = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-			if (v.getDigits().length >= 2) {
+			if (v.getDigits().length >= 2 && !v.isAux()) {
 				bigints.add(v);
 			} else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
 				int code = v.getCode();

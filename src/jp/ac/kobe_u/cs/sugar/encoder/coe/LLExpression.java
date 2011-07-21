@@ -18,18 +18,24 @@ public class LLExpression {
 		linearSum = new LinearSum(v);
 	}
 
+	public LLExpression(LinearSum e) {
+		linearSum = e;
+	}
+
 	public IntegerDomain getDomain() throws SugarException {
 		return linearSum.getDomain();
 	}
 
 	public LinearLiteral le(LLExpression rhs) {
-		linearSum.subtract(rhs.linearSum);
-		return new LinearLiteral(linearSum, Operator.LE);
+		LinearSum l = new LinearSum(linearSum);
+		l.subtract(rhs.linearSum);
+		return new LinearLiteral(l, Operator.LE);
 	}
 
 	public LinearLiteral le(int e) {
-		linearSum.setB(linearSum.getB()-e);
-		return new LinearLiteral(linearSum, Operator.LE);
+		LinearSum l = new LinearSum(linearSum);
+		l.setB(l.getB()-e);
+		return new LinearLiteral(l, Operator.LE);
 	}
 
 	public LinearLiteral ge(LLExpression rhs) {
@@ -37,19 +43,22 @@ public class LLExpression {
 	}
 
 	public LinearLiteral ge(int e) {
-		linearSum.setB(linearSum.getB()-e);
-		linearSum.multiply(-1);
-		return new LinearLiteral(linearSum, Operator.LE);
+		LinearSum l = new LinearSum(linearSum);
+		l.setB(l.getB()-e);
+		l.multiply(-1);
+		return new LinearLiteral(l, Operator.LE);
 	}
 
 	public LLExpression add(int e) {
-		linearSum.setB(linearSum.getB()+e);
-		return this;
+		LinearSum l = new LinearSum(linearSum);
+		l.setB(l.getB()+e);
+		return new LLExpression(l);
 	}
 
 	public LLExpression add(LLExpression e) {
-		linearSum.add(e.linearSum);
-		return this;
+		LinearSum l = new LinearSum(linearSum);
+		l.add(e.linearSum);
+		return new LLExpression(l);
 	}
 
 	public LLExpression sub(int e) {
@@ -57,8 +66,9 @@ public class LLExpression {
 	}
 
 	public LLExpression mul(int c) {
-		linearSum.multiply(c);
-		return this;
+		LinearSum l = new LinearSum(linearSum);
+		l.multiply(c);
+		return new LLExpression(l);
 	}
 
 	@Override
