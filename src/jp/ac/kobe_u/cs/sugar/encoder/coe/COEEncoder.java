@@ -168,6 +168,7 @@ public class COEEncoder extends OEEncoder {
 							continue;
 						}
 						a = Math.abs(a);
+						assert v.getDomain().getLowerBound() == 0;
 						IntegerDomain dom = v.getDomain().mul(a);
 						IntegerVariable av = new IntegerVariable(dom);
 						csp.add(av);
@@ -300,6 +301,7 @@ public class COEEncoder extends OEEncoder {
 				IntegerVariable v = new IntegerVariable(ei.getDomain());
 				v.setComment(v.getName() + " : " + ei);
 				csp.add(v);
+				clss.addAll(adjust(v, false));
 				// v == ei
 				LinearSum ls = new LinearSum(v);
 				ls.subtract(ei);
@@ -374,6 +376,7 @@ public class COEEncoder extends OEEncoder {
 	private IntegerVariable add(IntegerHolder x, IntegerHolder y)
 	throws SugarException{
 		IntegerDomain dom = x.getDomain().add(y.getDomain());
+		// 中間変数なので，下限は無視しても ok
 		IntegerVariable v = new IntegerVariable(dom);
 		csp.add(v);
 		return v;

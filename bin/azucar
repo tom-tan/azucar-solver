@@ -20,7 +20,7 @@ my $tmp = "/tmp/azucar$$";
 my ($showversion, $help, $debug, $verbose, $veryverbose, $option);
 my ($java_opt1, $java_opt2, $solver, $competition, $keep, $incremental, $prof);
 my ($max_csp, $csp_file, $map_file, $sat_file, $out_file);
-my ($memlimit, $timelimit, $solverlimit, $encoding);
+my ($memlimit, $timelimit, $solverlimit, $encoding, $base, $m);
 &GetOptions(
 	    'version' => \$showversion,
 	    'h|help' => \$help,
@@ -46,6 +46,8 @@ my ($memlimit, $timelimit, $solverlimit, $encoding);
 	    'memlimit=i' => \$memlimit,
 	    'timelimit=i' => \$timelimit,
 	    'encoding=s' => \$encoding,
+	    'base=i' => \$base,
+			'm=i' => \$m,
 	    );
 $verbose = $verbose || $veryverbose;
 if (! $solver) {
@@ -336,6 +338,12 @@ sub encode {
 	}
 	if ($encoding) {
 	    $arg .= " -encoding $encoding";
+	}
+	if ($base) {
+		$arg .= " -b $base";
+	}
+	if ($m) {
+		$arg .= "-m $m"
 	}
 	$arg .= " -encode '$csp_file' '$sat_file' '$map_file'";
 	&java($java_opt1, $class, $arg, $prof);

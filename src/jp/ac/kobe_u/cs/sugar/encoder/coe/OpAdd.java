@@ -102,7 +102,7 @@ public class OpAdd extends RCSPLiteral {
 				ret.add(cls);
 			}
 			// (z(i) <= x(i)+y(i)+c(i)-1) or s(i) (when i == m-1)
-			{
+			if (m > 1) {
 				Clause cls = new Clause(lhs[m-1].le(rhs[m-1].sub(1)));
 				cls.add(new BooleanLiteral(s[m-1], false));
 				ret.add(cls);
@@ -147,7 +147,7 @@ public class OpAdd extends RCSPLiteral {
 				ret.add(cls);
 			}
 			// (z(i)-1 >= x(i)+y(i)+c(i)) or s(i) (when i == m-1)
-			{
+			if (m > 1) {
 				Clause cls = new Clause(lhs[m-1].sub(1).ge(rhs[m-1]));
 				cls.add(new BooleanLiteral(s[m-1], false));
 				ret.add(cls);

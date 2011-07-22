@@ -165,38 +165,57 @@ public abstract class Encoder {
 		return 1;
 	}
 
+	protected List<Clause> adjust(IntegerVariable v, boolean useOffset) throws SugarException {
+		List<Clause> ret = new ArrayList<Clause>();
+		IntegerDomain d = v.getDomain();
+		if (! d.isContiguous()) {
+			int lst = d.getLowerBound()-1;
+			Iterator<Integer> iter = d.values();
+			while(iter.hasNext()) {
+				int i = iter.next();
+				if (lst+2 == i) {
+					Clause c = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
+																									Operator.NE));
+					ret.add(c);
+				} else
+					if (lst+1 != i) {
+					BooleanVariable b = new BooleanVariable();
+					Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
+																									 Operator.LE));
+					c1.add(new BooleanLiteral(b, true));
+					c1.setComment("; "+ v.getName() + " <= " + Integer.toString(lst)
+												+ " || "
+												+ v.getName() + " >= " + Integer.toString(i));
+					ret.add(c1);
+					Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, i),
+																									 Operator.LE));
+					c2.add(new BooleanLiteral(b, false));
+					ret.add(c2);
+				}
+				lst = i;
+			}
+		}
+		int offset = d.getLowerBound();
+		if (useOffset) {
+			v.setOffset(offset);
+			v.setDomain(new IntegerDomain(0, d.getUpperBound()-offset));
+		} else {
+			Clause c = new Clause(new LinearLiteral(new LinearSum(-1, v, offset),
+																							Operator.LE));
+			ret.add(c);
+			v.setDomain(new IntegerDomain(0, d.getUpperBound()));
+		}
+		return ret;
+	}
+
 	protected void adjust() throws SugarException {
-		final String AUX_PREFIX = "$BA";
-		int idx = 0;
+		BooleanVariable.setPrefix("A");
+		BooleanVariable.setIndex(0);
+		IntegerVariable.setPrefix("A");
+		IntegerVariable.setIndex(0);
 		Logger.fine("Adjust the lower bound of integer variables to 0");
 		for (IntegerVariable v: csp.getIntegerVariables()) {
-			IntegerDomain d = v.getDomain();
-			int offset = d.getLowerBound();
-			v.setOffset(offset);
-			if (! d.isContiguous()) {
-				int lst = d.getLowerBound()-1;
-				Iterator<Integer> iter = d.values();
-				while(iter.hasNext()) {
-					int i = iter.next();
-					if (lst+1 != i) {
-						String name = AUX_PREFIX + Integer.toString(idx++);
-						BooleanVariable b = new BooleanVariable(name);
-						Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, lst),
-						                                         Operator.LE));
-						c1.add(new BooleanLiteral(b, true));
-						c1.setComment("; "+ v.getName() + " <= " + Integer.toString(lst)
-						              + " || "
-						              + v.getName() + " >= " + Integer.toString(i));
-						csp.add(c1);
-						Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, -i),
-						                                         Operator.LE));
-						c2.add(new BooleanLiteral(b, false));
-						csp.add(c2);
-					}
-					lst = i;
-				}
-			}
-			v.setDomain(new IntegerDomain(0, d.getUpperBound()-offset));
+			csp.getClauses().addAll(adjust(v, true));
 		}
 
 		List<Clause> newClauses = new ArrayList<Clause>();
