@@ -37,7 +37,7 @@ import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public abstract class Encoder {
-	public static boolean simplifyAll = true;
+	public static boolean simplifyAll = false;
 
 	public static final int FALSE_CODE = 0;
 

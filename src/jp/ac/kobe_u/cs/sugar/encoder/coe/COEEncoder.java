@@ -69,8 +69,11 @@ public class COEEncoder extends OEEncoder {
 	@Override
 	public void reduce() throws SugarException {
 		Logger.fine("Compact Order Encoding: Recuding CSP");
+		// System.out.println("======== CSP =========\n"+csp);
 		adjust();
+		// System.out.println("======== CSP =========\n"+csp);
 		toTernary();
+		// System.out.println("======== CSP =========\n"+csp);
 		toRCSP();
 		// System.out.println("======== CSP =========\n"+csp);
 		if (bases == null) {
@@ -85,6 +88,7 @@ public class COEEncoder extends OEEncoder {
 		Logger.fine("Compact Order Encoding: Base = "+ bases[0]);
 		csp.setBases(bases);
 		simplify();
+		// System.out.println("======== CSP =========\n"+csp);
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
 		// System.out.println("======== CSP =========\n"+csp);
