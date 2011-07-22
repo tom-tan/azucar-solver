@@ -183,9 +183,8 @@ public abstract class Encoder {
 					Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
 																									 Operator.LE));
 					c1.add(new BooleanLiteral(b, true));
-					c1.setComment("; "+ v.getName() + " <= " + Integer.toString(lst)
-												+ " || "
-												+ v.getName() + " >= " + Integer.toString(i));
+					c1.setComment("; "+ v.getName() + " <= " + lst + " || "
+												+ v.getName() + " >= " + i);
 					ret.add(c1);
 					Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, i),
 																									 Operator.LE));
