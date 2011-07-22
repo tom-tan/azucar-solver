@@ -343,7 +343,7 @@ sub encode {
 		$arg .= " -b $base";
 	}
 	if ($m) {
-		$arg .= "-m $m"
+		$arg .= " -m $m"
 	}
 	$arg .= " -encode '$csp_file' '$sat_file' '$map_file'";
 	&java($java_opt1, $class, $arg, $prof);
