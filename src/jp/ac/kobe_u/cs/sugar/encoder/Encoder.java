@@ -482,7 +482,7 @@ public abstract class Encoder {
 		}
 		for (int code : clause) {
 			if (code != FALSE_CODE) {
-				write(Integer.toString(code) + " ");
+				write(code + " ");
 			}
 		}
 		write("0\n");
