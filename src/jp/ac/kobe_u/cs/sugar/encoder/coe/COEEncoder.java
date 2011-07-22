@@ -79,7 +79,7 @@ public class COEEncoder extends OEEncoder {
 				size = Math.max(size, v.getDomain().size());
 			}
 			bases = new int[1];
-			bases[0] = (int)Math.ceil(Math.pow(size+1, 1.0/ndigits));
+			bases[0] = (int)Math.ceil(Math.pow(size, 1.0/ndigits));
 			Logger.fine("Compact Order Encoding: Largest Domain size = "+ size);
 		}
 		Logger.fine("Compact Order Encoding: Base = "+ bases[0]);
