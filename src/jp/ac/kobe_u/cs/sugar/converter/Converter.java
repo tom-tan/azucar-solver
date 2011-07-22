@@ -68,27 +68,40 @@ public class Converter {
 			domain = domainMap.get(domainName);
 		} else if (seq.matches("WWS")) {
 			name = seq.get(1).stringValue();
-			SortedSet<Integer> d = new TreeSet<Integer>(); 
 			Sequence x = (Sequence)seq.get(2);
-			for (int i = 0; i < x.length(); i++) {
-				if (x.get(i).isInteger()) {
-					d.add(x.get(i).integerValue());
-				} else 	if (x.get(i).isSequence()) {
-					Sequence seq1 = (Sequence)x.get(i);
-					if (seq1.matches("II")) {
-						int value0 = ((Sequence)x.get(i)).get(0).integerValue();
-						int value1 = ((Sequence)x.get(i)).get(1).integerValue();
-						for (int value = value0; value <= value1; value++) {
-							d.add(value);
+			if (x.length() == 1) {
+				if (x.get(0).isInteger()) {
+					domain = new IntegerDomain(x.get(0).integerValue(),
+																		 x.get(0).integerValue());
+				} else if (((Sequence)x.get(0)).matches("II")) {
+					int value0 = ((Sequence)x.get(0)).get(0).integerValue();
+					int value1 = ((Sequence)x.get(0)).get(1).integerValue();
+					domain = new IntegerDomain(value0, value1);
+				} else {
+					throw new SugarException("Bad definition " + seq);
+				}
+			} else {
+				SortedSet<Integer> d = new TreeSet<Integer>(); 
+				for (int i = 0; i < x.length(); i++) {
+					if (x.get(i).isInteger()) {
+						d.add(x.get(i).integerValue());
+					} else if (x.get(i).isSequence()) {
+						Sequence seq1 = (Sequence)x.get(i);
+						if (seq1.matches("II")) {
+							int value0 = ((Sequence)x.get(i)).get(0).integerValue();
+							int value1 = ((Sequence)x.get(i)).get(1).integerValue();
+							for (int value = value0; value <= value1; value++) {
+								d.add(value);
+							}
+						} else {
+							throw new SugarException("Bad definition " + seq);
 						}
 					} else {
 						throw new SugarException("Bad definition " + seq);
 					}
-				} else {
-					throw new SugarException("Bad definition " + seq);
 				}
+				domain = new IntegerDomain(d);
 			}
-			domain = new IntegerDomain(d);
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();

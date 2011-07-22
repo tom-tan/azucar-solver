@@ -20,7 +20,7 @@ my $tmp = "/tmp/azucar$$";
 my ($showversion, $help, $debug, $verbose, $veryverbose, $option);
 my ($java_opt1, $java_opt2, $solver, $competition, $keep, $incremental, $prof);
 my ($max_csp, $csp_file, $map_file, $sat_file, $out_file);
-my ($memlimit, $timelimit, $solverlimit);
+my ($memlimit, $timelimit, $solverlimit, $encoding);
 &GetOptions(
 	    'version' => \$showversion,
 	    'h|help' => \$help,
@@ -45,6 +45,7 @@ my ($memlimit, $timelimit, $solverlimit);
 	    'keep' => \$keep,
 	    'memlimit=i' => \$memlimit,
 	    'timelimit=i' => \$timelimit,
+	    'encoding=s' => \$encoding,
 	    );
 $verbose = $verbose || $veryverbose;
 if (! $solver) {
@@ -114,6 +115,7 @@ sub usage {
     print "\t-keep            : do not erase temporary files\n";
     print "\t-memlimit MiB    : memory limit in MiB (for CSP solver competition)\n";
 #    print "\t-timelimit sec   : time limit in seconds (reserved for CSP solver competition)\n";
+    print "\t-encoding enc    : encoding method (oe and coe are supported)\n";
     exit(1);
 }
 
@@ -331,6 +333,9 @@ sub encode {
 	}
 	if ($incremental) {
 	    $arg .= " -incremental";
+	}
+	if ($encoding) {
+	    $arg .= " -encoding $encoding";
 	}
 	$arg .= " -encode '$csp_file' '$sat_file' '$map_file'";
 	&java($java_opt1, $class, $arg, $prof);

@@ -295,12 +295,12 @@ public abstract class Encoder {
 			int size = getSatVariablesSize(v);
 			satVariablesCount += size;
 		}
+
 		int count = 0;
 		int n = csp.getIntegerVariables().size();
 		int percent = 10;
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			encode(v);
-			count++;
 			if ((100*count)/n >= percent) {
 				Logger.fine(count + " (" + percent + "%) "
 						+ "CSP integer variables are encoded"

@@ -45,18 +45,20 @@ public class COEEncoder extends OEEncoder {
 
 	@Override
 	protected boolean isSimple(Literal lit) {
-		if (lit instanceof BooleanLiteral)
-			return true;
-		if (lit instanceof LinearLiteral)
-			return super.isSimple(lit);
-
 		if (lit instanceof OpXY) {
 			OpXY l = (OpXY)lit;
 			assert !l.getVariables().isEmpty();
 			return l.getVariables().size() == 1
 				&& l.getVariables().iterator().next().getDigits().length <= 1;
+		} else if (lit instanceof EqMul) {
+			EqMul l = (EqMul)lit;
+			assert !l.getVariables().isEmpty();
+			return l.getVariables().size() == 1
+				&& l.getVariables().iterator().next().getDigits().length <= 1;
+		} else if (lit instanceof OpAdd) {
+			return false;
 		}
-		return false;
+		return super.isSimple(lit);
 	}
 
 	@Override
@@ -91,7 +93,7 @@ public class COEEncoder extends OEEncoder {
 		// System.out.println("======== CSP =========\n"+csp);
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
-		// System.out.println("======== CSP =========\n"+csp);
+		System.out.println("======== CSP =========\n"+csp);
 	}
 
 	private void toTernary() throws SugarException {
@@ -396,5 +398,12 @@ public class COEEncoder extends OEEncoder {
 			ret.add(new IntegerHolder(e.getB()));
 		}
 		return ret;
+	}
+
+	@Override
+	public int getSatVariablesSize(IntegerVariable v) {
+		if (v.getDigits().length >= 2)
+			return 0;
+		return super.getSatVariablesSize(v);
 	}
 }

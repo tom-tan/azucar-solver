@@ -35,7 +35,7 @@ public class SugarMain {
 	boolean incremental = false;
 	boolean propagate = true;
 	public static int debug = 0;
-	public EncodingFactory ef = CompactOrderEncodingFactory.getInstance();
+	public EncodingFactory ef;
 
 	private List<Expression> toMaxCSP(List<Expression> expressions0) throws SugarException {
 		List<Expression> expressions = new ArrayList<Expression>();
@@ -111,6 +111,8 @@ public class SugarMain {
 		converter.INCREMENTAL_PROPAGATE = propagate;
 		converter.convert(expressions);
 		Logger.fine("CSP : " + csp.summary());
+		assert csp.getIntegerVariables().get(0).getDomain().isContiguous():
+		"Assertion failure!!";
 		// csp.output(System.out, "c ");
 		// if (propagate) {
 		// 	Logger.status();
@@ -344,9 +346,9 @@ public class SugarMain {
 					}
 				} else if (args[i].equals("-encoding") && i+1 < args.length) {
 					String enc = args[i+1];
-					if (enc == "oe") {
+					if (enc.equals("oe")) {
 						sugarMain.ef = OrderEncodingFactory.getInstance();
-					} else if (enc == "coe") {
+					} else if (enc.equals("coe")) {
 						sugarMain.ef = CompactOrderEncodingFactory.getInstance();
 					} else {
 						throw new SugarException("Not supported encoding: "+ enc);
@@ -360,6 +362,9 @@ public class SugarMain {
 				i++;
 			}
 
+			if (sugarMain.ef == null) {
+				sugarMain.ef = CompactOrderEncodingFactory.getInstance();
+			}
 			if (base != 0) {
 				int[] bases = new int[1];
 				bases[0] = base;

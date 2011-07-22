@@ -6,8 +6,9 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.SugarException;
+import jp.ac.kobe_u.cs.sugar.Logger;
+import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
@@ -226,8 +227,9 @@ public class OEEncoder extends Encoder {
 	@Override
 	public void reduce() throws SugarException {
 		split();
-		toLinearLe();
 		simplify();
+		toLinearLe();
+		Logger.info("CSP : " + csp.summary());
 	}
 
 	/**
@@ -251,10 +253,10 @@ public class OEEncoder extends Encoder {
 
 		List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
-			if (c.getArithmeticLiterals().size() == 0) {
+			if (c.size() == simpleSize(c)) {
 				newClauses.add(c);
 			} else {
-				assert c.getArithmeticLiterals().size() == 1;
+				assert c.size() == simpleSize(c)+1;
 				LinearLiteral ll = (LinearLiteral)c.getArithmeticLiterals().get(0);
 				List<BooleanLiteral> bls = c.getBooleanLiterals();
 				switch(ll.getOperator()) {
@@ -286,7 +288,7 @@ public class OEEncoder extends Encoder {
 					ls2.setB(ls2.getB()+1);
 					c1.add(new LinearLiteral(ls2, Operator.LE));
 
-					newClauses.add(c1);
+					newClauses.addAll(simplify(c1));
 					break;
 				}
 				default: new SugarException("Internal Error");
@@ -298,8 +300,6 @@ public class OEEncoder extends Encoder {
 
 	@Override
 	public int getSatVariablesSize(IntegerVariable v) {
-		if (v.getDigits().length >= 2)
-			return 0;
 		return v.getDomain().size()-1;
 	}
 }
