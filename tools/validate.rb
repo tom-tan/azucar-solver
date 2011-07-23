@@ -8,10 +8,15 @@ if $0 == __FILE__
     puts "Usage: #{File.basename $0} csp result"
     exit
   end
-  csp, result = ARGV
+  cspFile, result = ARGV
 
   io = IO.popen('sugar -vv /dev/stdin', 'r+')
-  open(csp).each { |line|
+  if cspFile.match /\.xml$/
+    csp = IO.popen("../tools/xml2csp #{cspFile}")
+  else
+    csp = open(cspFile)
+  end
+  csp.each { |line|
     io.puts line
   }
   begin
