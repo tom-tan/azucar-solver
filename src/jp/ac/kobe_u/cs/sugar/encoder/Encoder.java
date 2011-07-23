@@ -1,14 +1,9 @@
 package jp.ac.kobe_u.cs.sugar.encoder;
 
-import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
-import java.io.RandomAccessFile;
-import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.io.IOException;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Iterator;
@@ -45,25 +40,7 @@ public abstract class Encoder {
 
 	protected CSP csp;
 
-	public static boolean USE_NEWIO = true;
-	
-	public static int SAT_BUFFER_SIZE = 4*1024;
-
-	private BufferedOutputStream satFile;
-
-	private StringBuilder satStringBuffer;
-
-	private byte[] satByteArray;
-	
-	private FileChannel satFileChannel; 
-
-	protected ByteBuffer satByteBuffer;
-	
-	private int satVariablesCount = 0;
-
-	private int satClausesCount = 0;
-	
-	private long satFileSize = 0;
+	protected CNFWriter writer;
 
 	public abstract int getCode(LinearLiteral lit) throws SugarException;
 	protected abstract void encode(IntegerVariable v) throws SugarException, IOException;
@@ -101,38 +78,16 @@ public abstract class Encoder {
 		this.csp = csp;
 	}
 
-	public int getSatClausesCount() {
-		return satClausesCount;
-	}
-
-	public long getSatFileSize() {
-		return satFileSize;
-	}
-
 	protected int getCode(BooleanLiteral lit) throws SugarException {
 		int code = lit.getBooleanVariable().getCode();
 		return lit.getNegative() ? -code : code;
-	}
-
-	public String getHeader(int numOfVariables, int numOfClauses) throws UnsupportedEncodingException {
-		int n = 64;
-		StringBuilder s = new StringBuilder();
-		s.append("p cnf ");
-		s.append(Integer.toString(numOfVariables));
-		s.append(" ");
-		s.append(Integer.toString(numOfClauses));
-		while (s.length() < n - 1) {
-			s.append(" ");
-		}
-		s.append("\n");
-		return s.toString();
 	}
 
 	protected void encode(Clause cl) throws SugarException, IOException {
 		if (! isSimple(cl)) {
 			throw new SugarException("Cannot encode non-simple clause " + cl.toString());
 		}
-		writeComment(cl.toString());
+		writer.writeComment(cl.toString());
 		if (cl.isValid()) {
 			return;
 		}
@@ -152,7 +107,7 @@ public abstract class Encoder {
 			}
 		}
 		if (lit == null) {
-			writeClause(clause);
+			writer.writeClause(clause);
 		} else {
 			encode(lit, clause);
 		}
@@ -291,27 +246,17 @@ public abstract class Encoder {
 
 
 	public void encode(String satFileName, boolean incremental) throws SugarException, IOException {
-		satFileSize = 0;
-		if (USE_NEWIO) {
-			satFileChannel = (new FileOutputStream(satFileName)).getChannel();
-			satByteBuffer = ByteBuffer.allocateDirect(SAT_BUFFER_SIZE);
-		} else {
-			satFile = new BufferedOutputStream(new FileOutputStream(satFileName));
-			satStringBuffer = new StringBuilder(SAT_BUFFER_SIZE);
-			satByteArray = new byte[SAT_BUFFER_SIZE];
-		}
-		write(getHeader(0, 0));
-		satVariablesCount = 0;
-		satClausesCount = 0;
+		writer = new CNFWriter(satFileName, incremental);
+
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-			v.setCode(satVariablesCount + 1);
+			v.setCode(writer.getSatVariablesCount() + 1);
 			int size = getSatVariablesSize(v);
-			satVariablesCount += size;
+			writer.addSatVariables(size);
 		}
 		for (BooleanVariable v : csp.getBooleanVariables()) {
-			v.setCode(satVariablesCount + 1);
+			v.setCode(writer.getSatVariablesCount() + 1);
 			int size = getSatVariablesSize(v);
-			satVariablesCount += size;
+			writer.addSatVariables(size);
 		}
 
 		int count = 0;
@@ -322,7 +267,7 @@ public abstract class Encoder {
 			if ((100*count)/n >= percent) {
 				Logger.fine(count + " (" + percent + "%) "
 						+ "CSP integer variables are encoded"
-						+ " (" + satClausesCount + " clauses, " + satFileSize + " bytes)");
+						+ " (" + writer.getSatClausesCount() + " clauses, " + writer.getSatFileSize() + " bytes)");
 				percent += 10;
 			}
 		}
@@ -330,41 +275,24 @@ public abstract class Encoder {
 		n = csp.getClauses().size();
 		percent = 10;
 		for (Clause c : csp.getClauses()) {
-			int satClausesCount0 = satClausesCount;
+			int satClausesCount0 = writer.getSatClausesCount();
 			if (! c.isValid()) {
 				encode(c);
 			}
 			count++;
 			if (SugarMain.debug >= 1) {
-				int k = satClausesCount - satClausesCount0;
+				int k = writer.getSatClausesCount() - satClausesCount0;
 				Logger.fine(k + " SAT clauses for " + c);
 			}
 			if ((100*count)/n >= percent) {
 				Logger.fine(count + " (" + percent + "%) "
 						+ "CSP clauses are encoded"
-						+ " (" + satClausesCount + " clauses, " + satFileSize + " bytes)");
+						+ " (" + writer.getSatClausesCount() + " clauses, " + writer.getSatFileSize() + " bytes)");
 				percent += 10;
 			}
 		}
-		flush();
-		if (USE_NEWIO) {
-			satFileChannel.close();
-			satFileChannel = null;
-			satByteBuffer = null;
-		} else {
-			satFile.close();
-			satStringBuffer = null;
-			satByteArray = null;
-		}
 		Logger.fine(count + " CSP clauses encoded");
-		RandomAccessFile satFile1 = new RandomAccessFile(satFileName, "rw");
-		satFile1.seek(0);
-		if (csp.getObjectiveVariable() == null || incremental) {
-			satFile1.write(getHeader(satVariablesCount, satClausesCount).getBytes());
-		} else {
-			satFile1.write(getHeader(satVariablesCount, satClausesCount + 1).getBytes());
-		}
-		satFile1.close();
+		writer.close();
 	}
 
 	public void outputMap(String mapFileName) throws SugarException, IOException {
@@ -429,71 +357,9 @@ public abstract class Encoder {
 
 	public String summary() {
 		return
-		satVariablesCount + " SAT variables, " +
-		satClausesCount + " SAT clauses, " +
-		satFileSize + " bytes";
-	}
-
-	public void flush() throws IOException {
-		if (USE_NEWIO) {
-			satByteBuffer.flip();
-			satFileChannel.write(satByteBuffer);
-			satByteBuffer.clear();
-		} else {
-			int n = satStringBuffer.length();
-			for (int i = 0; i < n; i++) {
-				satByteArray[i] = (byte)satStringBuffer.charAt(i);
-			}
-			satFile.write(satByteArray, 0, n);
-			satStringBuffer.setLength(0);
-		}
-	}
-
-	public void write(String s) throws IOException {
-		if (USE_NEWIO) {
-			assert satByteBuffer != null: "Assertion failure";
-			if (satByteBuffer.position() + s.length() > SAT_BUFFER_SIZE) {
-				flush();
-			}
-			for (int i = 0; i < s.length(); i++) {
-				satByteBuffer.put((byte)s.charAt(i));
-			}
-		} else {
-			if (satStringBuffer.length() + s.length() > SAT_BUFFER_SIZE) {
-				flush();
-			}
-			satStringBuffer.append(s);
-		}
-		satFileSize += s.length();
-	}
-
-	public void writeComment(String comment) throws IOException {
-		if (SugarMain.debug >= 1) {
-			write("c " + comment + "\n");
-		}
-	}
-
-	public void writeClause(int[] clause) throws IOException {
-		for (int code : clause) {
-			if (code == TRUE_CODE) {
-				return;
-			}
-		}
-		for (int code : clause) {
-			if (code != FALSE_CODE) {
-				write(code + " ");
-			}
-		}
-		write("0\n");
-		satClausesCount++;
-	}
-
-	public void writeClause(List<Integer> clause0) throws IOException {
-		int[] clause = new int[clause0.size()];
-		for (int i = 0; i < clause.length; i++) {
-			clause[i] = clause0.get(i);
-		}
-		writeClause(clause);
+		writer.getSatVariablesCount() + " SAT variables, " +
+		writer.getSatClausesCount() + " SAT clauses, " +
+		writer.getSatFileSize() + " bytes";
 	}
 
 	protected int[] expand(int[] clause0, int n) {

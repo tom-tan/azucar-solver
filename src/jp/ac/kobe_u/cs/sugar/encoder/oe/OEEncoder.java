@@ -88,7 +88,7 @@ public class OEEncoder extends Encoder {
 
 	@Override
 	protected void encode(IntegerVariable v) throws SugarException, IOException {
-		writeComment(v.toString());
+		writer.writeComment(v.toString());
 		final IntegerDomain domain = v.getDomain();
 		final int[] clause = new int[2];
 		int a0 = domain.getLowerBound();
@@ -96,7 +96,7 @@ public class OEEncoder extends Encoder {
 			if (domain.contains(a)) {
 				clause[0] = negateCode(getCodeLE(v, a0));
 				clause[1] = getCodeLE(v, a);
-				writeClause(clause);
+				writer.writeClause(clause);
 				a0 = a;
 			}
 		}
@@ -115,7 +115,7 @@ public class OEEncoder extends Encoder {
 			final int a = ls.getA(vs[i]);
 			// encoder.writeComment(a + "*" + vs[i].getName() + " <= " + (-s));
 			clause[i] = getCodeLE(vs[i], a, -s);
-			writeClause(clause);
+			writer.writeClause(clause);
 		} else {
 			int lb0 = s;
 			int ub0 = s;
@@ -182,7 +182,7 @@ public class OEEncoder extends Encoder {
 		} if (isSimple(lit)) {
 			clause = expand(clause, 1);
 			clause[0] = getCode(lit);
-			writeClause(clause);
+			writer.writeClause(clause);
 		} else {
 			final LinearSum ls = lit.getLinearExpression();
 			final IntegerVariable[] vs = lit.getLinearExpression().getVariablesSorted();

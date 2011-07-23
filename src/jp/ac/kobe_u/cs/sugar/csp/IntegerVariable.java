@@ -149,7 +149,6 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * @return the value
 	 */
 	public int getValue() {
-		assert domain.size() == 1;
 		return value;
 	}
 

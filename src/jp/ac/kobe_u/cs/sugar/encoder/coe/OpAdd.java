@@ -122,12 +122,12 @@ public class OpAdd extends RCSPLiteral {
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
 				Clause ltor = new Clause(lle(c[i+1]).le(0));
-				ltor.add(lhs[i].ge(b));
+				ltor.add(rhs[i].ge(b));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
 				Clause rtol = new Clause(lle(c[i+1]).ge(1));
-				rtol.add(lhs[i].le(b-1));
+				rtol.add(rhs[i].le(b-1));
 				ret.add(rtol);
 			}
 			break;
@@ -167,12 +167,12 @@ public class OpAdd extends RCSPLiteral {
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
 				Clause ltor = new Clause(lle(c[i+1]).le(0));
-				ltor.add(lhs[i].ge(b));
+				ltor.add(rhs[i].ge(b));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
 				Clause rtol = new Clause(lle(c[i+1]).ge(1));
-				rtol.add(lhs[i].le(b-1));
+				rtol.add(rhs[i].le(b-1));
 				ret.add(rtol);
 			}
 			break;
@@ -196,12 +196,12 @@ public class OpAdd extends RCSPLiteral {
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
 				Clause ltor = new Clause(lle(c[i+1]).le(0));
-				ltor.add(lhs[i].ge(b));
+				ltor.add(rhs[i].ge(b));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
 				Clause rtol = new Clause(lle(c[i+1]).ge(1));
-				rtol.add(lhs[i].le(b-1));
+				rtol.add(rhs[i].le(b-1));
 				ret.add(rtol);
 			}
 			break;
