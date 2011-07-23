@@ -68,7 +68,7 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 
 	public int nthValue(int n) {
 		assert isConstant_;
-		return digits.length < n ? digits[n] : 0;
+		return digits.length > n ? digits[n] : 0;
 	}
 
 	@Override

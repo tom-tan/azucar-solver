@@ -191,7 +191,9 @@ public class COEEncoder extends OEEncoder {
 
 					int lsize = lhs.size() + (lhs.getB() == 0 ? 0 : 1);
 					int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
-					if (rsize >= 3) {
+					if (lsize >= 3) {
+						lhs = simplifyForRCSP(lhs, newClauses, 2);
+					} else if (rsize >= 3) {
 						rhs = simplifyForRCSP(rhs, newClauses, 2);
 					} else if (rsize == 2 && lsize == 2) {
 						if (rhs.getB() == 0) {
@@ -281,6 +283,7 @@ public class COEEncoder extends OEEncoder {
 
 				final RCSPLiteral ll = (RCSPLiteral)cls.getArithmeticLiterals().get(0);
 				final List<BooleanLiteral> bls = cls.getBooleanLiterals();
+				assert ll != null: "Assertion failure!!";
 				final List<Clause> ccspClss = ll.toCCSP(csp, this);
 				for (Clause c : ccspClss) {
 					c.addAll(bls);
