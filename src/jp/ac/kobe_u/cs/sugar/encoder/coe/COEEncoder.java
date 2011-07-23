@@ -98,7 +98,7 @@ public class COEEncoder extends OEEncoder {
 		Logger.fine("NeXY  (x!=y)  : " +OpXY.nNe);
 		Logger.fine("LeXY  (x<=y)  : " +OpXY.nLe);
 		simplify();
-		System.out.println("======== CSP =========\n"+csp);
+		// System.out.println("======== CSP =========\n"+csp);
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
 		// System.out.println("======== CSP =========\n"+csp);
