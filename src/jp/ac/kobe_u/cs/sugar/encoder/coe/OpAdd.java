@@ -134,7 +134,7 @@ public class OpAdd extends RCSPLiteral {
 		}
 
 		case GE:{
-			BooleanVariable[] s = new BooleanVariable[m-1];
+			BooleanVariable[] s = new BooleanVariable[m];
 			for (int i=1; i<m; i++) {
 				s[i] = new BooleanVariable();
 				csp.add(s[i]);
