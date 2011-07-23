@@ -17,6 +17,8 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
  */
 public class EqMul extends RCSPLiteral {
 	private IntegerHolder z, x, y;
+	public static int nOccur;
+
 
 	public EqMul(IntegerHolder z, IntegerHolder x, IntegerHolder y) {
 		this.z = z;
@@ -27,6 +29,7 @@ public class EqMul extends RCSPLiteral {
 			this.x = x;
 			this.y = y;
 		}
+		nOccur++;
 		assert this.y.isVariable();
 	}
 

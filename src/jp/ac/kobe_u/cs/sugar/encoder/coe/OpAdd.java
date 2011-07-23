@@ -20,12 +20,23 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
 public class OpAdd extends RCSPLiteral {
 	private IntegerHolder z, x, y;
 	private Operator op;
+	public static int nLe;
+	public static int nGe;
+	public static int nEq;
+	public static int nNe;
 
 	public OpAdd(Operator op, IntegerHolder z, IntegerHolder x, IntegerHolder y) {
 		this.z = z;
 		this.x = x;
 		this.y = y;
 		this.op = op;
+
+		switch(op) {
+		case EQ: nEq++; break;
+		case NE: nNe++; break;
+		case LE: nLe++; break;
+		case GE: nGe++; break;
+		}
 	}
 
 	public OpAdd(Operator op, IntegerVariable z, int x, IntegerVariable y) {

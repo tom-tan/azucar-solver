@@ -19,6 +19,9 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
 public class OpXY extends RCSPLiteral {
 	private IntegerHolder x, y;
 	private Operator op;
+	public static int nLe;
+	public static int nEq;
+	public static int nNe;
 
 	public OpXY(Operator op, IntegerHolder x, IntegerHolder y) {
 		if (op == Operator.GE) {
@@ -29,6 +32,11 @@ public class OpXY extends RCSPLiteral {
 			this.x = x;
 			this.y = y;
 			this.op = op;
+		}
+		switch(op) {
+		case EQ: nEq++; break;
+		case NE: nNe++; break;
+		case LE: nLe++; break;
 		}
 	}
 

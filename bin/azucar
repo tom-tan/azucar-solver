@@ -20,7 +20,7 @@ my $tmp = "/tmp/azucar$$";
 my ($showversion, $help, $debug, $verbose, $veryverbose, $option);
 my ($java_opt1, $java_opt2, $solver, $competition, $keep, $incremental, $prof);
 my ($max_csp, $csp_file, $map_file, $sat_file, $out_file);
-my ($memlimit, $timelimit, $solverlimit, $encoding, $base, $m);
+my ($memlimit, $timelimit, $solverlimit, $encoding, $base, $m, $enable_assert);
 &GetOptions(
 	    'version' => \$showversion,
 	    'h|help' => \$help,
@@ -47,7 +47,8 @@ my ($memlimit, $timelimit, $solverlimit, $encoding, $base, $m);
 	    'timelimit=i' => \$timelimit,
 	    'encoding=s' => \$encoding,
 	    'base=i' => \$base,
-			'm=i' => \$m,
+	    'm=i' => \$m,
+	    'ea' => \$enable_assert,
 	    );
 $verbose = $verbose || $veryverbose;
 if (! $solver) {
@@ -67,6 +68,11 @@ if (! $java_opt2) {
 	    $java_opt2 = sprintf("-Xmx%dM", $memlimit-200);
 	}
     }
+}
+
+if ($enable_assert) {
+  $java_opt1 .= " -ea";
+	$java_opt2 .= " -ea";
 }
 
 if ($showversion) {
@@ -363,6 +369,9 @@ sub decode {
     }
     my $class = "jp.ac.kobe_u.cs.sugar.SugarMain";
     my $arg = $competition ? "-competition " : "";
+    if ($encoding) {
+			$arg .= "-encoding $encoding ";
+    }
     $arg .= "-decode '$out_file' '$map_file'";
     &java($java_opt2, $class, $arg);
 }
