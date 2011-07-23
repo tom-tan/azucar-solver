@@ -40,7 +40,7 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 		for (int i=0; i<m; i++, ub /= b) {
 			digits[i] = ub%b;
 		}
-		assert digits[m-1] > 0;
+		assert constant == 0 || digits[m-1] > 0;
 	}
 
 	public int nDigits(int b) {
