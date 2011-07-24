@@ -2,17 +2,17 @@ package jp.ac.kobe_u.cs.sugar.encoder;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.StreamTokenizer;
 import java.io.IOException;
+import java.io.StreamTokenizer;
 import java.util.BitSet;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
+import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
-import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 
 public abstract class Decoder {
-	protected CSP csp;
+	protected final CSP csp;
 
 	public Decoder(CSP csp) {
 		this.csp = csp;
@@ -27,8 +27,8 @@ public abstract class Decoder {
 	public boolean decode(String outFileName) throws SugarException, IOException {
 		String result = null;
 		boolean sat = false;
-		BufferedReader rd = new BufferedReader(new FileReader(outFileName));
-		StreamTokenizer st = new StreamTokenizer(rd);
+		final BufferedReader rd = new BufferedReader(new FileReader(outFileName));
+		final StreamTokenizer st = new StreamTokenizer(rd);
 		st.eolIsSignificant(true);
 		while (result == null) {
 			st.nextToken();
@@ -49,7 +49,7 @@ public abstract class Decoder {
 		}
 		if (result.startsWith("SAT")) {
 			sat = true;
-			BitSet satValues = new BitSet();
+			final BitSet satValues = new BitSet();
 			while (true) {
 				st.nextToken();
 				if (st.ttype == StreamTokenizer.TT_EOF)
@@ -68,8 +68,8 @@ public abstract class Decoder {
 					}
 					break;
 				case StreamTokenizer.TT_NUMBER:
-					int value = (int)st.nval;
-					int i = Math.abs(value);
+					final int value = (int)st.nval;
+					final int i = Math.abs(value);
 					if (i > 0) {
 						satValues.set(i, value > 0);
 					}

@@ -29,17 +29,17 @@ public class Logger {
 	}
 
 	public static void status() {
-		MemoryMXBean mbean = ManagementFactory.getMemoryMXBean();
-		MemoryUsage heapUsage = mbean.getHeapMemoryUsage();
+		final MemoryMXBean mbean = ManagementFactory.getMemoryMXBean();
+		final MemoryUsage heapUsage = mbean.getHeapMemoryUsage();
 //		long heapInit = heapUsage.getInit() / MEGA;
-		long heapUsed = heapUsage.getUsed() / Logger.MEGA;
+		final long heapUsed = heapUsage.getUsed() / Logger.MEGA;
 //		long heapCommitted = heapUsage.getCommitted() / MEGA;
-		long heapMax = heapUsage.getMax() / Logger.MEGA;
-		MemoryUsage nonHeapUsage = mbean.getNonHeapMemoryUsage();
+		final long heapMax = heapUsage.getMax() / Logger.MEGA;
+		final MemoryUsage nonHeapUsage = mbean.getNonHeapMemoryUsage();
 //		long nonHeapInit = nonHeapUsage.getInit() / MEGA;
-		long nonHeapUsed = nonHeapUsage.getUsed() / Logger.MEGA;
+		final long nonHeapUsed = nonHeapUsage.getUsed() / Logger.MEGA;
 //		long nonHeapCommitted = nonHeapUsage.getCommitted() / MEGA;
-		long nonHeapMax = nonHeapUsage.getMax() / Logger.MEGA;
+		final long nonHeapMax = nonHeapUsage.getMax() / Logger.MEGA;
 		fine(
 				"Heap : " + heapUsed + " MiB used (max " + heapMax + " MiB), " +
 				"NonHeap : " + nonHeapUsed + " MiB used (max " + nonHeapMax + " MiB)"

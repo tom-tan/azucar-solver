@@ -98,10 +98,10 @@ public class COEEncoder extends OEEncoder {
 		Logger.fine("NeXY  (x!=y)  : " +OpXY.nNe);
 		Logger.fine("LeXY  (x<=y)  : " +OpXY.nLe);
 		simplify();
-		// System.out.println("======== CSP =========\n"+csp);
+		System.out.println("======== CSP =========\n"+csp);
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
-		// System.out.println("======== CSP =========\n"+csp);
+		System.out.println("======== CSP =========\n"+csp);
 	}
 
 	private void toTernary() throws SugarException {
@@ -156,6 +156,30 @@ public class COEEncoder extends OEEncoder {
 				for (ArithmeticLiteral al: c.getArithmeticLiterals()) {
 					final LinearLiteral ll = (LinearLiteral)al;
 					final LinearSum ls = ll.getLinearExpression();
+					// Special case: ax-by == 0
+					if (ll.getOperator() == Operator.EQ && ls.size() == 2) {
+						final IntegerVariable v1 = ls.getCoef().firstKey();
+						final IntegerVariable v2 = ls.getCoef().lastKey();
+						final int c1 = ls.getA(v1);
+						final int c2 = ls.getA(v2);
+						if (c1*c2 < 0) {
+							IntegerVariable lhs = Math.abs(c1)<Math.abs(c2) ? v1 : v2;
+							final IntegerVariable rhs = Math.abs(c1)<Math.abs(c2) ? v2 : v1;
+							final int lc = Math.abs(ls.getA(lhs));
+							final int rc = Math.abs(ls.getA(rhs));
+							if (lc > 1) {
+								// av == lc*lhs
+								final IntegerDomain dom = lhs.getDomain().mul(lc);
+								final IntegerVariable av = new IntegerVariable(dom);
+								csp.add(av);
+								final Literal lit = new EqMul(av, lc, lhs);
+								newClauses.add(new Clause(lit));
+								lhs = av;
+							}
+							cls.add(new EqMul(lhs, rc, rhs));
+							continue;
+						}
+					}
 					LinearSum lhs, rhs;
 					if (ls.getB() > 0) {
 						lhs = new LinearSum(ls.getB());
@@ -191,9 +215,24 @@ public class COEEncoder extends OEEncoder {
 
 					int lsize = lhs.size() + (lhs.getB() == 0 ? 0 : 1);
 					int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
-					if (lsize >= 3) {
-						lhs = simplifyForRCSP(lhs, newClauses, 2);
-					} else if (rsize >= 3) {
+					Operator op = ll.getOperator();
+					if (lsize > rsize) {
+						LinearSum tmp = lhs;
+						lhs = rhs;
+						rhs = tmp;
+						switch(op) {
+						case LE: op = Operator.GE; break;
+						case GE: op = Operator.LE; break;
+						}
+						int tmpsize = lsize;
+						lsize = rsize;
+						rsize = tmpsize;
+					}
+					assert lsize <= rsize;
+					assert lsize <= 2;
+					assert rsize <= 4;
+
+					if (rsize >= 3) {
 						rhs = simplifyForRCSP(rhs, newClauses, 2);
 					} else if (rsize == 2 && lsize == 2) {
 						if (rhs.getB() == 0) {
@@ -212,7 +251,6 @@ public class COEEncoder extends OEEncoder {
 						}
 					}
 
-					final Operator op = ll.getOperator();
 					final List<IntegerHolder> lh = getHolders(lhs);
 					final List<IntegerHolder> rh = getHolders(rhs);
 					assert lh.size()+rh.size() <= 3;
