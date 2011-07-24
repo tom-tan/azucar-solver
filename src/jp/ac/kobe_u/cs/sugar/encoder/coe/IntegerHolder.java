@@ -1,8 +1,8 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
+import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 
 /**
  * Wrapper for IntegerVariable and integer constant.
@@ -34,7 +34,7 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 	private void intToDigits(int b) {
 		assert digits == null;
 		assert isConstant_;
-		int m = (int)Math.ceil(Math.log(constant+1)/Math.log(b));
+		final int m = (int)Math.ceil(Math.log(constant+1)/Math.log(b));
 		int ub = constant;
 		digits = new int[m];
 		for (int i=0; i<m; i++, ub /= b) {
@@ -77,8 +77,8 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 			return 0;
 		if (v == null)
 			return 1;
-		int ub1 = isConstant_ ? constant : variable.getDomain().getUpperBound();
-		int ub2 = v.isConstant_ ? v.constant : variable.getDomain().getUpperBound();
+		final int ub1 = isConstant_ ? constant : variable.getDomain().getUpperBound();
+		final int ub2 = v.isConstant_ ? v.constant : variable.getDomain().getUpperBound();
 		if (ub1 != ub2)
 			return ub1 < ub2 ? -1 : 1;
 		return this.toString().compareTo(v.toString());

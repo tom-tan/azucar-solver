@@ -2,29 +2,29 @@ package jp.ac.kobe_u.cs.sugar.encoder;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
-import java.io.OutputStreamWriter;
 import java.io.IOException;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Iterator;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.BitSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 
 import jp.ac.kobe_u.cs.sugar.Logger;
 import jp.ac.kobe_u.cs.sugar.SugarConstants;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.SugarMain;
-import jp.ac.kobe_u.cs.sugar.csp.Literal;
+import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
+import jp.ac.kobe_u.cs.sugar.csp.Literal;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
-import jp.ac.kobe_u.cs.sugar.csp.Operator;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
-import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
+import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
-import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
+import jp.ac.kobe_u.cs.sugar.csp.Operator;
 
 /**
  * Encoder encodes CSP into SAT.
@@ -38,7 +38,7 @@ public abstract class Encoder {
 
 	public static final int TRUE_CODE = Integer.MIN_VALUE;
 
-	protected CSP csp;
+	protected final CSP csp;
 
 	protected CNFWriter writer;
 
@@ -79,7 +79,7 @@ public abstract class Encoder {
 	}
 
 	protected int getCode(BooleanLiteral lit) throws SugarException {
-		int code = lit.getBooleanVariable().getCode();
+		final int code = lit.getBooleanVariable().getCode();
 		return lit.getNegative() ? -code : code;
 	}
 
@@ -91,7 +91,7 @@ public abstract class Encoder {
 		if (cl.isValid()) {
 			return;
 		}
-		int[] clause = new int[simpleSize(cl)];
+		final int[] clause = new int[simpleSize(cl)];
 		LinearLiteral lit = null;
 		int i = 0;
 		for (BooleanLiteral literal : cl.getBooleanLiterals()) {
@@ -121,41 +121,41 @@ public abstract class Encoder {
 	}
 
 	protected List<Clause> adjust(IntegerVariable v, boolean useOffset) throws SugarException {
-		List<Clause> ret = new ArrayList<Clause>();
-		IntegerDomain d = v.getDomain();
+		final List<Clause> ret = new ArrayList<Clause>();
+		final IntegerDomain d = v.getDomain();
 		if (! d.isContiguous()) {
 			int lst = d.getLowerBound()-1;
-			Iterator<Integer> iter = d.values();
+			final Iterator<Integer> iter = d.values();
 			while(iter.hasNext()) {
-				int i = iter.next();
+				final int i = iter.next();
 				if (lst+2 == i) {
-					Clause c = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
-																									Operator.NE));
+					final Clause c = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
+																												Operator.NE));
 					ret.add(c);
 				} else
 					if (lst+1 != i) {
-					BooleanVariable b = new BooleanVariable();
-					Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
-																									 Operator.LE));
+					final BooleanVariable b = new BooleanVariable();
+					final Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
+																												 Operator.LE));
 					c1.add(new BooleanLiteral(b, true));
 					c1.setComment("; "+ v.getName() + " <= " + lst + " || "
 												+ v.getName() + " >= " + i);
 					ret.add(c1);
-					Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, i),
-																									 Operator.LE));
+					final Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, i),
+																												 Operator.LE));
 					c2.add(new BooleanLiteral(b, false));
 					ret.add(c2);
 				}
 				lst = i;
 			}
 		}
-		int offset = d.getLowerBound();
+		final int offset = d.getLowerBound();
 		if (useOffset) {
 			v.setOffset(offset);
 			v.setDomain(new IntegerDomain(0, d.getUpperBound()-offset));
 		} else {
-			Clause c = new Clause(new LinearLiteral(new LinearSum(-1, v, offset),
-																							Operator.LE));
+			final Clause c = new Clause(new LinearLiteral(new LinearSum(-1, v, offset),
+																										Operator.LE));
 			ret.add(c);
 			v.setDomain(new IntegerDomain(0, d.getUpperBound()));
 		}
@@ -172,7 +172,7 @@ public abstract class Encoder {
 			csp.getClauses().addAll(adjust(v, true));
 		}
 
-		List<Clause> newClauses = new ArrayList<Clause>();
+		final List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
 			Clause newCls = null;
 			if(c.getArithmeticLiterals().isEmpty()) {
@@ -182,8 +182,8 @@ public abstract class Encoder {
 				newCls.setComment(c.getComment());
 
 				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
-					LinearLiteral ll = (LinearLiteral)lit;
-					LinearSum ls = ll.getLinearExpression();
+					final LinearLiteral ll = (LinearLiteral)lit;
+					final LinearSum ls = ll.getLinearExpression();
 					for (Entry<IntegerVariable, Integer> es :
 								 ls.getCoef().entrySet()) {
 						ls.setB(ls.getB()+es.getKey().getOffset()*es.getValue());
@@ -200,8 +200,8 @@ public abstract class Encoder {
 	}
 
 	public List<Clause> simplify(Clause clause) throws SugarException {
-		List<Clause> newClauses = new ArrayList<Clause>();
-		Clause c = new Clause(clause.getBooleanLiterals());
+		final List<Clause> newClauses = new ArrayList<Clause>();
+		final Clause c = new Clause(clause.getBooleanLiterals());
 		c.setComment(clause.getComment());
 
 		int complex = 0;
@@ -213,11 +213,11 @@ public abstract class Encoder {
 				if (! simplifyAll && complex == 1) {
 					c.add(literal);
 				} else {
-					BooleanVariable p = new BooleanVariable();
+					final BooleanVariable p = new BooleanVariable();
 					csp.add(p);
-					Literal posLiteral = new BooleanLiteral(p, false);
-					Literal negLiteral = new BooleanLiteral(p, true);
-					Clause newClause = new Clause();
+					final Literal posLiteral = new BooleanLiteral(p, false);
+					final Literal negLiteral = new BooleanLiteral(p, true);
+					final Clause newClause = new Clause();
 					newClause.add(negLiteral);
 					newClause.add(literal);
 					newClauses.add(newClause);
@@ -250,12 +250,12 @@ public abstract class Encoder {
 
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			v.setCode(writer.getSatVariablesCount() + 1);
-			int size = getSatVariablesSize(v);
+			final int size = getSatVariablesSize(v);
 			writer.addSatVariables(size);
 		}
 		for (BooleanVariable v : csp.getBooleanVariables()) {
 			v.setCode(writer.getSatVariablesCount() + 1);
-			int size = getSatVariablesSize(v);
+			final int size = getSatVariablesSize(v);
 			writer.addSatVariables(size);
 		}
 
@@ -275,13 +275,13 @@ public abstract class Encoder {
 		n = csp.getClauses().size();
 		percent = 10;
 		for (Clause c : csp.getClauses()) {
-			int satClausesCount0 = writer.getSatClausesCount();
+			final int satClausesCount0 = writer.getSatClausesCount();
 			if (! c.isValid()) {
 				encode(c);
 			}
 			count++;
 			if (SugarMain.debug >= 1) {
-				int k = writer.getSatClausesCount() - satClausesCount0;
+				final int k = writer.getSatClausesCount() - satClausesCount0;
 				Logger.fine(k + " SAT clauses for " + c);
 			}
 			if ((100*count)/n >= percent) {
@@ -296,10 +296,10 @@ public abstract class Encoder {
 	}
 
 	public void outputMap(String mapFileName) throws SugarException, IOException {
-		BufferedWriter mapWriter = new BufferedWriter(
-				new OutputStreamWriter(new FileOutputStream(mapFileName), "UTF-8"));
+		final BufferedWriter mapWriter =
+			new BufferedWriter(new OutputStreamWriter(new FileOutputStream(mapFileName), "UTF-8"));
 		if (csp.getBases() != null) {
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			sb.append("bases");
 			for (int base : csp.getBases()) {
 				sb.append(" "+base);
@@ -320,12 +320,12 @@ public abstract class Encoder {
 			mapWriter.write('\n');
 		}
 
-		List<IntegerVariable> bigints = new ArrayList<IntegerVariable>();
+		final List<IntegerVariable> bigints = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			if (v.getDigits().length >= 2 && !v.isAux()) {
 				bigints.add(v);
 			} else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
-				int code = v.getCode();
+				final int code = v.getCode();
 				StringBuilder sb = new StringBuilder();
 				sb.append("int " + v.getName() + " " + v.getOffset()+ " " + code + " ");
 				v.getDomain().appendValues(sb);
@@ -335,7 +335,7 @@ public abstract class Encoder {
 		}
 
 		for (IntegerVariable v : bigints) {
-			StringBuilder sb = new StringBuilder();
+			final StringBuilder sb = new StringBuilder();
 			sb.append("bigint " + v.getName() + " " + v.getOffset());
 			for (IntegerVariable digit : v.getDigits()) {
 				sb.append(" "+digit.getName());
@@ -346,8 +346,8 @@ public abstract class Encoder {
 
 		for (BooleanVariable v : csp.getBooleanVariables()) {
 			if (! v.isAux() || SugarMain.debug > 0) {
-				int code = v.getCode();
-				String s = "bool " + v.getName() + " " + code;
+				final int code = v.getCode();
+				final String s = "bool " + v.getName() + " " + code;
 				mapWriter.write(s);
 				mapWriter.write('\n');
 			}
@@ -357,13 +357,13 @@ public abstract class Encoder {
 
 	public String summary() {
 		return
-		writer.getSatVariablesCount() + " SAT variables, " +
-		writer.getSatClausesCount() + " SAT clauses, " +
-		writer.getSatFileSize() + " bytes";
+			writer.getSatVariablesCount() + " SAT variables, " +
+			writer.getSatClausesCount() + " SAT clauses, " +
+			writer.getSatFileSize() + " bytes";
 	}
 
 	protected int[] expand(int[] clause0, int n) {
-		int[] clause = new int[clause0.length + n];
+		final int[] clause = new int[clause0.length + n];
 		for (int i = 0; i < clause0.length; i++) {
 			clause[i + n] = clause0[i];
 		}

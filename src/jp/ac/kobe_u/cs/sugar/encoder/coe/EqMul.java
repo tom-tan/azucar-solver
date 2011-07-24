@@ -1,22 +1,22 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.List;
-import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
-import jp.ac.kobe_u.cs.sugar.csp.Operator;
-import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
+import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
+import jp.ac.kobe_u.cs.sugar.csp.Operator;
 
 /**
  * z = x*y
  */
 public class EqMul extends RCSPLiteral {
-	private IntegerHolder z, x, y;
+	private final IntegerHolder z, x, y;
 	public static int nOccur;
 
 
@@ -49,7 +49,7 @@ public class EqMul extends RCSPLiteral {
 
 	@Override
 	public Set<IntegerVariable> getVariables() {
-		Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
+		final Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
 		if (x.isVariable())
 			set.add(x.getVariable());
 		if (y.isVariable())
@@ -61,17 +61,17 @@ public class EqMul extends RCSPLiteral {
 
 	@Override
 	public List<Clause> toCCSP(CSP csp, COEEncoder encoder) throws SugarException {
-		int b = csp.getBases()[0];
-		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
-										 z.nDigits(b));
-		List<Clause> ret = new ArrayList<Clause>();
+		final int b = csp.getBases()[0];
+		final int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
+													 z.nDigits(b));
+		final List<Clause> ret = new ArrayList<Clause>();
 
 		if (x.isConstant() && x.getValue() < b) {
-			IntegerHolder[] v = new IntegerHolder[m];
-			int a = x.getValue();
+			final IntegerHolder[] v = new IntegerHolder[m];
+			final int a = x.getValue();
 			for (int i=0; i<m; i++) {
-				IntegerDomain d = new IntegerDomain(0, a*y.nth(i).getDomain().getUpperBound());
-				IntegerVariable vi = new IntegerVariable(d);
+				final IntegerDomain d = new IntegerDomain(0, a*y.nth(i).getDomain().getUpperBound());
+				final IntegerVariable vi = new IntegerVariable(d);
 				vi.splitToDigits(csp);
 				csp.add(vi);
 				v[i] = new IntegerHolder(vi);
@@ -82,8 +82,8 @@ public class EqMul extends RCSPLiteral {
 				ret.add(new Clause(v[i].nth(1).mul(b).add(v[i].nth(0)).ge(y.nth(i).mul(a))));
 			}
 
-			IntegerVariable[] c = new IntegerVariable[m];
-			IntegerDomain d = new IntegerDomain(0, 1);
+			final IntegerVariable[] c = new IntegerVariable[m];
+			final IntegerDomain d = new IntegerDomain(0, 1);
 			for (int i=2; i<m; i++) {
 				c[i] = new IntegerVariable(d);
 			}
@@ -107,15 +107,15 @@ public class EqMul extends RCSPLiteral {
 					rhs = v[i].nth(0).add(v[i-1].nth(1)).add(lle(c[i]));
 				}
 
-				Clause cls0 = new Clause(lhs.le(rhs));
+				final Clause cls0 = new Clause(lhs.le(rhs));
 				ret.add(cls0);
 
-				Clause cls1 = new Clause(lhs.ge(rhs));
+				final Clause cls1 = new Clause(lhs.ge(rhs));
 				ret.add(cls1);
 			}
 		} else {
-			IntegerVariable[] w = new IntegerVariable[m];
-			int uby = y.getDomain().getUpperBound();
+			final IntegerVariable[] w = new IntegerVariable[m];
+			final int uby = y.getDomain().getUpperBound();
 			for (int i=0, ubz = z.getDomain().getUpperBound();
 					 i<m; i++, ubz /= b) {
 				IntegerDomain d;
@@ -135,7 +135,7 @@ public class EqMul extends RCSPLiteral {
 					ret.addAll((new EqMul(w[i], x.nthValue(i), y)).toCCSP(csp, encoder));
 				}
 			} else {
-				IntegerVariable[] ya = new IntegerVariable[b];
+				final IntegerVariable[] ya = new IntegerVariable[b];
 				for (int a=0; a<b; a++) {
 					ya[a] = new IntegerVariable(new IntegerDomain(0, a*uby));
 					ya[a].splitToDigits(csp);
@@ -158,11 +158,11 @@ public class EqMul extends RCSPLiteral {
 			}
 
 			// [z = Sum_(i=0)^(m-1)B^iw_i]
-			IntegerHolder[] zi = new IntegerHolder[m];
+			final IntegerHolder[] zi = new IntegerHolder[m];
 			zi[m-1] = new IntegerHolder(w[m-1]);
 			for (int i=m-2; i>0; i--) {
-				IntegerDomain d = new IntegerDomain(0, zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
-				IntegerVariable zii = new IntegerVariable(d);
+				final IntegerDomain d = new IntegerDomain(0, zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
+				final IntegerVariable zii = new IntegerVariable(d);
 				zii.splitToDigits(csp);
 				csp.add(zii);
 				zi[i] = new IntegerHolder(zii);
@@ -186,13 +186,13 @@ public class EqMul extends RCSPLiteral {
 																			IntegerHolder t,
 																			IntegerHolder u, CSP csp)
 	throws SugarException {
-		int b = csp.getBases()[0];
-		int m = Math.max(Math.max(s.nDigits(b), t.nDigits(b)),
+		final int b = csp.getBases()[0];
+		final int m = Math.max(Math.max(s.nDigits(b), t.nDigits(b)),
 										 u.nDigits(b));
-		List<Clause> ret = new ArrayList<Clause>();
+		final List<Clause> ret = new ArrayList<Clause>();
 
-		IntegerVariable[] c = new IntegerVariable[m];
-		IntegerDomain d = new IntegerDomain(0, 1);
+		final IntegerVariable[] c = new IntegerVariable[m];
+		final IntegerDomain d = new IntegerDomain(0, 1);
 		for (int i=2; i<m; i++) {
 			c[i] = new IntegerVariable(d);
 			csp.add(c[i]);

@@ -17,11 +17,11 @@ import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
-import jp.ac.kobe_u.cs.sugar.encoder.EncodingFactory;
-import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.encoder.Decoder;
-import jp.ac.kobe_u.cs.sugar.encoder.oe.OrderEncodingFactory;
+import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
+import jp.ac.kobe_u.cs.sugar.encoder.EncodingFactory;
 import jp.ac.kobe_u.cs.sugar.encoder.coe.CompactOrderEncodingFactory;
+import jp.ac.kobe_u.cs.sugar.encoder.oe.OrderEncodingFactory;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Parser;
 
@@ -33,13 +33,13 @@ public class SugarMain {
 	boolean maxCSP = false;
 	boolean competition = false;
 	boolean incremental = false;
-	boolean propagate = true;
+	boolean propagate = false;
 	public static int debug = 0;
 	public EncodingFactory ef;
 
 	private List<Expression> toMaxCSP(List<Expression> expressions0) throws SugarException {
-		List<Expression> expressions = new ArrayList<Expression>();
-		List<Expression> sum = new ArrayList<Expression>();
+		final List<Expression> expressions = new ArrayList<Expression>();
+		final List<Expression> sum = new ArrayList<Expression>();
 		sum.add(Expression.ADD);
 		int n = 0;
 		for (Expression x: expressions0) {
@@ -54,7 +54,7 @@ public class SugarMain {
 			} else {
 				// (int _Cn 0 1)
 				// (or (ge _Cn 1) constraint)
-				Expression c = Expression.create("_C" + n);
+				final Expression c = Expression.create("_C" + n);
 				expressions.add(Expression.create(
 						Expression.INT_DEFINITION,
 						c,
@@ -69,7 +69,7 @@ public class SugarMain {
 		// (int _COST 0 n)
 		// (ge _COST (add _C1 ... _Cn))
 		// (objective minimize _COST)
-		Expression cost = Expression.create("_COST");
+		final Expression cost = Expression.create("_COST");
 		expressions.add(Expression.create(
 				Expression.INT_DEFINITION,
 				cost,
@@ -93,7 +93,7 @@ public class SugarMain {
 		} else {
 			in = new FileInputStream(cspFileName);
 		}
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+		final BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
 		Parser parser = new Parser(reader, false);
 		List<Expression> expressions = parser.parse();
 		Logger.info("parsed " + expressions.size() + " expressions");
@@ -106,32 +106,24 @@ public class SugarMain {
 		expressions = decomposer.decompose(expressions);
 
 		Logger.fine("Converting to clausal form CSP");
-		CSP csp = new CSP();
+		final CSP csp = new CSP();
 		Converter converter = new Converter(csp);
 		converter.INCREMENTAL_PROPAGATE = propagate;
 		converter.convert(expressions);
 		Logger.fine("CSP : " + csp.summary());
-		assert csp.getIntegerVariables().get(0).getDomain().isContiguous():
-		"Assertion failure!!";
 		// csp.output(System.out, "c ");
-		// if (propagate) {
-		// 	Logger.status();
-		// 	Logger.fine("Propagation in CSP");
-		// 	csp.propagate();
-		// 	Logger.fine("CSP : " + csp.summary());
-		// }
+		if (propagate) {
+			Logger.status();
+			Logger.fine("Propagation in CSP");
+			csp.propagate();
+			Logger.fine("CSP : " + csp.summary());
+		}
 		// csp.output(System.out, "c ");
 		Logger.status();
 		if (csp.isUnsatisfiable()) {
 			Logger.info("CSP is unsatisfiable after propagation");
 			Logger.println("s UNSATISFIABLE");
 		} else {
-			// Logger.info("CSP : " + csp.summary());
-			// if (debug > 0) {
-			// 	csp.output(System.out, "c ");
-			// }
-			// Logger.status();
-
 			parser = null;
 			converter = null;
 			expressions = null;
@@ -144,7 +136,7 @@ public class SugarMain {
 				Logger.println("s UNSATISFIABLE");
 			} else {
 				Logger.fine("Encoding CSP to SAT : " + satFileName);
-				Encoder encoder = ef.createEncoder(csp);
+				final Encoder encoder = ef.createEncoder(csp);
 				encoder.reduce();
 				if (csp.isUnsatisfiable()) {
 					Logger.info("CSP is unsatisfiable after propagation");
@@ -162,15 +154,15 @@ public class SugarMain {
 	public void decode(String outFileName, String mapFileName)
 	throws SugarException, IOException {
 		Logger.fine("Decoding " + outFileName);
-		CSP csp = new CSP();
+		final CSP csp = new CSP();
 		String objectiveVariableName = null;
-		BufferedReader rd = new BufferedReader(
-				new InputStreamReader(new FileInputStream(mapFileName), "UTF-8"));
+		final BufferedReader rd =
+			new BufferedReader(new InputStreamReader(new FileInputStream(mapFileName), "UTF-8"));
 		while (true) {
-			String line = rd.readLine();
+			final String line = rd.readLine();
 			if (line == null)
 				break;
-			String[] s = line.split("\\s+");
+			final String[] s = line.split("\\s+");
 			if (s[0].equals("objective")) {
 				// multi-objective にするなら要変更
 				if (s[1].equals(SugarConstants.MINIMIZE)) {
@@ -180,33 +172,33 @@ public class SugarMain {
 				}
 				objectiveVariableName = s[2];
 			} else if (s[0].equals("bases")) {
-				int[] bases = new int[s.length-1];
+				final int[] bases = new int[s.length-1];
 				for (int i=1; i<s.length ; i++) {
 					bases[i-1] = Integer.parseInt(s[i]);
 				}
 				ef.setBases(bases);
 			} else if (s[0].equals("bigint")) {
-				String name = s[1];
-				int offset = Integer.parseInt(s[2]);
-				IntegerVariable[] digits = new IntegerVariable[s.length-3];
+				final String name = s[1];
+				final int offset = Integer.parseInt(s[2]);
+				final IntegerVariable[] digits = new IntegerVariable[s.length-3];
 				for (int i=3, j=0; i<s.length ; i++, j++) {
-					IntegerVariable di = csp.getIntegerVariable(s[i]);
+					final IntegerVariable di = csp.getIntegerVariable(s[i]);
 					assert di != null;
 					di.isDigit(true);
 					digits[j] = di;
 				}
-				IntegerVariable v = new IntegerVariable(name, digits);
+				final IntegerVariable v = new IntegerVariable(name, digits);
 				v.setOffset(offset);
 				csp.add(v);
 			} else if (s[0].equals("int")) {
-				String name = s[1];
-				int offset = Integer.parseInt(s[2]);
-				int code = Integer.parseInt(s[3]);
+				final String name = s[1];
+				final int offset = Integer.parseInt(s[2]);
+				final int code = Integer.parseInt(s[3]);
 				IntegerDomain domain = null;
 				if (s.length == 5) {
 					int lb;
 					int ub;
-					int pos = s[4].indexOf("..");
+					final int pos = s[4].indexOf("..");
 					if (pos < 0) {
 						lb = ub = Integer.parseInt(s[4]);
 					} else {
@@ -219,7 +211,7 @@ public class SugarMain {
 					for (int i = 4; i < s.length; i++) {
 						int lb;
 						int ub;
-						int pos = s[i].indexOf("..");
+						final int pos = s[i].indexOf("..");
 						if (pos < 0) {
 							lb = ub = Integer.parseInt(s[i]);
 						} else {
@@ -232,7 +224,7 @@ public class SugarMain {
 					}
 					domain = new IntegerDomain(d);
 				}
-				IntegerVariable v = new IntegerVariable(name, domain);
+				final IntegerVariable v = new IntegerVariable(name, domain);
 				v.setOffset(offset);
 				v.setCode(code);
 				csp.add(v);
@@ -241,21 +233,21 @@ public class SugarMain {
 				}
 			} else if (s[0].equals("bool")) {
 				// TODO
-				String name = s[1];
-				int code = Integer.parseInt(s[2]);
-				BooleanVariable v = new BooleanVariable(name);
+				final String name = s[1];
+				final int code = Integer.parseInt(s[2]);
+				final BooleanVariable v = new BooleanVariable(name);
 				v.setCode(code);
 				csp.add(v);
 			}
 		}
 		rd.close();
-		Decoder encoder = ef.createDecoder(csp);
+		final Decoder encoder = ef.createDecoder(csp);
 		if (encoder.decode(outFileName)) {
 			if (csp.getObjectiveVariable() == null) {
 				Logger.println("s SATISFIABLE");
 			} else {
-				String name = csp.getObjectiveVariable().getName();
-				int value = csp.getObjectiveVariable().getValue();
+				final String name = csp.getObjectiveVariable().getName();
+				final int value = csp.getObjectiveVariable().getValue();
 				Logger.println("c OBJECTIVE " + name + " " + value);
 				Logger.println("o " + value);
 			}
@@ -290,7 +282,7 @@ public class SugarMain {
 	 */
 	public static void main(String[] args) {
 		try {
-			SugarMain sugarMain = new SugarMain();
+			final SugarMain sugarMain = new SugarMain();
 			String option = null;
 			int base = 0;
 			int ndigits = 0;
@@ -303,7 +295,7 @@ public class SugarMain {
 				} else if (args[i].equals("-incremental")) {
 					sugarMain.incremental = true;
 				} else if (args[i].equals("-option") && i + 1 < args.length) {
-					String[] opts = args[i+1].split(",");
+					final String[] opts = args[i+1].split(",");
 					for (String opt : opts) {
 						if (opt.matches("(no_)?pigeon")) {
 							Converter.OPT_PIGEON = ! opt.startsWith("no_");
@@ -315,16 +307,16 @@ public class SugarMain {
 						} else if (opt.matches("(no_)?new_variable")) {
 							Converter.NEW_VARIABLE = ! opt.startsWith("no_");
 						} else if (opt.matches("equiv=(\\d+)")) {
-							int n = "equiv=".length();
+							final int n = "equiv=".length();
 							Converter.MAX_EQUIVMAP_SIZE = Integer.parseInt(opt.substring(n));
 						} else if (opt.matches("linearsum=(\\d+)")) {
-							int n = "linearsum=".length();
+							final int n = "linearsum=".length();
 							Converter.MAX_LINEARSUM_SIZE = Long.parseLong(opt.substring(n));
 						} else if (opt.matches("split=(\\d+)")) {
-							int n = "split=".length();
+							final int n = "split=".length();
 							Converter.SPLITS = Integer.parseInt(opt.substring(n));
 						} else if (opt.matches("domain=(\\d+)")) {
-							int n = "domain=".length();
+							final int n = "domain=".length();
 							IntegerDomain.MAX_SET_SIZE = Integer.parseInt(opt.substring(n));
 						} else {
 							throw new SugarException("Unknown option " + opt);
@@ -345,7 +337,7 @@ public class SugarMain {
 						throw new SugarException("Base and NDigits are exclusive");
 					}
 				} else if (args[i].equals("-encoding") && i+1 < args.length) {
-					String enc = args[i+1];
+					final String enc = args[i+1];
 					if (enc.equals("oe")) {
 						sugarMain.ef = OrderEncodingFactory.getInstance();
 					} else if (enc.equals("coe")) {
@@ -366,21 +358,21 @@ public class SugarMain {
 				sugarMain.ef = CompactOrderEncodingFactory.getInstance();
 			}
 			if (base != 0) {
-				int[] bases = new int[1];
+				final int[] bases = new int[1];
 				bases[0] = base;
 				sugarMain.ef.setBases(bases);
 			}else if (ndigits != 0) {
 				sugarMain.ef.setNDigits(ndigits);
 			}
-			int n = args.length - i;
+			final int n = args.length - i;
 			if (option.equals("-encode") && n == 4) {
-				String cspFileName = args[i+1];
-				String satFileName = args[i+2];
-				String mapFileName = args[i+3];
+				final String cspFileName = args[i+1];
+				final String satFileName = args[i+2];
+				final String mapFileName = args[i+3];
 				sugarMain.encode(cspFileName, satFileName, mapFileName);
 			} else if (option.equals("-decode") && n == 3) {
-				String outFileName = args[i+1];
-				String mapFileName = args[i+2];
+				final String outFileName = args[i+1];
+				final String mapFileName = args[i+2];
 				sugarMain.decode(outFileName, mapFileName);
 			} else {
 				String s = "";

@@ -21,7 +21,7 @@ public class CNFWriter {
 	private StringBuilder satStringBuffer;
 
 	private byte[] satByteArray;
-	private FileChannel satFileChannel; 
+	private FileChannel satFileChannel;
 
 	protected ByteBuffer satByteBuffer;
 

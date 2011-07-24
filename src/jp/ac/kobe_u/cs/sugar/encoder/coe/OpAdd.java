@@ -1,13 +1,13 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.List;
-import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
+import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
@@ -18,8 +18,8 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
  * z op x+y (op in {=, <=, >=, !=})
  */
 public class OpAdd extends RCSPLiteral {
-	private IntegerHolder z, x, y;
-	private Operator op;
+	private final  IntegerHolder z, x, y;
+	private final Operator op;
 	public static int nLe;
 	public static int nGe;
 	public static int nEq;
@@ -51,7 +51,7 @@ public class OpAdd extends RCSPLiteral {
 
 	@Override
 	public Set<IntegerVariable> getVariables() {
-		Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
+		final Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
 		if (x.isVariable())
 			set.add(x.getVariable());
 		if (y.isVariable())
@@ -63,25 +63,25 @@ public class OpAdd extends RCSPLiteral {
 
 	@Override
 	public List<Clause> toCCSP(CSP csp, COEEncoder encoder) throws SugarException {
-		int b = csp.getBases()[0];
-		List<Clause> ret = new ArrayList<Clause>();
-		int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
-										 z.nDigits(b));
+		final int b = csp.getBases()[0];
+		final List<Clause> ret = new ArrayList<Clause>();
+		final int m = Math.max(Math.max(x.nDigits(b), y.nDigits(b)),
+													 z.nDigits(b));
 
-		IntegerVariable[] c = new IntegerVariable[m];
+		final IntegerVariable[] c = new IntegerVariable[m];
 		for (int i=1; i<m; i++) {
 			c[i] = new IntegerVariable(new IntegerDomain(0, 1));
 			c[i].setComment(i + "-th carry for " + toString());
 			csp.add(c[i]);
 		}
 
-		LLExpression[] lhs = new LLExpression[m];
+		final LLExpression[] lhs = new LLExpression[m];
 		for (int i=0; i<m-1; i++) {
 			lhs[i] = z.nth(i).add(lle(c[i+1]).mul(b));
 		}
 		lhs[m-1] = z.nth(m-1);
 
-		LLExpression[] rhs = new LLExpression[m];
+		final LLExpression[] rhs = new LLExpression[m];
 		rhs[0] = x.nth(0).add(y.nth(0));
 		for (int i=1; i<m; i++) {
 			rhs[i] = x.nth(i).add(y.nth(i)).add(lle(c[i]));
@@ -89,7 +89,7 @@ public class OpAdd extends RCSPLiteral {
 
 		switch(op) {
 		case LE:{
-			BooleanVariable[] s = new BooleanVariable[m];
+			final BooleanVariable[] s = new BooleanVariable[m];
 			for (int i=1; i<m; i++) {
 				s[i] = new BooleanVariable();
 				csp.add(s[i]);
@@ -97,7 +97,7 @@ public class OpAdd extends RCSPLiteral {
 
 			// -s(i+1) or (z(i)+B*c(i+1) <= x(i)+y(i)+c(i)) (when 0 <= i < m-1)
 			for (int i=0; i<m-1; i++) {
-				Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+				final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
 				cls.add(lhs[i].le(rhs[i]));
 				ret.add(cls);
 			}
@@ -107,26 +107,26 @@ public class OpAdd extends RCSPLiteral {
 			// -s(i+1) or (z(i)+B*c(i+1) <= x(i)+y(i)+c(i)-1) or s(i)
 			// (when 1 <= i < m-1)
 			for (int i=1; i<m-1; i++) {
-				Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+				final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
 				cls.add(lhs[i].le(rhs[i].sub(1)));
 				cls.add(new BooleanLiteral(s[i], false));
 				ret.add(cls);
 			}
 			// (z(i) <= x(i)+y(i)+c(i)-1) or s(i) (when i == m-1)
 			if (m > 1) {
-				Clause cls = new Clause(lhs[m-1].le(rhs[m-1].sub(1)));
+				final Clause cls = new Clause(lhs[m-1].le(rhs[m-1].sub(1)));
 				cls.add(new BooleanLiteral(s[m-1], false));
 				ret.add(cls);
 			}
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
-				Clause ltor = new Clause(lle(c[i+1]).le(0));
+				final Clause ltor = new Clause(lle(c[i+1]).le(0));
 				ltor.add(rhs[i].ge(b));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
-				Clause rtol = new Clause(lle(c[i+1]).ge(1));
+				final Clause rtol = new Clause(lle(c[i+1]).ge(1));
 				rtol.add(rhs[i].le(b-1));
 				ret.add(rtol);
 			}
@@ -134,7 +134,7 @@ public class OpAdd extends RCSPLiteral {
 		}
 
 		case GE:{
-			BooleanVariable[] s = new BooleanVariable[m];
+			final BooleanVariable[] s = new BooleanVariable[m];
 			for (int i=1; i<m; i++) {
 				s[i] = new BooleanVariable();
 				csp.add(s[i]);
@@ -142,7 +142,7 @@ public class OpAdd extends RCSPLiteral {
 
 			// -s(i+1) or (z(i)+B*c(i+1) >= x(i)+y(i)+c(i)) (when 0 <= i < m-1)
 			for (int i=0; i<m-1; i++) {
-				Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+				final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
 				cls.add(lhs[i].ge(rhs[i]));
 				ret.add(cls);
 			}
@@ -152,26 +152,26 @@ public class OpAdd extends RCSPLiteral {
 			// -s(i+1) or (z(i)+B*c(i+1)-1 >= x(i)+y(i)+c(i)) or s(i)
 			// (when 1 <= i < m-1)
 			for (int i=1; i<m-1; i++) {
-				Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+				final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
 				cls.add(lhs[i].sub(1).ge(rhs[i]));
 				cls.add(new BooleanLiteral(s[i], false));
 				ret.add(cls);
 			}
 			// (z(i)-1 >= x(i)+y(i)+c(i)) or s(i) (when i == m-1)
 			if (m > 1) {
-				Clause cls = new Clause(lhs[m-1].sub(1).ge(rhs[m-1]));
+				final Clause cls = new Clause(lhs[m-1].sub(1).ge(rhs[m-1]));
 				cls.add(new BooleanLiteral(s[m-1], false));
 				ret.add(cls);
 			}
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
-				Clause ltor = new Clause(lle(c[i+1]).le(0));
+				final Clause ltor = new Clause(lle(c[i+1]).le(0));
 				ltor.add(rhs[i].ge(b));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
-				Clause rtol = new Clause(lle(c[i+1]).ge(1));
+				final Clause rtol = new Clause(lle(c[i+1]).ge(1));
 				rtol.add(rhs[i].le(b-1));
 				ret.add(rtol);
 			}
@@ -186,7 +186,7 @@ public class OpAdd extends RCSPLiteral {
 			break;
 
 		case NE:{
-			Clause cls = new Clause();
+			final Clause cls = new Clause();
 			for (int i=0; i<m; i++) {
 				cls.add(lhs[i].le(rhs[i].sub(1)));
 				cls.add(lhs[i].sub(1).ge(rhs[i]));
@@ -195,12 +195,12 @@ public class OpAdd extends RCSPLiteral {
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
-				Clause ltor = new Clause(lle(c[i+1]).le(0));
+				final Clause ltor = new Clause(lle(c[i+1]).le(0));
 				ltor.add(rhs[i].ge(b));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
-				Clause rtol = new Clause(lle(c[i+1]).ge(1));
+				final Clause rtol = new Clause(lle(c[i+1]).ge(1));
 				rtol.add(rhs[i].le(b-1));
 				ret.add(rtol);
 			}

@@ -1,13 +1,13 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.List;
-import java.util.ArrayList;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
-import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
+import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
@@ -17,8 +17,8 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
  * x op y (op in {=, <=, !=})
  */
 public class OpXY extends RCSPLiteral {
-	private IntegerHolder x, y;
-	private Operator op;
+	private final IntegerHolder x, y;
+	private final Operator op;
 	public static int nLe;
 	public static int nEq;
 	public static int nNe;
@@ -50,7 +50,7 @@ public class OpXY extends RCSPLiteral {
 
 	@Override
 	public Set<IntegerVariable> getVariables() {
-		Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
+		final Set<IntegerVariable> set = new TreeSet<IntegerVariable>();
 		if (x.isVariable())
 			set.add(x.getVariable());
 		if (y.isVariable())
@@ -65,9 +65,9 @@ public class OpXY extends RCSPLiteral {
 	@Override
 	public List<Clause> toCCSP(CSP csp, COEEncoder encoder) throws SugarException {
 		assert op != Operator.GE;
-		List<Clause> ret = new ArrayList<Clause>();
-		int b = csp.getBases()[0];
-		int m = Math.max(x.nDigits(b), y.nDigits(b));
+		final List<Clause> ret = new ArrayList<Clause>();
+		final int b = csp.getBases()[0];
+		final int m = Math.max(x.nDigits(b), y.nDigits(b));
 
 		switch(op) {
 		case LE:
@@ -77,21 +77,21 @@ public class OpXY extends RCSPLiteral {
 							== y.nth(i).getDomain().getUpperBound()) {
 						continue;
 					}
-					Clause cls = new Clause(x.nth(i).le(y.nth(i)));
+					final Clause cls = new Clause(x.nth(i).le(y.nth(i)));
 					for (int j=i+1; j<m; j++) {
 						cls.add(x.nth(j).le(y.nth(j).sub(1)));
 					}
 					ret.add(cls);
 				}
 			} else {
-				BooleanVariable[] s = new BooleanVariable[m];
+				final BooleanVariable[] s = new BooleanVariable[m];
 				for (int i=1; i<m; i++) {
 					s[i] = new BooleanVariable();
 					csp.add(s[i]);
 				}
 				// -s(i+1) or x(i) <= y(i) (when 0 <= i < m-1)
 				for (int i=0; i<m-1; i++) {
-					Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+					final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
 					cls.add(x.nth(i).le(y.nth(i)));
 					ret.add(cls);
 				}
@@ -100,14 +100,14 @@ public class OpXY extends RCSPLiteral {
 
 				// -s(i+1) or (x(i) <= y(i)-1) or s(i) (when 1 <= i < m-1)
 				for (int i=1; i<m-1; i++) {
-					Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
+					final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
 					cls.add(x.nth(i).le(y.nth(i).sub(1)));
 					cls.add(new BooleanLiteral(s[i], false));
 					ret.add(cls);
 				}
 				if (m > 1) {
 					// (x(i) <= y(i)-1) or s(i) (when i == m-1)
-					Clause cls0 = new Clause(x.nth(m-1).le(y.nth(m-1).sub(1)));
+					final Clause cls0 = new Clause(x.nth(m-1).le(y.nth(m-1).sub(1)));
 					cls0.add(new BooleanLiteral(s[m-1], false));
 					ret.add(cls0);
 				}
@@ -122,7 +122,7 @@ public class OpXY extends RCSPLiteral {
 			break;
 
 		case NE:{
-			Clause cls = new Clause();
+			final Clause cls = new Clause();
 			for (int i=0; i<m; i++) {
 				cls.add(x.nth(i).le(y.nth(i).sub(1)));
 				cls.add(x.nth(i).sub(1).ge(y.nth(i)));
