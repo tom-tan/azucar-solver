@@ -98,10 +98,10 @@ public class COEEncoder extends OEEncoder {
 		Logger.fine("NeXY  (x!=y)  : " +OpXY.nNe);
 		Logger.fine("LeXY  (x<=y)  : " +OpXY.nLe);
 		simplify();
-		System.out.println("======== CSP =========\n"+csp);
+		// System.out.println("======== CSP =========\n"+csp);
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
-		System.out.println("======== CSP =========\n"+csp);
+		// System.out.println("======== CSP =========\n"+csp);
 	}
 
 	private void toTernary() throws SugarException {
@@ -156,9 +156,8 @@ public class COEEncoder extends OEEncoder {
 				for (ArithmeticLiteral al: c.getArithmeticLiterals()) {
 					final LinearLiteral ll = (LinearLiteral)al;
 					final LinearSum ls = ll.getLinearExpression();
-					// Special case: ax-by == 0
-					// ax-by = c の場合を考慮していない!
-					if (ll.getOperator() == Operator.EQ && ls.size() == 2) {
+					if (ll.getOperator() == Operator.EQ && ls.size() == 2 && ls.getB() == 0) {
+						// Special case: ax-by == 0
 						final IntegerVariable v1 = ls.getCoef().firstKey();
 						final IntegerVariable v2 = ls.getCoef().lastKey();
 						final int c1 = ls.getA(v1);
@@ -178,6 +177,17 @@ public class COEEncoder extends OEEncoder {
 								lhs = av;
 							}
 							cls.add(new EqMul(lhs, rc, rhs));
+							continue;
+						}
+					} else if (ll.getOperator() == Operator.EQ && ls.size() == 1) {
+						// Special case: ax-b = 0
+						final IntegerVariable x = ls.getCoef().firstKey();
+						int a = ls.getA(x);
+						int b = ls.getB();
+						if (a*b <= 0) {
+							a = Math.abs(a);
+							b = Math.abs(b);
+							cls.add(new EqMul(b, a, x));
 							continue;
 						}
 					}

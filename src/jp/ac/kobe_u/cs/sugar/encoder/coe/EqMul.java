@@ -38,6 +38,11 @@ public class EqMul extends RCSPLiteral {
 				 new IntegerHolder(x), new IntegerHolder(y));
 	}
 
+	public EqMul(int z, int x, IntegerVariable y) {
+		this(new IntegerHolder(z),
+				 new IntegerHolder(x), new IntegerHolder(y));
+	}
+
 	public EqMul(IntegerVariable z, int x, IntegerVariable y) {
 		this(new IntegerHolder(z),
 				 new IntegerHolder(x), new IntegerHolder(y));
