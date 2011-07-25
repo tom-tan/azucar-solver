@@ -113,7 +113,7 @@ public class EqMul extends RCSPLiteral {
 				} else if (i == 1) {
 					rhs = v[i].nth(0).add(v[i-1].nth(1));
 				} else if (i == m-1) {
-					rhs = v[i].nth(1).add(lle(c[i]));
+					rhs = v[i-1].nth(1).add(lle(c[i]));
 				} else {
 					rhs = v[i].nth(0).add(v[i-1].nth(1)).add(lle(c[i]));
 				}
