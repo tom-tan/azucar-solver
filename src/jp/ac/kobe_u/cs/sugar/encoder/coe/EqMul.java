@@ -77,8 +77,11 @@ public class EqMul extends RCSPLiteral {
 			for (int i=0; i<m; i++) {
 				final IntegerDomain d = new IntegerDomain(0, a*y.nth(i).getDomain().getUpperBound());
 				final IntegerVariable vi = new IntegerVariable(d);
-				vi.splitToDigits(csp);
 				csp.add(vi);
+				final List<IntegerVariable> vdigits = vi.splitToDigits(csp);
+				for (IntegerVariable digit: vdigits) {
+					csp.add(digit);
+				}
 				v[i] = new IntegerHolder(vi);
 			}
 
