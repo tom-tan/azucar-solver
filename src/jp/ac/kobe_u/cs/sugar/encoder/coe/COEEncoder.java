@@ -157,6 +157,7 @@ public class COEEncoder extends OEEncoder {
 					final LinearLiteral ll = (LinearLiteral)al;
 					final LinearSum ls = ll.getLinearExpression();
 					// Special case: ax-by == 0
+					// ax-by = c の場合を考慮していない!
 					if (ll.getOperator() == Operator.EQ && ls.size() == 2) {
 						final IntegerVariable v1 = ls.getCoef().firstKey();
 						final IntegerVariable v2 = ls.getCoef().lastKey();
