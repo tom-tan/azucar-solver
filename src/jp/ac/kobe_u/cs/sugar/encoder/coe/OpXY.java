@@ -73,10 +73,6 @@ public class OpXY extends RCSPLiteral {
 		case LE:
 			if (x.isConstant() || y.isConstant()) {
 				for (int i=0; i<m; i++) {
-					if (x.nth(i).getDomain().getUpperBound()
-							== y.nth(i).getDomain().getUpperBound()) {
-						continue;
-					}
 					final Clause cls = new Clause(x.nth(i).le(y.nth(i)));
 					for (int j=i+1; j<m; j++) {
 						cls.add(x.nth(j).le(y.nth(j).sub(1)));

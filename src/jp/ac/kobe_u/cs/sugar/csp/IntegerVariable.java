@@ -48,9 +48,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		aux = true;
 	}
 
-	public IntegerVariable(String name, IntegerVariable[] digits) {
+	public IntegerVariable(String name) {
 		this.name = name;
-		vs = digits;
 	}
 
 	/**

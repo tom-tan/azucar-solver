@@ -47,13 +47,12 @@ public class COEEncoder extends OEEncoder {
 		if (lit instanceof OpXY) {
 			final OpXY l = (OpXY)lit;
 			assert !l.getVariables().isEmpty();
+			if (l.getOperator() == Operator.EQ)
+				return false;
 			return l.getVariables().size() == 1
 				&& l.getVariables().iterator().next().getDigits().length <= 1;
 		} else if (lit instanceof EqMul) {
-			final EqMul l = (EqMul)lit;
-			assert !l.getVariables().isEmpty();
-			return l.getVariables().size() == 1
-				&& l.getVariables().iterator().next().getDigits().length <= 1;
+			return false;
 		} else if (lit instanceof OpAdd) {
 			return false;
 		}
@@ -156,7 +155,8 @@ public class COEEncoder extends OEEncoder {
 				for (ArithmeticLiteral al: c.getArithmeticLiterals()) {
 					final LinearLiteral ll = (LinearLiteral)al;
 					final LinearSum ls = ll.getLinearExpression();
-					if (ll.getOperator() == Operator.EQ && ls.size() == 2 && ls.getB() == 0) {
+					if (ll.getOperator() == Operator.EQ
+							&& ls.size() == 2 && ls.getB() == 0) {
 						// Special case: ax-by == 0
 						final IntegerVariable v1 = ls.getCoef().firstKey();
 						final IntegerVariable v2 = ls.getCoef().lastKey();
@@ -310,8 +310,7 @@ public class COEEncoder extends OEEncoder {
 			newVars.addAll(v.splitToDigits(csp));
 			final int ub = v.getDomain().getUpperBound();
 			final int m = v.getDigits().length;
-			if (m > 1 ||
-					ub <= Math.pow(bases[0], m)-1) {
+			if (m > 1 || ub <= Math.pow(bases[0], m)-1) {
 				final RCSPLiteral le = new OpXY(Operator.LE, v, ub);
 				final List<Clause> lst = le.toCCSP(csp, this);
 				newClauses.addAll(lst);
@@ -327,15 +326,31 @@ public class COEEncoder extends OEEncoder {
 			if (cls.getArithmeticLiterals().size() == 0) {
 				newClauses.add(cls);
 			} else {
-				assert cls.getArithmeticLiterals().size() == 1;
-				assert cls.getArithmeticLiterals().get(0) instanceof RCSPLiteral;
+				assert cls.size()-simpleSize(cls) <= 1;
 
-				final RCSPLiteral ll = (RCSPLiteral)cls.getArithmeticLiterals().get(0);
-				final List<BooleanLiteral> bls = cls.getBooleanLiterals();
-				assert ll != null: "Assertion failure!!";
-				final List<Clause> ccspClss = ll.toCCSP(csp, this);
-				for (Clause c : ccspClss) {
-					c.addAll(bls);
+				final List<Literal> simpleLiterals = new ArrayList<Literal>();
+				simpleLiterals.addAll(cls.getBooleanLiterals());
+				List<Clause> ccspClss = new ArrayList<Clause>();
+				for (ArithmeticLiteral al : cls.getArithmeticLiterals()) {
+					final RCSPLiteral ll = (RCSPLiteral)al;
+					final List<Clause> ccsp = ll.toCCSP(csp, this);
+					if (isSimple(ll)) {
+						assert ccsp.size() == 1;
+						assert ccsp.get(0).getBooleanLiterals().isEmpty();
+						simpleLiterals.addAll(ccsp.get(0).getArithmeticLiterals());
+					} else {
+						assert ccspClss.isEmpty();
+						ccspClss.addAll(ccsp);
+					}
+				}
+				if (ccspClss.isEmpty()) {
+					final Clause c = new Clause();
+					c.addAll(simpleLiterals);
+					ccspClss.add(c);
+				} else {
+					for (Clause c : ccspClss) {
+						c.addAll(simpleLiterals);
+					}
 				}
 				newClauses.addAll(ccspClss);
 			}

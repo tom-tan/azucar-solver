@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
@@ -19,6 +21,7 @@ public abstract class Decoder {
 	}
 
 	public abstract void decode(IntegerVariable v, BitSet satValues);
+	public abstract void decodeBigInteger(IntegerVariable v) throws SugarException;
 
 	protected void decode(BooleanVariable v, BitSet satValues) {
 		v.setValue(satValues.get(v.getCode()));
@@ -78,8 +81,16 @@ public abstract class Decoder {
 					throw new SugarException("Unknown output " + st.sval);
 				}
 			}
+			final List<IntegerVariable> bigints = new ArrayList<IntegerVariable>();
 			for (IntegerVariable v : csp.getIntegerVariables()) {
-				decode(v, satValues);
+				if (v.getDigits().length > 1) {
+					bigints.add(v);
+				} else {
+					decode(v, satValues);
+				}
+			}
+			for (IntegerVariable v : bigints) {
+				decodeBigInteger(v);
 			}
 			for (BooleanVariable v : csp.getBooleanVariables()) {
 				decode(v, satValues);
@@ -92,6 +103,4 @@ public abstract class Decoder {
 		rd.close();
 		return sat;
 	}
-
-
 }

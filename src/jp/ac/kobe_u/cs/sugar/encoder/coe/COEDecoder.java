@@ -17,18 +17,15 @@ public class COEDecoder extends OEDecoder {
 	}
 
 	@Override
-	public void decode(IntegerVariable v, BitSet satValues) {
-		if (v.getDigits().length <= 1) {
-			super.decode(v, satValues);
-		} else {
-			final int b = bases[0];
-			int dbase = 1;
-			int value = 0;
-			for (IntegerVariable digit: v.getDigits()) {
-				value += dbase*digit.getValue();
-				dbase *= b;
-			}
-			v.setValue(value+v.getOffset());
+	public void decodeBigInteger(IntegerVariable v) {
+		assert v.getDigits().length > 1;
+		final int b = bases[0];
+		int dbase = 1;
+		int value = 0;
+		for (IntegerVariable digit: v.getDigits()) {
+			value += dbase*digit.getValue();
+			dbase *= b;
 		}
+		v.setValue(value+v.getOffset());
 	}
 }

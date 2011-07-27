@@ -24,7 +24,7 @@ public class Clause {
 	 */
 	public Clause(List<BooleanLiteral> literals) {
 		this();
-		addAll(literals);
+		boolLiterals.addAll(literals);
 	}
 
 	/**
@@ -52,8 +52,10 @@ public class Clause {
 	 * Adds all given literals to the clause.
 	 * @param literals the literals to be added
 	 */
-	public void addAll(List<BooleanLiteral> literals) {
-		boolLiterals.addAll(literals);
+	public void addAll(List<Literal> literals) {
+		for (Literal l : literals) {
+			add(l);
+		}
 	}
 
 	public void add(Literal literal) {

@@ -88,7 +88,7 @@ my $xml_file;
 
 &setup(@ARGV);
 
-my ($java_pid, $solver_pid, $result, $objective_value);
+my ($java_pid, $solver_pid, $result, $objective_value, $objective_offset);
 my ($objective, $objective_var, $objective_code, @objective_values);
 
 my $time0 = time;
@@ -408,6 +408,7 @@ sub load_map {
     }
     $objective = undef;
     $objective_var = undef;
+    $objective_offset = undef;
     $objective_code = undef;
     @objective_values = ();
     open(MAP, "<$map_file") || die;
@@ -422,6 +423,7 @@ sub load_map {
 	    if ($objective_var eq $_[1]) {
 		shift(@_);
 		shift(@_);
+		$objective_offset = shift(@_);
 		$objective_code = shift(@_);
 		foreach (@_) {
 		    my ($a0, $a1) = ($_, $_);
@@ -429,7 +431,7 @@ sub load_map {
 			($a0, $a1) = ($1, $2);
 		    }
 		    foreach my $a ($a0 .. $a1) {
-			push(@objective_values, $a);
+			push(@objective_values, $a+$objective_offset);
 		    }
 		}
 		&log("OBJECTIVE $objective $objective_var");

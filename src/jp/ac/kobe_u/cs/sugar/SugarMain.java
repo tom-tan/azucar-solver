@@ -7,8 +7,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 import java.util.zip.GZIPInputStream;
 
 import jp.ac.kobe_u.cs.sugar.converter.Converter;
@@ -158,6 +160,7 @@ public class SugarMain {
 		String objectiveVariableName = null;
 		final BufferedReader rd =
 			new BufferedReader(new InputStreamReader(new FileInputStream(mapFileName), "UTF-8"));
+    final HashMap<IntegerVariable, String[]> digitMap = new HashMap<IntegerVariable, String[]>();
 		while (true) {
 			final String line = rd.readLine();
 			if (line == null)
@@ -180,16 +183,17 @@ public class SugarMain {
 			} else if (s[0].equals("bigint")) {
 				final String name = s[1];
 				final int offset = Integer.parseInt(s[2]);
-				final IntegerVariable[] digits = new IntegerVariable[s.length-3];
+				final String[] digits = new String[s.length-3];
 				for (int i=3, j=0; i<s.length ; i++, j++) {
-					final IntegerVariable di = csp.getIntegerVariable(s[i]);
-					assert di != null;
-					di.isDigit(true);
-					digits[j] = di;
+					digits[j] = s[i];
 				}
-				final IntegerVariable v = new IntegerVariable(name, digits);
+				final IntegerVariable v = new IntegerVariable(name);
 				v.setOffset(offset);
 				csp.add(v);
+				digitMap.put(v, digits);
+				if (name.equals(objectiveVariableName)) {
+					csp.setObjectiveVariable(v);
+				}
 			} else if (s[0].equals("int")) {
 				final String name = s[1];
 				final int offset = Integer.parseInt(s[2]);
@@ -241,6 +245,19 @@ public class SugarMain {
 			}
 		}
 		rd.close();
+		for (Entry<IntegerVariable, String[]> entry: digitMap.entrySet()) {
+			final IntegerVariable v = entry.getKey();
+			final String[] digitNames = entry.getValue();
+			final IntegerVariable[] digits = new IntegerVariable[digitNames.length];
+			int i=0;
+			for (String name: digitNames) {
+				digits[i] = csp.getIntegerVariable(name);
+				digits[i].isDigit(true);
+				i++;
+			}
+			v.setDigits(digits);
+		}
+
 		final Decoder encoder = ef.createDecoder(csp);
 		if (encoder.decode(outFileName)) {
 			if (csp.getObjectiveVariable() == null) {

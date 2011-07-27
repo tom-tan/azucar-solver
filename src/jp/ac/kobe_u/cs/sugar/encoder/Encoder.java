@@ -323,7 +323,14 @@ public abstract class Encoder {
 		final List<IntegerVariable> bigints = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			if (v.getDigits().length >= 2 && !v.isAux()) {
-				bigints.add(v);
+				final StringBuilder sb = new StringBuilder();
+				sb.append("bigint " + v.getName() + " " + v.getOffset());
+				for (IntegerVariable digit : v.getDigits()) {
+					sb.append(" "+digit.getName());
+				}
+				mapWriter.write(sb.toString());
+				mapWriter.write('\n');
+				// bigints.add(v);
 			} else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
 				final int code = v.getCode();
 				StringBuilder sb = new StringBuilder();
@@ -334,15 +341,15 @@ public abstract class Encoder {
 			}
 		}
 
-		for (IntegerVariable v : bigints) {
-			final StringBuilder sb = new StringBuilder();
-			sb.append("bigint " + v.getName() + " " + v.getOffset());
-			for (IntegerVariable digit : v.getDigits()) {
-				sb.append(" "+digit.getName());
-			}
-			mapWriter.write(sb.toString());
-			mapWriter.write('\n');
-		}
+		// for (IntegerVariable v : bigints) {
+		// 	final StringBuilder sb = new StringBuilder();
+		// 	sb.append("bigint " + v.getName() + " " + v.getOffset());
+		// 	for (IntegerVariable digit : v.getDigits()) {
+		// 		sb.append(" "+digit.getName());
+		// 	}
+		// 	mapWriter.write(sb.toString());
+		// 	mapWriter.write('\n');
+		// }
 
 		for (BooleanVariable v : csp.getBooleanVariables()) {
 			if (! v.isAux() || SugarMain.debug > 0) {
