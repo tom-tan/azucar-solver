@@ -29,13 +29,22 @@ if $0 == __FILE__
         raise "end"
       elsif line.match /^a\s+[^\s]+\s+[^\s]+$/
         var, val = line.split[1..2]
-        io.puts "(= #{var} #{val})"
+        if val.match /^true$/
+          io.puts var
+        elsif val.match /^false$/
+          io.puts "(! #{var})"
+        else
+          io.puts "(= #{var} #{val})"
+        end
       end
     }
     io.close_write
 
     io.each{ |line|
       if line.match /^s SATISFIABLE$/
+        raise "end"
+      elsif line.match /^s UNKNOWN$/
+        warn "Error: invalid input"
         raise "end"
       end
     }

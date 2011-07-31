@@ -132,8 +132,7 @@ public abstract class Encoder {
 					final Clause c = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
 																												Operator.NE));
 					ret.add(c);
-				} else
-					if (lst+1 != i) {
+				} else if (lst+1 != i) {
 					final BooleanVariable b = new BooleanVariable();
 					final Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
 																												 Operator.LE));
