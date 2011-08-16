@@ -100,7 +100,7 @@ public class COEEncoder extends OEEncoder {
 		// System.out.println("======== CSP =========\n"+csp);
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
-		System.out.println("======== CSP =========\n"+csp);
+		// System.out.println("======== CSP =========\n"+csp);
 	}
 
 	private void toTernary() throws SugarException {

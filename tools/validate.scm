@@ -19,6 +19,7 @@
                (with-csp
                    (cut port-for-each
                         (lambda (exp)
+                          (print "Exp: " exp)
                           (unless (eval exp (interaction-environment))
                             (print "Error: " exp " is violated.")))
                         read)))
@@ -38,7 +39,7 @@
                 ((rxmatch #/^a ([^\s]+)\s+([^\s]+)$/ line)
                  (#f var val)
                  (eval `(define ,(string->symbol var)
-                            ,(if (#/^\d+$/ val)
+                            ,(if (#/^-?\d+$/ val)
                                  (string->number val)
                                  (eval (string->symbol val)
                                        (interaction-environment))))
@@ -46,26 +47,28 @@
              read-line))
       *RESULT*))
 
-(define-macro (domain name lb ub)
+(define-macro (domain name lb ub) ;;
     `(define ,name ,(if (null? ub)
                         lb
-                        `((,lb ,ub)))))
+                        `(quote ((,lb ,ub))))))
 
-(define-macro (int var lb :optional ub)
-    (cond ((integer? ub)
-           `(and (<= ,lb ,var) (<= ,var ,ub)))
-          ((integer? lb) `(= ,var ,lb))
-          (else `(letrec
-                  ((loop (lambda (lst)
-                           (if (null? lst)
-                               #f
-                               (let ((hd (car lst)))
-                                 (or (if (integer? hd)
-                                         (= ,var hd)
-                                         (and (<= (car hd) ,var)
-                                              (<= ,var (cadr hd))))
-                                     (loop (cdr lst))))))))
-                  (loop (quote ,lb))))))
+(define-macro (int var lb . args) ;; うまく動かない
+    (let-optionals*
+     args ((ub #f))
+     (cond ((integer? ub)
+            `(and (<= ,lb ,var) (<= ,var ,ub)))
+           ((integer? lb) `(= ,var ,lb))
+           (else `(letrec
+                   ((loop (lambda (lst)
+                            (if (null? lst)
+                                #f
+                                (let ((hd (car lst)))
+                                  (or (if (integer? hd)
+                                          (= ,var hd)
+                                          (and (<= (car hd) ,var)
+                                               (<= ,var (cadr hd))))
+                                      (loop (cdr lst))))))))
+                   (loop (quote ,lb)))))))
 
 (define (bool p) #t)
 
