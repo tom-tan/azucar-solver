@@ -32,7 +32,7 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
 public abstract class Encoder {
-	public static boolean simplifyAll = false;
+	public static boolean simplifyAll = true;
 
 	public static final int FALSE_CODE = 0;
 
@@ -134,10 +134,11 @@ public abstract class Encoder {
 					ret.add(c);
 				} else if (lst+1 != i) {
 					final BooleanVariable b = new BooleanVariable();
+					csp.add(b);
 					final Clause c1 = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
 																												 Operator.LE));
 					c1.add(new BooleanLiteral(b, true));
-					c1.setComment("; "+ v.getName() + " <= " + lst + " || "
+					c1.setComment(v.getName() + " <= " + lst + " || "
 												+ v.getName() + " >= " + i);
 					ret.add(c1);
 					final Clause c2 = new Clause(new LinearLiteral(new LinearSum(-1, v, i),
@@ -263,6 +264,7 @@ public abstract class Encoder {
 		int percent = 10;
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			encode(v);
+			count++;
 			if ((100*count)/n >= percent) {
 				Logger.fine(count + " (" + percent + "%) "
 						+ "CSP integer variables are encoded"
