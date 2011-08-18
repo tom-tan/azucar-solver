@@ -566,23 +566,20 @@ public class Decomposer {
 				exps.add(Expression.create(Expression.OR));
 				return exps;
 			}
-			exps.add(Expression.create(Expression.OR,
-																 e.le(0)));
+			exps.add(Expression.create(Expression.OR, e.le(0)));
 			return exps;
 		}else if (op.equals(Expression.EQ)) {
-			if (d.getLowerBound() > 0 || 0 > d.getUpperBound()) {
+			if (!d.contains(0)) {
 				exps.add(Expression.create(Expression.OR));
 				return exps;
 			}
-			exps.add(Expression.create(Expression.OR,
-																 e.eq(0)));
+			exps.add(Expression.create(Expression.OR, e.eq(0)));
 			return exps;
 		}else if (op.equals(Expression.NE)) {
-			if (d.getLowerBound() > 0 || 0 > d.getUpperBound()) {
+			if (!d.contains(0)) {
 				return exps;
 			}
-			exps.add(Expression.create(Expression.OR,
-																 e.ne(0)));
+			exps.add(Expression.create(Expression.OR, e.ne(0)));
 			return exps;
 		}
 		throw new SugarException("!!!");
@@ -714,6 +711,7 @@ public class Decomposer {
 					exps = new ArrayList<Expression>();
 					for (int i = 1; i < seq.length(); i++) {
 						List<Expression> exps0 = decomposeConstraint(seq.get(i), negative);
+            // OR!!!
 						exps.addAll(exps0);
 					}
 					break;

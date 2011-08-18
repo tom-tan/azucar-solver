@@ -50,7 +50,7 @@ public class COEEncoder extends OEEncoder {
 			if (l.getOperator() == Operator.EQ)
 				return false;
 			return l.getVariables().size() == 1
-				&& l.getVariables().iterator().next().getDigits().length <= 1;
+				&& l.getVariables().iterator().next().getDomain().getUpperBound() < bases[0];
 		} else if (lit instanceof EqMul) {
 			return false;
 		} else if (lit instanceof OpAdd) {
@@ -187,7 +187,8 @@ public class COEEncoder extends OEEncoder {
 						if (a*b <= 0) {
 							a = Math.abs(a);
 							b = Math.abs(b);
-							cls.add(new EqMul(b, a, x));
+							cls.add(a == 1 ? new OpXY(Operator.EQ, x, b) :
+											new EqMul(b, a, x));
 							continue;
 						}
 					}
