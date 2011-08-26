@@ -359,13 +359,13 @@ public class COEEncoder extends OEEncoder {
 		csp.setClauses(newClauses);
 	}
 
-	private LinearSum simplifyLinearExpression(LinearSum e, List<Clause> clss) throws SugarException {
-		if (e.size() <= 3) {
-			return e;
+	private LinearSum simplifyLinearExpression(LinearSum exp, List<Clause> clss) throws SugarException {
+		if (exp.size() <= 3) {
+			return exp;
 		}
-		final int b = e.getB();
-		e = new LinearSum(b);
-		for (LinearSum ei: e.split(2)) {
+		final int b = exp.getB();
+		final LinearSum e = new LinearSum(b);
+		for (LinearSum ei: exp.split(2)) {
 			final int factor = ei.factor();
 			if (factor > 1) {
 				ei.divide(factor);
