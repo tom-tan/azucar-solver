@@ -227,16 +227,16 @@ public class Converter {
 			}else{
 				syntaxError(x);
 			}
-		}else if (x.isSequence(Expression.NOT)) {
+		} else if (x.isSequence(Expression.NOT)) {
 			checkArity(x, 1);
 			Sequence seq = (Sequence)x;
 			if (boolMap.containsKey(seq.get(1).stringValue())) {
 				BooleanVariable v = boolMap.get(seq.get(1).stringValue());
 				return new BooleanLiteral(v, true);
-			}else{
+			} else {
 				syntaxError(x);
 			}
-		}else if (x.isSequence(Expression.LE)
+		} else if (x.isSequence(Expression.LE)
 							|| x.isSequence(Expression.EQ)
 							|| x.isSequence(Expression.NE)) {
 			checkArity(x, 2);

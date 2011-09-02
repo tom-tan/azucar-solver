@@ -340,12 +340,12 @@ public class Decomposer {
 
 	private LinearExpression decomposeMUL(Sequence seq) throws SugarException {
 		checkArity(seq, 2);
-		Expression x1 = seq.get(1);
-		Expression x2 = seq.get(2);
-		LinearExpression e1 = decomposeFormula(x1);
-		LinearExpression e2 = decomposeFormula(x2);
-		IntegerDomain d1 = e1.getDomain(expDomainMap);
-		IntegerDomain d2 = e2.getDomain(expDomainMap);
+		final Expression x1 = seq.get(1);
+		final Expression x2 = seq.get(2);
+		final LinearExpression e1 = decomposeFormula(x1);
+		final LinearExpression e2 = decomposeFormula(x2);
+		final IntegerDomain d1 = e1.getDomain(expDomainMap);
+		final IntegerDomain d2 = e2.getDomain(expDomainMap);
 		if (d1.size() == 1) {
 			e2.multiply(d1.getLowerBound());
 			return e2;
@@ -353,6 +353,13 @@ public class Decomposer {
 			e1.multiply(d2.getLowerBound());
 			return e1;
 		} else if (d1.size() <= d2.size()) {
+			// 変数同士の乗算に対応するにはこの辺りをいじる．
+			// e1 と e2 を変数に置き換える
+			// final IntegerDomain newDom = d1.mul(d2);
+			// final Expression mulExp = e1.mul
+			// Atom newInt = newIntegerVariable(newDom, x1.mul(x2));
+			// newInt.eq(x1.mul(x2));
+			// return newInt;
 			Expression x = null;
 			Iterator<Integer> iter = d1.values();
 			while (iter.hasNext()) {
@@ -711,7 +718,6 @@ public class Decomposer {
 					exps = new ArrayList<Expression>();
 					for (int i = 1; i < seq.length(); i++) {
 						List<Expression> exps0 = decomposeConstraint(seq.get(i), negative);
-            // OR!!!
 						exps.addAll(exps0);
 					}
 					break;
