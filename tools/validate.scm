@@ -51,7 +51,7 @@
      args ((ub '()))
      (cond ((integer? ub) `(define ,name (quote ((,lb ,ub)))))
            ((integer? lb) `(define ,name (quote (,lb))))
-           (else `(define ,name ,lb)))))
+           (else `(define ,name (quote ,lb))))))
 
 (define (var-in-domain var lst)
   (if (null? lst)
@@ -61,7 +61,7 @@
                 (= var hd)
                 (and (<= (car hd) var)
                      (<= var (cadr hd))))
-            (var-in-domain (cdr lst))))))
+            (var-in-domain var (cdr lst))))))
 
 (define-macro (int var lb . args)
     (let-optionals*
@@ -71,7 +71,7 @@
            ((integer? lb) `(= ,var ,lb))
            ((list? lb)
             `(var-in-domain ,var (quote ,lb)))
-           (else `(var-in-domain ,var ,lb) ))))
+           (else `(var-in-domain ,var ,lb)))))
 
 (define (bool p) #t)
 
