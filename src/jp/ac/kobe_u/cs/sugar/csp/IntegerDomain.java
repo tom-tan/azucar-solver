@@ -495,6 +495,12 @@ public class IntegerDomain {
 				value0 = value1 = value;
 			}
 		}
+		if (value0 == value1) {
+			doms.add(Expression.create(value0));
+		} else {
+			doms.add(Expression.create(Expression.create(value0),
+																 Expression.create(value1)));
+		}
 		return Expression.create(doms);
 	}
 

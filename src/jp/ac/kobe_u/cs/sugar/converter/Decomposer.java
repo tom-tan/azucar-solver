@@ -257,10 +257,10 @@ public class Decomposer {
 
 	private Atom newIntegerVariable(IntegerDomain d, Expression x)
 	throws SugarException {
-		String name = IAUX_PREFIX + Integer.toString(iidx++);
-		Atom v = (Atom)Expression.create(name);
-		Expression exp = Expression.create(Expression.INT_DEFINITION,
-																			 v, d.toExpression());
+		final String name = IAUX_PREFIX + Integer.toString(iidx++);
+		final Atom v = (Atom)Expression.create(name);
+		final Expression exp = Expression.create(Expression.INT_DEFINITION,
+																						 v, d.toExpression());
 		exp.setComment(name + " : " + x.toString());
 		decomposed.add(exp);
 		expDomainMap.put(name, d);
