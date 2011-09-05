@@ -149,13 +149,15 @@
 ;;   )
 (define-macro (element idx terms value)
     `(= (values-ref (list ,@terms) (- ,idx 1)) ,value))
-;; 変数名のバッティングの可能性あり
 (define-macro (disjunctive tasks)
-    `(let ((durs (sort-by (filter (lambda (x) (positive? (cadr x)))
-                                  (list ,@tasks)) car)))
-       (apply and
-              (map (lambda (x y) (<= (apply + x) (car y)))
-                   durs (cdr durs)))))
+    (let ((durs (gensym))
+          (x (gensym))
+          (y (gensym)))
+      `(let ((,durs (sort-by (filter (lambda (,x) (positive? (cadr ,x)))
+                                     (list ,@tasks)) car)))
+         (apply and
+                (map (lambda (,x ,y) (<= (apply + ,x) (car ,y)))
+                     ,durs (cdr ,durs))))))
 (define-macro (lex_less vec1 vec2)
     `(apply and (map < (list ,@vec1) (list ,@vec2))))
 (define-macro (lex_lesseq vec1 vec2)
