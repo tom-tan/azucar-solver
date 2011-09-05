@@ -22,16 +22,20 @@ JAVADOC  = javadoc -locale en_US \
 	-classpath ../classes -sourcepath ../src -subpackages $(PACKAGE) \
 	-public -d ../docs/api
 
-all: build jar #javadoc zip
+all: javac jar # javadoc zip
 
-build:
-	mkdir -p ../classes ../docs ../examples ../tools
-	javac -d ../classes -cp ../src -s ../src \
-	../src/jp/ac/kobe_u/cs/sugar/*.java \
-	../src/jp/ac/kobe_u/cs/sugar/converter/*.java \
-	../src/jp/ac/kobe_u/cs/sugar/csp/*.java \
-	../src/jp/ac/kobe_u/cs/sugar/encoder/*.java \
-	../src/jp/ac/kobe_u/cs/sugar/expression/*.java
+javac:
+	mkdir -p ../classes
+	javac -sourcepath ../src -d ../classes \
+		../src/jp/ac/kobe_u/cs/sugar/*.java \
+		../src/jp/ac/kobe_u/cs/sugar/*/*.java
+
+jar:
+	jar cmf manifest $(JAR) -C ../classes .
+
+javadoc:
+	rm -rf ../docs/api
+	LANG=C $(JAVADOC) $(PACKAGE)
 
 zip:
 	rm -f $(ZIP)
@@ -40,16 +44,9 @@ zip:
 	cp -pr ../src ../classes ../docs ../examples ../tools $(APP)
 	mkdir $(APP)/bin
 	cp -p $(APP0) Makefile manifest $(JAR) $(APP)/bin
-	find $(APP) \( -name CVS -o -name .cvsignore -o -name '*~' \) -exec rm -r '{}' '+'
+	find $(APP) \( -name .svn -o -name CVS -o -name .cvsignore -o -name '*~' \) -exec rm -rf '{}' '+'
 	zip -q -r $(ZIP) $(APP)
 	rm -rf $(APP)
-
-jar:
-	jar cmf manifest $(JAR) -C ../classes .
-
-javadoc:
-	rm -rf ../docs/api
-	LANG=C $(JAVADOC) $(PACKAGE)
 
 install:
 	mkdir -p $(BINDIR)
