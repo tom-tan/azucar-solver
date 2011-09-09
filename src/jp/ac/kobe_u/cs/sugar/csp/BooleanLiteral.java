@@ -7,7 +7,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @see CSP
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class BooleanLiteral extends Literal {
+public class BooleanLiteral implements Literal {
 	private BooleanVariable v;
 
 	private boolean negative;

@@ -21,7 +21,7 @@ import jp.ac.kobe_u.cs.sugar.expression.Expression;
  * @see CSP
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class RelationLiteral extends Literal {
+public class RelationLiteral implements Literal {
 	public int arity;
 	public boolean conflicts;
 	public IntegerVariable[] vs;

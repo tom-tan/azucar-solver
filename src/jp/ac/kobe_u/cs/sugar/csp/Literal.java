@@ -1,7 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.util.Set;
-
 import jp.ac.kobe_u.cs.sugar.SugarException;
 
 /**
@@ -9,8 +7,8 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * @see CSP
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public abstract class Literal {
-	public abstract boolean isValid() throws SugarException;
+public interface Literal {
+	public boolean isValid() throws SugarException;
 
-	public abstract boolean isUnsatisfiable() throws SugarException;
+	public boolean isUnsatisfiable() throws SugarException;
 }
