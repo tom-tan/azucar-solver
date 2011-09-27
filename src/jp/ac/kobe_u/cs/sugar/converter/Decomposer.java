@@ -642,23 +642,21 @@ public class Decomposer {
 		return x;
 	}
 
-	private Expression decomposeRelation(Sequence seq) throws SugarException {
+	private List<Expression> decomposeRelation(Sequence seq) throws SugarException {
 		String name = seq.get(0).stringValue();
 		Relation rel = relationMap.get(name);
 		if (rel == null) {
 			throw new SugarException("Undefined relation " + name + " in " + seq);
 		}
-    // ややこしそうなので後回し．
-    throw new SugarException("Not implemented");
-		// IntegerVariable[] vs = new IntegerVariable[seq.length() - 1];
-		// for (int i = 1; i < seq.length(); i++) {
-		// 	IntegerVariable v = intMap.get(seq.get(i).stringValue());
-		// 	if (v == null) {
-		// 		syntaxError(seq);
-		// 	}
-		// 	vs[i-1] = v;
-		// }
-		// return new RelationLiteral(rel.arity, rel.conflicts, rel.tuples, vs);
+		LinearExpression[] les = new LinearExpression[seq.length() -1];
+		for (int i = 1; i < seq.length(); i++) {
+			LinearExpression le = decomposeFormula(seq.get(i));
+			if (le == null) {
+				syntaxError(seq);
+			}
+			les[i-1] = le;
+		}
+		return rel.apply(les, expDomainMap);
 	}
 
 	private List<Expression> decomposeConstraint(Expression x, boolean negative) throws SugarException {
@@ -696,9 +694,7 @@ public class Decomposer {
 				} else if (predicateMap.containsKey(seq.get(0).stringValue())) {
 					x = decomposePredicate(seq);
 				} else if (relationMap.containsKey(seq.get(0).stringValue())) {
-					Expression e = decomposeRelation(seq);
-					exps = new ArrayList<Expression>();
-					exps.add(e);
+					exps = decomposeRelation(seq);
 					break;
 				} else if (seq.isSequence(Expression.NOT)) {
 					checkArity(seq, 1);
