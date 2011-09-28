@@ -49,41 +49,67 @@ public class LinearLiteral extends ArithmeticLiteral {
 		return linearSum.getVariables();
 	}
 
+	/*
+	 * Returns (int)Math.ceil((double)b/a)
+	 */
+	static private int divceil(int b, int a) {
+		if ((a >= 0 && b >= 0) ||
+				(a < 0  && b <  0)) {
+			return b/a;
+		} else if (a < 0) {
+			return (-b+a+1)/-a;
+		} else {
+			return (b-a+1)/a;
+		}
+	}
+
+	/*
+	 * Returns (int)Math.floor((double)b/a)
+	 */
+	static private int divfloor(int b, int a) {
+		if (a >= 0 && b >= 0) {
+			return (-b+a+1)/-a;
+		} else if (a < 0 && b < 0) {
+			return (b-a+1)/a;
+		} else {
+			return b/a;
+		}
+	}
+
 	@Override
 	public int[] getBound(IntegerVariable v) throws SugarException {
+		final int a = linearSum.getA(v);
+		final IntegerDomain d = linearSum.getDomainExcept(v);
+		final int olb = d.getLowerBound();
+		final int oub = d.getUpperBound();
+		int lb = 0;
+		int ub = 0;
+		if (a == 0) {
+			// nop
+		} else if (a > 0) {
+			lb = divceil(-oub, a);
+			ub = divfloor(-olb, a);
+		} else {
+			lb = divceil(-olb, a);
+			ub = divfloor(-oub, a);
+		}
 		switch(op) {
-		case LE:{
-			int a = linearSum.getA(v);
-			int lb = v.getDomain().getLowerBound();
-			int ub = v.getDomain().getUpperBound();
-			if (a != 0) {
-				IntegerDomain d = linearSum.getDomainExcept(v);
-				d = d.neg();
-				int b = d.getUpperBound();
-				if (a >= 0) {
-					// ub = (int)Math.floor((double)b / a);
-					if (b >= 0) {
-						ub = b/a;
-					} else {
-						ub = (b-a+1)/a;
-					}
-				} else {
-					// lb = (int)Math.ceil((double)b / a);
-					if (b >= 0) {
-						lb = b/a;
-					} else {
-						lb = (b+a+1)/a;
-					}
-				}
+		case LE:
+			if (a == 0) {
+				lb = v.getDomain().getLowerBound();
+				ub = v.getDomain().getUpperBound();
+			} else if (a > 0) {
+				lb = v.getDomain().getLowerBound();
+			} else if (a < 0) {
+				ub = v.getDomain().getUpperBound();
 			}
-			if (lb > ub)
-				return null;
-			return new int[] { lb, ub };
-		}
-		case EQ: return null;
+			break;
+		case EQ: break;
 		case NE: return null;
-		default: throw new SugarException("!!!");
 		}
+		if (lb > ub)
+			return null;
+		return new int[] { lb, ub };
 	}
 
 	/**
@@ -109,7 +135,8 @@ public class LinearLiteral extends ArithmeticLiteral {
 		case NE:
 			return !linearSum.getDomain().contains(0);
 		default:
-			throw new SugarException("!!!");
+			assert false;
+			throw new SugarException("This code is never called.");
 		}
 	}
 
