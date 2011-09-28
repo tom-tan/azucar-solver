@@ -82,29 +82,25 @@ public class LinearLiteral extends ArithmeticLiteral {
 		final IntegerDomain d = linearSum.getDomainExcept(v);
 		final int olb = d.getLowerBound();
 		final int oub = d.getUpperBound();
-		int lb = 0;
-		int ub = 0;
-		if (a == 0) {
-			// nop
-		} else if (a > 0) {
-			lb = divceil(-oub, a);
-			ub = divfloor(-olb, a);
-		} else {
-			lb = divceil(-olb, a);
-			ub = divfloor(-oub, a);
-		}
+		int lb = v.getDomain().getLowerBound();
+		int ub = v.getDomain().getUpperBound();
 		switch(op) {
 		case LE:
-			if (a == 0) {
-				lb = v.getDomain().getLowerBound();
-				ub = v.getDomain().getUpperBound();
-			} else if (a > 0) {
-				lb = v.getDomain().getLowerBound();
+			if (a > 0) {
+				ub = divfloor(-olb, a);
 			} else if (a < 0) {
-				ub = v.getDomain().getUpperBound();
+				lb = divceil(-olb, a);
 			}
 			break;
-		case EQ: break;
+		case EQ:
+			if (a > 0) {
+				lb = divceil(-oub, a);
+				ub = divfloor(-olb, a);
+			} else if (a < 0){
+				lb = divceil(-olb, a);
+				ub = divfloor(-oub, a);
+			}
+			break;
 		case NE: return null;
 		}
 		if (lb > ub)
