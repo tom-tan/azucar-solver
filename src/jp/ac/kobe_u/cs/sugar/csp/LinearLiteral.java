@@ -96,7 +96,7 @@ public class LinearLiteral extends ArithmeticLiteral {
 			if (a > 0) {
 				lb = divceil(-oub, a);
 				ub = divfloor(-olb, a);
-			} else if (a < 0){
+			} else if (a < 0) {
 				lb = divceil(-olb, a);
 				ub = divfloor(-oub, a);
 			}
