@@ -154,22 +154,21 @@
       `(let ((,lb (apply min (map (cut ref <> 0) (list ,@tasks))))
              (,ub (apply max (map (lambda (,it) (- (ref ,it 2) 1))
                                   (list ,@tasks)))))
-         (and
-          (fold (cut and <> <>) #t
-                (map (lambda (,it)
-                       (equal? (+ (ref ,it 0) (ref ,it 1))
-                               (ref ,it 2)))
-                     (list ,@tasks)))
-          (fold (cut and <> <>) #t
-                (map (lambda (,value)
-                       (<= (apply +
-                                  (map (cut ref <> 3)
-                                       (filter (lambda (,it)
-                                                 (and (<= (ref ,it 0) ,value)
-                                                      (> (ref ,it 2) ,value)))
-                                               (list ,@tasks))))
-                           ,limit))
-                     (iota (+ (- ,ub ,lb) 1) ,lb 1)))))))
+         (and (fold (cut and <> <>) #t
+                    (map (lambda (,it)
+                           (equal? (+ (ref ,it 0) (ref ,it 1))
+                                   (ref ,it 2)))
+                         (list ,@tasks)))
+              (fold (cut and <> <>) #t
+                    (map (lambda (,value)
+                           (<= (apply +
+                                      (map (cut ref <> 3)
+                                           (filter (lambda (,it)
+                                                     (and (<= (ref ,it 0) ,value)
+                                                          (> (ref ,it 2) ,value)))
+                                                   (list ,@tasks))))
+                               ,limit))
+                         (iota (+ (- ,ub ,lb) 1) ,lb 1)))))))
 (define-macro (element idx terms value)
     `(= (values-ref (list ,@terms) (- ,idx 1)) ,value))
 (define-macro (disjunctive tasks)
