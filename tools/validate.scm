@@ -87,16 +87,16 @@
 
 (define-macro (relation name arity relbody)
     (let* ((rel (car relbody))
-           (args (map gensym (iota arity)))
+           (args (map gensym (map number->string (iota arity))))
            (pts (cdr relbody))
            (sup `(or ,@(map (lambda (pt)
-                              `(and ,@(map (lambda (p) `(apply = ,p))
+                              `(and ,@(map (cut apply list '= <>)
                                            (zip args pt))))
                             pts))))
       `(define (,name ,@args)
-           (if (= rel 'support)
-               sup
-               `(not ,sup)))))
+           ,(if (equal? rel 'supports)
+                sup
+                `(not ,sup)))))
 
 (define-macro (predicate args predbody)
     `(define ,args ,predbody))
