@@ -76,6 +76,27 @@ public class LinearLiteral extends ArithmeticLiteral {
 		}
 	}
 
+	// static{
+	// 	for (int a = 0 ; a != 10; a++) {
+	// 		for (int b = -10; b != 0; b++) {
+	// 			if (a != 0) {
+	// 				try{
+	// 					// assert((int)Math.ceil((double)b/a) == divceil(b, a));
+	// 					// assert((int)Math.floor((double)b/a) == divfloor(b, a));
+	// 					System.err.print("(b, a) = ("+b +", "+ a+"), ");
+	// 					// System.err.println("(ceil, divceil) = ("+(int)Math.ceil((double)b/a)+" "+divceil(b, a)+")");
+	// 					System.err.println("(floor, divfloor) = ("+(int)Math.floor((double)b/a)+" "+divfloor(b, a)+")");
+	// 				}catch(AssertionError e) {
+	// 					System.err.println("(b, a) = "+b +", "+ a);
+	// 					System.err.println("(ceil, divceil) = "+(int)Math.ceil((double)b/a)+" "+divceil(b, a));
+	// 					System.err.println("(floor, divfloor) = "+(int)Math.floor((double)b/a)+" "+divfloor(b, a));
+	// 					throw e;
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
+
 	@Override
 	public int[] getBound(IntegerVariable v) throws SugarException {
 		final int a = linearSum.getA(v);
