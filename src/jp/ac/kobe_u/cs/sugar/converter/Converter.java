@@ -139,6 +139,9 @@ public class Converter {
 			throw new SugarException("Duplicated definition " + seq);
 		}
 		BooleanVariable v = new BooleanVariable(name);
+		if (name.startsWith("_$")) {
+			v.isAux(true);
+		}
 		csp.add(v);
 		boolMap.put(name, v);
 	}

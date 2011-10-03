@@ -642,7 +642,7 @@ public class Decomposer {
 		return x;
 	}
 
-	private List<Expression> decomposeRelation(Sequence seq) throws SugarException {
+	private Expression decomposeRelation(Sequence seq) throws SugarException {
 		String name = seq.get(0).stringValue();
 		Relation rel = relationMap.get(name);
 		if (rel == null) {
@@ -694,8 +694,9 @@ public class Decomposer {
 				} else if (predicateMap.containsKey(seq.get(0).stringValue())) {
 					x = decomposePredicate(seq);
 				} else if (relationMap.containsKey(seq.get(0).stringValue())) {
-					exps = decomposeRelation(seq);
-					break;
+					//exps = decomposeRelation(seq);
+					//break;
+					x = decomposeRelation(seq);
 				} else if (seq.isSequence(Expression.NOT)) {
 					checkArity(seq, 1);
 					x = seq.get(1);

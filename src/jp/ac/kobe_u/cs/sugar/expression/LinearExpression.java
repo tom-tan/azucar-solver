@@ -2,8 +2,10 @@ package jp.ac.kobe_u.cs.sugar.expression;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.Map;
 import java.util.SortedMap;
@@ -39,6 +41,21 @@ public class LinearExpression extends Expression {
 		domain = null;
 	}
 
+	public Expression toSeqExpression() {
+		Set<Atom> vars = coef.keySet();
+		Sequence seq;
+		if (vars.size() == 1) {
+			Atom v = coef.firstKey();
+			return v.mul(coef.get(v));
+		} else {
+			List<Expression> args = new ArrayList<Expression>();
+			for (Atom var : vars) {
+				args.add(var.mul(coef.get(var)));
+			}
+			return Expression.add(args);
+		}
+	}
+
 	/**
 	 * Returns the size of the linear expression. 
 	 * @return the size
@@ -46,7 +63,7 @@ public class LinearExpression extends Expression {
 	public int size() {
 		return coef.size();
 	}
-	
+
 	public int getB() {
 		return b;
 	}
@@ -54,7 +71,7 @@ public class LinearExpression extends Expression {
 	public void setB(int b) {
 		this.b = b;
 	}
-	
+
 	public SortedMap<Atom,Integer> getCoef() {
 		return coef;
 	}

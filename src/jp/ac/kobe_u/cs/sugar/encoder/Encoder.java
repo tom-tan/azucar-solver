@@ -342,16 +342,6 @@ public abstract class Encoder {
 			}
 		}
 
-		// for (IntegerVariable v : bigints) {
-		// 	final StringBuilder sb = new StringBuilder();
-		// 	sb.append("bigint " + v.getName() + " " + v.getOffset());
-		// 	for (IntegerVariable digit : v.getDigits()) {
-		// 		sb.append(" "+digit.getName());
-		// 	}
-		// 	mapWriter.write(sb.toString());
-		// 	mapWriter.write('\n');
-		// }
-
 		for (BooleanVariable v : csp.getBooleanVariables()) {
 			if (! v.isAux() || SugarMain.debug > 0) {
 				final int code = v.getCode();

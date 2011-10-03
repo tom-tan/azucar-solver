@@ -267,7 +267,7 @@ public class Relation {
 		return bricks;
 	}
 
-	public List<Expression> apply(LinearExpression[] args, Map<String,IntegerDomain> expDomainMap) throws SugarException {
+	public Expression apply(LinearExpression[] args, Map<String,IntegerDomain> expDomainMap) throws SugarException {
 		les = args;
 		domMap = expDomainMap;
 		List<Expression> ret = new ArrayList<Expression>();
@@ -276,16 +276,19 @@ public class Relation {
 			List<Expression> pt = new ArrayList<Expression>();
 			for (int i = 0; i < arity; i++) {
 				LinearExpression le = les[i];
-				pt.add(le.le(brick.lb[i] - 1));
-				LinearExpression le1 = new LinearExpression(le);
-				le1.multiply(-1);
-				pt.add(le1.le(-brick.ub[i]-1));
+				if (brick.lb[i] == brick.ub[i]) {
+					pt.add(le.toSeqExpression().ne(brick.lb[i]));
+				} else {
+					pt.add(le.toSeqExpression().lt(brick.lb[i]));
+					LinearExpression le1 = new LinearExpression(le);
+					pt.add(le1.toSeqExpression().gt(brick.ub[i]));
+				}
 			}
 			ret.add(Expression.create(Expression.OR, pt));
 		}
 		les = null;
 		domMap = null;
-		return ret;
+		return Expression.create(Expression.AND, ret);
 	}
 
 	@Override

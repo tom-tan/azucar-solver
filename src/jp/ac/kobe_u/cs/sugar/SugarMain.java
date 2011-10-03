@@ -35,7 +35,7 @@ public class SugarMain {
 	boolean maxCSP = false;
 	boolean competition = false;
 	boolean incremental = false;
-	boolean propagate = true;
+	boolean propagate = false;
 	public static int debug = 0;
 	public EncodingFactory ef;
 

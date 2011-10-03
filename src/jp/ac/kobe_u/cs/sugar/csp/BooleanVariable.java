@@ -56,6 +56,10 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 		return aux;
 	}
 
+	public void isAux(boolean aux) {
+		this.aux = aux;
+	}
+
 	/**
 	 * Returns the comment set to the boolean variable.
 	 * @return the comment
