@@ -46,12 +46,13 @@ public class LinearExpression extends Expression {
 		Sequence seq;
 		if (vars.size() == 1) {
 			Atom v = coef.firstKey();
-			return v.mul(coef.get(v));
+			return v.mul(coef.get(v)).add(Expression.create(b));
 		} else {
 			List<Expression> args = new ArrayList<Expression>();
 			for (Atom var : vars) {
 				args.add(var.mul(coef.get(var)));
 			}
+			args.add(Expression.create(b));
 			return Expression.add(args);
 		}
 	}
@@ -83,7 +84,7 @@ public class LinearExpression extends Expression {
 	public boolean isIntegerVariable() {
 		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;
 	}
-	
+
 	public Integer getA(Atom v) {
 		Integer a = coef.get(v);
 		if (a == null) {
