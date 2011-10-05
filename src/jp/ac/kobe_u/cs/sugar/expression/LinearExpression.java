@@ -43,18 +43,12 @@ public class LinearExpression extends Expression {
 
 	public Expression toSeqExpression() {
 		Set<Atom> vars = coef.keySet();
-		Sequence seq;
-		if (vars.size() == 1) {
-			Atom v = coef.firstKey();
-			return v.mul(coef.get(v)).add(Expression.create(b));
-		} else {
-			List<Expression> args = new ArrayList<Expression>();
-			for (Atom var : vars) {
-				args.add(var.mul(coef.get(var)));
-			}
-			args.add(Expression.create(b));
-			return Expression.add(args);
+		List<Expression> args = new ArrayList<Expression>();
+		for (Atom var : vars) {
+			args.add(var.mul(coef.get(var)));
 		}
+		args.add(Expression.create(b));
+		return Expression.add(args);
 	}
 
 	/**
