@@ -216,6 +216,25 @@ public class OpAdd extends RCSPLiteral {
 		return ret;
 	}
 
+	public boolean isValid() throws SugarException {
+		final IntegerDomain zd = z.getDomain();
+		final IntegerDomain xd = x.getDomain();
+		final IntegerDomain yd = y.getDomain();
+		switch(op) {
+		case EQ:
+			return zd.size() == 1 && xd.size() == 1 && yd.size() == 1 &&
+				zd.getUpperBound() == xd.getUpperBound() + yd.getUpperBound();
+		case LE:
+			return zd.getUpperBound() <= xd.getLowerBound() + yd.getLowerBound();
+		case GE:
+			return zd.getLowerBound() >= xd.getUpperBound() + yd.getUpperBound();
+		case NE:
+			return zd.cap(xd.add(yd)).isEmpty();
+		}
+		assert false;
+		throw new SugarException("This should not be called.");
+	}
+
 	private LLExpression lle(IntegerVariable v) {
 		return new LLExpression(v);
 	}

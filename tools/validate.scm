@@ -14,7 +14,8 @@
             ((SAT)
              (let ((with-csp (if (#/\.xml$/ csp)
                                  (cut with-input-from-process
-                                      `("./xml2csp" ,csp) <>)
+                                      `(,(string-append (rxmatch->string "^(.+/)" *program-name*)
+                                                       "xml2csp") ,csp) <>)
                                  (cut with-input-from-file csp <>))))
                (with-csp
                    (cut port-for-each

@@ -234,6 +234,18 @@ public class EqMul extends RCSPLiteral {
 		return ret;
 	}
 
+	@Override
+	public boolean isValid() throws SugarException {
+		final IntegerDomain zd = z.getDomain();
+		final IntegerDomain xd = x.getDomain();
+		final IntegerDomain yd = y.getDomain();
+		if (zd.size() != 1)
+			return false;
+		if (xd.size() != 1 && yd.size() != 1)
+			return false;
+		return zd.getUpperBound() == xd.getUpperBound() * yd.getUpperBound();
+	}
+
 	private LLExpression lle(IntegerVariable v) {
 		return new LLExpression(v);
 	}

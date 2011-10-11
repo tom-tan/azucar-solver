@@ -11,6 +11,7 @@ import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
+import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
 
 /**
@@ -134,6 +135,22 @@ public class OpXY extends RCSPLiteral {
 			ret.get(0).setComment(toString());
 		}
 		return ret;
+	}
+
+	@Override
+	public boolean isValid() throws SugarException {
+		final IntegerDomain xd = x.getDomain();
+		final IntegerDomain yd = y.getDomain();
+		switch(op) {
+		case EQ:
+			return xd.size() == 1 && yd.size() == 1 && xd.getUpperBound() == yd.getUpperBound();
+		case LE:
+			return xd.getUpperBound() <= yd.getLowerBound();
+		case NE:
+			return xd.cap(yd).isEmpty();
+		}
+		assert false;
+		throw new SugarException("This should not be called.");
 	}
 
 	@Override

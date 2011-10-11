@@ -235,7 +235,9 @@ public abstract class Encoder {
 		Logger.fine("Simplifing CSP by introducing new Boolean variables");
 		List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause clause : csp.getClauses()) {
-			if (isSimple(clause)) {
+			if (clause.isValid()) {
+				// nop
+			} else if (isSimple(clause)) {
 				newClauses.add(clause);
 			} else {
 				newClauses.addAll(simplify(clause));

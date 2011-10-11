@@ -17,10 +17,7 @@ public abstract class RCSPLiteral extends ArithmeticLiteral {
 		throw new SugarException("Not supported.");
 	}
 
-	@Override
-	public boolean isValid() throws SugarException {
-		throw new SugarException("Not supported.");
-	}
+	public abstract boolean isValid() throws SugarException;
 
 	@Override
 	public boolean isUnsatisfiable() throws SugarException {
