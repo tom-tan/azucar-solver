@@ -1,0 +1,6 @@
+syntax:glob
+*.zip
+*.html
+*.gif
+docs/api/package-list
+docs/api/stylesheet.css
