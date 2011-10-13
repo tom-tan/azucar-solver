@@ -21,6 +21,7 @@ my ($showversion, $help, $debug, $verbose, $veryverbose, $option);
 my ($java_opt1, $java_opt2, $solver, $competition, $keep, $incremental, $prof);
 my ($max_csp, $csp_file, $map_file, $sat_file, $out_file);
 my ($memlimit, $timelimit, $solverlimit, $encoding, $base, $m, $enable_assert);
+my $nopropagate;
 &GetOptions(
 	    'version' => \$showversion,
 	    'h|help' => \$help,
@@ -49,6 +50,7 @@ my ($memlimit, $timelimit, $solverlimit, $encoding, $base, $m, $enable_assert);
 	    'b=i' => \$base,
 	    'm=i' => \$m,
 	    'ea' => \$enable_assert,
+	    'nopropagate' => \$nopropagate,
 	    );
 $verbose = $verbose || $veryverbose;
 if (! $solver) {
@@ -73,6 +75,10 @@ if (! $java_opt2) {
 if ($enable_assert) {
   $java_opt1 .= " -ea";
 	$java_opt2 .= " -ea";
+}
+
+if (! $nopropagate) {
+	$nopropagate = 0;
 }
 
 if ($showversion) {
@@ -126,6 +132,7 @@ sub usage {
     print "\t-memlimit MiB    : memory limit in MiB (for CSP solver competition)\n";
 #    print "\t-timelimit sec   : time limit in seconds (reserved for CSP solver competition)\n";
     print "\t-encoding enc    : encoding method (oe and coe are supported)\n";
+    print "\t-nopropagate     : do not propagate\n";
     exit(1);
 }
 
@@ -352,6 +359,9 @@ sub encode {
 	}
 	if ($m) {
 		$arg .= " -m $m"
+	}
+	if ($nopropagate) {
+	    $arg .= " -nopropagate";
 	}
 	$arg .= " -encode '$csp_file' '$sat_file' '$map_file'";
 	&java($java_opt1, $class, $arg, $prof);

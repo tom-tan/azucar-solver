@@ -311,6 +311,8 @@ public class SugarMain {
 					sugarMain.competition = true;
 				} else if (args[i].equals("-incremental")) {
 					sugarMain.incremental = true;
+				} else if (args[i].equals("-nopropagate")) {
+					sugarMain.propagate = false;
 				} else if (args[i].equals("-option") && i + 1 < args.length) {
 					final String[] opts = args[i+1].split(",");
 					for (String opt : opts) {
