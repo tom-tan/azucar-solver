@@ -110,6 +110,7 @@ public class COEEncoder extends OEEncoder {
 		IntegerVariable.setPrefix(AUX_PREFIX);
 		IntegerVariable.setIndex(0);
 
+		// 要改修
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
 			if (c.getArithmeticLiterals().size() == 0) {
@@ -139,6 +140,7 @@ public class COEEncoder extends OEEncoder {
 		IntegerVariable.setPrefix(AUX_PREFIX);
 		IntegerVariable.setIndex(0);
 
+		// 要改修
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
 			if (c.getArithmeticLiterals().size() == 0) {
@@ -323,6 +325,7 @@ public class COEEncoder extends OEEncoder {
 		}
 		newVars = null;
 
+		// 要改修
 		for (Clause cls : csp.getClauses()) {
 			if (cls.getArithmeticLiterals().size() == 0) {
 				newClauses.add(cls);
