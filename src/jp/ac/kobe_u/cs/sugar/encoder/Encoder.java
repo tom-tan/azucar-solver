@@ -172,6 +172,7 @@ public abstract class Encoder {
 			csp.getClauses().addAll(adjust(v, true));
 		}
 
+		// 要改修
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause c: csp.getClauses()) {
 			Clause newCls = null;
@@ -233,6 +234,7 @@ public abstract class Encoder {
 		BooleanVariable.setPrefix("S");
 		BooleanVariable.setIndex(0);
 		Logger.fine("Simplifing CSP by introducing new Boolean variables");
+		// 要改修
 		List<Clause> newClauses = new ArrayList<Clause>();
 		for (Clause clause : csp.getClauses()) {
 			if (clause.isValid()) {
