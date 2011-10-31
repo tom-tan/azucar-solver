@@ -44,8 +44,9 @@ public class SugarMain {
 		final List<Expression> sum = new ArrayList<Expression>();
 		sum.add(Expression.ADD);
 		int n = 0;
-		// 要改修
-		for (Expression x: expressions0) {
+		for (int i=0; i<expressions0.size(); i++) {
+			Expression x = expressions0.get(i);
+			expressions0.set(i, null);
 			if (x.isSequence(Expression.DOMAIN_DEFINITION)
 				|| x.isSequence(Expression.INT_DEFINITION)
 				|| x.isSequence(Expression.BOOL_DEFINITION)

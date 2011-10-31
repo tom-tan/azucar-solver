@@ -1,4 +1,5 @@
 #!/usr/bin/gosh
+;; -*- scheme -*-
 (use srfi-1)
 (use util.combinations)
 (use gauche.process)
@@ -10,7 +11,8 @@
          0)
         (let ((csp (cadr args)))
           (case (read-answer (caddr args))
-            ((UNSAT) (print "Can not validate: UNSAT.") 0)
+            ((UNSAT)   (print "Can not validate: UNSAT.") 0)
+            ((UNKNOWN) (print "Can not validate: UNKNOWN") 0)
             ((SAT)
              (let ((with-csp (if (#/\.xml$/ csp)
                                  (cut with-input-from-process
@@ -36,6 +38,8 @@
                       (set! *RESULT* 'UNSAT))
                 (test (equal? "s SATISFIABLE" line)
                       (set! *RESULT* 'SAT))
+                (test (equal? "s UNKNOWN" line)
+                      (set! *RESULT* 'UNKNOWN))
                 ((rxmatch #/^a ([^\s]+)\s+([^\s]+)$/ line)
                  (#f var val)
                  (eval `(define ,(string->symbol var)

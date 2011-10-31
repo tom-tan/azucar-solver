@@ -172,9 +172,10 @@ public abstract class Encoder {
 			csp.getClauses().addAll(adjust(v, true));
 		}
 
-		// 要改修
 		final List<Clause> newClauses = new ArrayList<Clause>();
-		for (Clause c: csp.getClauses()) {
+		for (int i=0; i<csp.getClauses().size(); i++) {
+			Clause c = csp.getClauses().get(i);
+			csp.getClauses().set(i, null);
 			Clause newCls = null;
 			if(c.getArithmeticLiterals().isEmpty()) {
 				newCls = c;
@@ -234,9 +235,10 @@ public abstract class Encoder {
 		BooleanVariable.setPrefix("S");
 		BooleanVariable.setIndex(0);
 		Logger.fine("Simplifing CSP by introducing new Boolean variables");
-		// 要改修
 		List<Clause> newClauses = new ArrayList<Clause>();
-		for (Clause clause : csp.getClauses()) {
+		for (int i=0; i<csp.getClauses().size(); i++) {
+			Clause clause = csp.getClauses().get(i);
+			csp.getClauses().set(i, null);
 			if (clause.isValid()) {
 				// nop
 			} else if (isSimple(clause)) {
@@ -247,7 +249,6 @@ public abstract class Encoder {
 		}
 		csp.setClauses(newClauses);
 	}
-
 
 	public void encode(String satFileName, boolean incremental) throws SugarException, IOException {
 		writer = new CNFWriter(satFileName, incremental);
