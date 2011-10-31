@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 require 'optparse'
 
-JAR     = '../bin/azucar-v0.000.jar'
+JAR     = '../bin/azucar-v0.0.0.jar'
 XML2CSP = 'jp.ac.kobe_u.cs.sugar.XML2CSP'
 
 if $0 == __FILE__
