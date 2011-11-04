@@ -112,8 +112,6 @@ public class EqMul extends RCSPLiteral {
 					rhs = v[i].nth(0);
 				} else if (i == 1) {
 					rhs = v[i].nth(0).add(v[i-1].nth(1));
-				} else if (i == m-1) {
-					rhs = v[i-1].nth(1).add(lle(c[i]));
 				} else {
 					rhs = v[i].nth(0).add(v[i-1].nth(1)).add(lle(c[i]));
 				}
@@ -125,6 +123,7 @@ public class EqMul extends RCSPLiteral {
 				ret.add(cls1);
 			}
 		} else {
+			// z = xy
 			final IntegerVariable[] w = new IntegerVariable[m];
 			final int uby = y.getDomain().getUpperBound();
 			for (int i=0, ubz = z.getDomain().getUpperBound();
