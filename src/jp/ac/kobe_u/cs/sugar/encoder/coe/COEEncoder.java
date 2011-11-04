@@ -180,7 +180,8 @@ public class COEEncoder extends OEEncoder {
 								newClauses.add(new Clause(lit));
 								lhs = av;
 							}
-							cls.add(new EqMul(lhs, rc, rhs));
+							cls.add(rc == 1 ? new OpXY(Operator.EQ, lhs, rhs) :
+											new EqMul(lhs, rc, rhs));
 							continue;
 						}
 					} else if (ll.getOperator() == Operator.EQ && ls.size() == 1) {
