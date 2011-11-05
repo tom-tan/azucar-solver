@@ -133,7 +133,7 @@
       `(alldifferent ,(cons term args))))
 (define-macro (weightedsum pairs op term)
     `(,op (apply + (map (cut apply * <>)
-                        (list ,@pairs))) ,term))
+                        (list ,@(map (lambda (x) `(list ,@x)) pairs)))) ,term))
 (define-macro (cumulative tasks_ limit)
     (let* ((origin (cut ref <> 0))
            (duration (cut ref <> 1))
