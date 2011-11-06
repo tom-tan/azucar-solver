@@ -370,9 +370,32 @@ public class COEEncoder extends OEEncoder {
 		if (exp.size() <= 3) {
 			return exp;
 		}
+		final LinearSum lhs = new LinearSum(0);
+		final LinearSum rhs = new LinearSum(0);
+		for (IntegerVariable v: exp.getVariables()) {
+			int a = exp.getA(v);
+			if (a > 0) {
+				lhs.setA(a, v);
+			} else {
+				rhs.setA(-a, v);
+			}
+		}
 		final int b = exp.getB();
+		final int rest = (b == 0 ? 3 : 2);
+		int lhs_len = 0, rhs_len = 0;
+		if (lhs.size() == 0) {
+			rhs_len = rest;
+		} else if (rhs.size() == 0) {
+			lhs_len = rest;
+		} else if (lhs.getDomain().size() < rhs.getDomain().size()) {
+			lhs_len = 1;
+			rhs_len = rest-1;
+		} else {
+			rhs_len = 1;
+			lhs_len = rest-1;
+		}
 		final LinearSum e = new LinearSum(b);
-		for (LinearSum ei: exp.split(2)) {
+		for (LinearSum ei: lhs.split(lhs_len)) {
 			final int factor = ei.factor();
 			if (factor > 1) {
 				ei.divide(factor);
@@ -395,6 +418,32 @@ public class COEEncoder extends OEEncoder {
 			if (factor > 1) {
 				ei.multiply(factor);
 			}
+			e.add(ei);
+		}
+		for (LinearSum ei: rhs.split(rhs_len)) {
+			final int factor = ei.factor();
+			if (factor > 1) {
+				ei.divide(factor);
+			}
+			ei = simplifyLinearExpression(ei, clss);
+			if (ei.size() > 1) {
+				final IntegerVariable v = new IntegerVariable(ei.getDomain());
+				v.setComment(v.getName() + " : " + ei);
+				csp.add(v);
+				clss.addAll(adjust(v, false));
+				// v == ei
+				final LinearSum ls = new LinearSum(v);
+				ls.subtract(ei);
+				final LinearLiteral ll = new LinearLiteral(ls, Operator.EQ);
+				final Clause cls = new Clause(ll);
+				cls.setComment(v.getName() + " == " + ei);
+				clss.add(cls);
+				ei = new LinearSum(v);
+			}
+			if (factor > 1) {
+				ei.multiply(factor);
+			}
+			ei.multiply(-1);
 			e.add(ei);
 		}
 		return e;
