@@ -171,7 +171,7 @@ public class EqMul extends RCSPLiteral {
 			final IntegerHolder[] zi = new IntegerHolder[m];
 			zi[m-1] = new IntegerHolder(w[m-1]);
 			for (int i=m-2; i>0; i--) {
-				final IntegerDomain d = new IntegerDomain(0, zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
+				final IntegerDomain d = new IntegerDomain(0, b*zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
 				final IntegerVariable zii = new IntegerVariable(d);
 				zii.splitToDigits(csp);
 				csp.add(zii);
@@ -192,9 +192,9 @@ public class EqMul extends RCSPLiteral {
 	/**
 	 * u = b*s+t
 	 */
-	private List<Clause> shiftAddtoCCSP(IntegerHolder s,
-																			IntegerHolder t,
-																			IntegerHolder u, CSP csp)
+	private List<Clause> shiftAddtoCCSP(IntegerHolder u,
+																			IntegerHolder s,
+																			IntegerHolder t, CSP csp)
 	throws SugarException {
 		final int b = csp.getBases()[0];
 		final int m = Math.max(Math.max(s.nDigits(b), t.nDigits(b)),
