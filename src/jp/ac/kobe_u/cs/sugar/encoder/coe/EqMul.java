@@ -72,6 +72,12 @@ public class EqMul extends RCSPLiteral {
 		final List<Clause> ret = new ArrayList<Clause>();
 
 		if (x.isConstant() && x.getValue() < b) {
+			if (x.getValue() == 0) {
+				assert z.isVariable();
+				return (new OpXY(Operator.LE, z.getVariable(), 0)).toCCSP(csp, encoder);
+			} else if (x.getValue() == 1) {
+				return (new OpXY(Operator.EQ, z, y)).toCCSP(csp, encoder);
+			}
 			final IntegerHolder[] v = new IntegerHolder[m];
 			final int a = x.getValue();
 			for (int i=0; i<m; i++) {
@@ -135,8 +141,13 @@ public class EqMul extends RCSPLiteral {
 					d = new IntegerDomain(0, Math.min((b-1)*uby, ubz));
 				}
 				w[i] = new IntegerVariable(d);
-				w[i].splitToDigits(csp);
 				csp.add(w[i]);
+				final List<IntegerVariable> vdigits = w[i].splitToDigits(csp);
+				if (vdigits.size() > 1) {
+					for (IntegerVariable digit: vdigits) {
+						csp.add(digit);
+					}
+				}
 			}
 
 			if (x.isConstant()) {
@@ -148,8 +159,13 @@ public class EqMul extends RCSPLiteral {
 				final IntegerVariable[] ya = new IntegerVariable[b];
 				for (int a=0; a<b; a++) {
 					ya[a] = new IntegerVariable(new IntegerDomain(0, a*uby));
-					ya[a].splitToDigits(csp);
+					final List<IntegerVariable> vdigits = ya[a].splitToDigits(csp);
 					csp.add(ya[a]);
+					if (vdigits.size() > 1) {
+						for (IntegerVariable digit: vdigits) {
+							csp.add(digit);
+						}
+					}
 				}
 
 				for (int i=0; i<m; i++) {
@@ -173,8 +189,13 @@ public class EqMul extends RCSPLiteral {
 			for (int i=m-2; i>0; i--) {
 				final IntegerDomain d = new IntegerDomain(0, b*zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
 				final IntegerVariable zii = new IntegerVariable(d);
-				zii.splitToDigits(csp);
+				final List<IntegerVariable> vdigits = zii.splitToDigits(csp);
 				csp.add(zii);
+				if (vdigits.size() > 1) {
+					for (IntegerVariable digit: vdigits) {
+						csp.add(digit);
+					}
+				}
 				zi[i] = new IntegerHolder(zii);
 			}
 			zi[0] = z;
