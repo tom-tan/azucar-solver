@@ -218,8 +218,7 @@ public class EqMul extends RCSPLiteral {
 																			IntegerHolder t, CSP csp)
 	throws SugarException {
 		final int b = csp.getBases()[0];
-		final int m = Math.max(Math.max(s.nDigits(b), t.nDigits(b)),
-													 u.nDigits(b));
+		final int m = Math.max(s.nDigits(b), t.nDigits(b))+1;
 		final List<Clause> ret = new ArrayList<Clause>();
 
 		final IntegerVariable[] c = new IntegerVariable[m];
