@@ -78,7 +78,7 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 		if (v == null)
 			return 1;
 		final int ub1 = isConstant_ ? constant : variable.getDomain().getUpperBound();
-		final int ub2 = v.isConstant_ ? v.constant : variable.getDomain().getUpperBound();
+		final int ub2 = v.isConstant_ ? v.constant : v.variable.getDomain().getUpperBound();
 		if (ub1 != ub2)
 			return ub1 < ub2 ? -1 : 1;
 		return this.toString().compareTo(v.toString());
