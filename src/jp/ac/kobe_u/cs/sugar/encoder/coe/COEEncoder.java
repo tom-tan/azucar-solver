@@ -314,12 +314,14 @@ public class COEEncoder extends OEEncoder {
 		List<IntegerVariable> newVars = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			newVars.addAll(v.splitToDigits(csp));
+			final int lb = v.getDomain().getLowerBound();
 			final int ub = v.getDomain().getUpperBound();
 			final int m = v.getDigits().length;
 			if (m > 1 || ub <= Math.pow(bases[0], m)-1) {
-				final RCSPLiteral le = new OpXY(Operator.LE, v, ub);
-				final List<Clause> lst = le.toCCSP(csp, this);
-				newClauses.addAll(lst);
+				newClauses.addAll((new OpXY(Operator.LE, v, ub)).toCCSP(csp, this));
+			}
+			if (m > 1 && lb != 0) {
+				newClauses.addAll((new OpXY(Operator.GE, v, lb)).toCCSP(csp, this));
 			}
 		}
 		for (IntegerVariable v: newVars) {
