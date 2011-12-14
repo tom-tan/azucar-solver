@@ -143,7 +143,7 @@ public class COEEncoder extends OEEncoder {
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		for (int i=0; i<csp.getClauses().size(); i++) {
-			Clause c = csp.getClauses().get(i);
+			final Clause c = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			if (c.getArithmeticLiterals().size() == 0) {
 				c.setComment(c.toString());
@@ -234,14 +234,14 @@ public class COEEncoder extends OEEncoder {
 					int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
 					Operator op = ll.getOperator();
 					if (lsize > rsize) {
-						LinearSum tmp = lhs;
+						final LinearSum tmp = lhs;
 						lhs = rhs;
 						rhs = tmp;
 						switch(op) {
 						case LE: op = Operator.GE; break;
 						case GE: op = Operator.LE; break;
 						}
-						int tmpsize = lsize;
+						final int tmpsize = lsize;
 						lsize = rsize;
 						rsize = tmpsize;
 					}
@@ -331,7 +331,7 @@ public class COEEncoder extends OEEncoder {
 		newVars = null;
 
 		for (int i=0; i<csp.getClauses().size(); i++) {
-			Clause cls = csp.getClauses().get(i);
+			final Clause cls = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			if (cls.getArithmeticLiterals().size() == 0) {
 				newClauses.add(cls);
@@ -340,7 +340,7 @@ public class COEEncoder extends OEEncoder {
 
 				final List<Literal> simpleLiterals = new ArrayList<Literal>();
 				simpleLiterals.addAll(cls.getBooleanLiterals());
-				List<Clause> ccspClss = new ArrayList<Clause>();
+				final List<Clause> ccspClss = new ArrayList<Clause>();
 				for (ArithmeticLiteral al : cls.getArithmeticLiterals()) {
 					final RCSPLiteral ll = (RCSPLiteral)al;
 					final List<Clause> ccsp = ll.toCCSP(csp, this);
