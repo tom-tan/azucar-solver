@@ -67,6 +67,10 @@ public class IntegerDomain {
 		}
 	}
 
+	private IntegerDomain() {
+		domain = new TreeSet<Integer>();
+	}
+
 	public int size() {
 		if (domain == null) {
 			return lb <= ub ? ub - lb + 1 : 0;
@@ -113,7 +117,7 @@ public class IntegerDomain {
 		if (domain == null) {
 			lb = Math.max(this.lb, lb);
 			ub = Math.min(this.ub, ub);
-			return new IntegerDomain(lb, ub);
+			return lb > ub ? new IntegerDomain() : new IntegerDomain(lb, ub);
 		} else {
 			return new IntegerDomain(domain.subSet(lb, ub + 1));
 		}
@@ -171,7 +175,7 @@ public class IntegerDomain {
 
 	public IntegerDomain cap(IntegerDomain d1) throws SugarException {
 		if (d1.domain == null) {
-			return bound(d1.lb, d1.ub); 
+			return bound(d1.lb, d1.ub);
 		} else if (domain == null) {
 			return d1.bound(lb, ub);
 		} else {
