@@ -1,0 +1,39 @@
+#!/usr/bin/ruby
+# -*- coding: utf-8 -*-
+require 'optparse'
+
+XML2CSP = 'jp.ac.kobe_u.cs.sugar.XML2CSP'
+
+if $0 == __FILE__
+  outfile = '/dev/stdout'
+  verbose = false
+  jopt = ''
+  jar = File.dirname($0)+'/../bin/azucar-v0.0.0.jar'
+  opt = ARGV.options{ |o|
+    o.banner = "Usage: #{File.basename $0} [options] xml"
+    o.on('-o=VAL', "Output file name (Default: stdout)",
+         String) { |output| outfile = output }
+    o.on('--jopt=VAL', 'java option', String) { |opt|
+      jopt = opt
+    }
+    o.on('-v', 'verbose mode') { verbose = true }
+  }
+  opt.parse!
+  unless ARGV.length == 1
+    puts opt.help
+    exit
+  end
+
+  optline = verbose ? '-v' : ''
+  IO.popen("java -cp #{jar} #{jopt} #{XML2CSP} #{optline} #{ARGV.pop} #{outfile}") { |io|
+    str = io.gets
+    until str.nil?
+      if str.match /^c/
+        warn str
+      else
+        puts str
+      end
+      str = io.gets
+    end
+  }
+end
