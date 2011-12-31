@@ -250,9 +250,10 @@ public class OEEncoder extends Encoder {
 		IntegerVariable.setPrefix(AUX_PREFIX);
 		IntegerVariable.setIndex(0);
 
-		List<Clause> newClauses = new ArrayList<Clause>();
-		for (int i=0; i<csp.getClauses().size(); i++) {
-			Clause c = csp.getClauses().get(i);
+		final List<Clause> newClauses = new ArrayList<Clause>();
+		final int size = csp.getClauses().size();
+		for (int i=0; i<size; i++) {
+			final Clause c = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			if (c.size() == simpleSize(c)) {
 				newClauses.add(c);

@@ -173,8 +173,9 @@ public abstract class Encoder {
 		}
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
-		for (int i=0; i<csp.getClauses().size(); i++) {
-			Clause c = csp.getClauses().get(i);
+		final int size = csp.getClauses().size();
+		for (int i=0; i<size; i++) {
+			final Clause c = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			Clause newCls = null;
 			if(c.getArithmeticLiterals().isEmpty()) {
@@ -235,9 +236,10 @@ public abstract class Encoder {
 		BooleanVariable.setPrefix("S");
 		BooleanVariable.setIndex(0);
 		Logger.fine("Simplifing CSP by introducing new Boolean variables");
-		List<Clause> newClauses = new ArrayList<Clause>();
-		for (int i=0; i<csp.getClauses().size(); i++) {
-			Clause clause = csp.getClauses().get(i);
+		final List<Clause> newClauses = new ArrayList<Clause>();
+		final int size = csp.getClauses().size();
+		for (int i=0; i<size; i++) {
+			final Clause clause = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			if (clause.isValid()) {
 				// nop

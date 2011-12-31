@@ -97,9 +97,11 @@ public class COEEncoder extends OEEncoder {
 		Logger.fine("NeXY  (x!=y)  : " +OpXY.nNe);
 		Logger.fine("LeXY  (x<=y)  : " +OpXY.nLe);
 		simplify();
+		Logger.info("CSP : " + csp.summary());
 		// System.out.println("======== CSP =========\n"+csp);
 		toCCSP();
 		Logger.fine("Compact Order Encoding: Reduction finished");
+		Logger.info("CSP : " + csp.summary());
 		// System.out.println("======== CSP =========\n"+csp);
 	}
 
@@ -111,8 +113,9 @@ public class COEEncoder extends OEEncoder {
 		IntegerVariable.setIndex(0);
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
-		for (int i=0; i<csp.getClauses().size(); i++) {
-			Clause c = csp.getClauses().get(i);
+		final int size = csp.getClauses().size();
+		for (int i=0; i<size; i++) {
+			final Clause c = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			if (c.getArithmeticLiterals().size() == 0) {
 				newClauses.add(c);
@@ -142,7 +145,8 @@ public class COEEncoder extends OEEncoder {
 		IntegerVariable.setIndex(0);
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
-		for (int i=0; i<csp.getClauses().size(); i++) {
+		final int size = csp.getClauses().size();
+		for (int i=0; i<size; i++) {
 			final Clause c = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			if (c.getArithmeticLiterals().size() == 0) {
@@ -330,7 +334,8 @@ public class COEEncoder extends OEEncoder {
 		}
 		newVars = null;
 
-		for (int i=0; i<csp.getClauses().size(); i++) {
+		final int size = csp.getClauses().size();
+		for (int i=0; i<size; i++) {
 			final Clause cls = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
 			if (cls.getArithmeticLiterals().size() == 0) {
