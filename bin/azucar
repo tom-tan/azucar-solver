@@ -10,7 +10,7 @@ use IPC::Open2;
 #use strict;
 $| = 1;
 
-my $version = "v0.0.0";
+my $version = "v0.0.1";
 my $java = "java";
 my $jar = "/home/tomoya/azucar/bin/azucar-$version.jar";
 my $solver0 = "minisat";
