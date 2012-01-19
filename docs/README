@@ -1,24 +1,23 @@
 ================================================================
-README for Sugar version 1.14
+README for Azucar version 0.0.0
 
-Sugar: A SAT-based Constraint Solver
+Azucar: A SAT-based Constraint Solver
 
-http://bach.istc.kobe-u.ac.jp/sugar/
+http://code.google.com/p/azucar-solver/
 
 ================
 FEATURES
 
-Sugar can solve a finite linear Constraint Satisfaction Problem (CSP)
-or a Constraint Optimization Problem (COP) by encoding it into a
-Boolean Satisfiability Testing Problems (SAT) and solving the SAT
-problem by using an external SAT solver.
+Azucar can solve a finite linear Constraint Satisfaction Problem (CSP)
+by encoding it into a Boolean Satisfiability Testing Problems (SAT)
+and solving the SAT problem by using an external SAT solver.
 
-Sugar uses a new SAT-encoding method named "order encoding". In the
-order encoding, a comparison x <= a is encoded by a different Boolean
-variable for each integer variable x and integer value a. It is an
-extension of the encoding method proposed by Crawford and Baker for
-the Job-shop scheduling problems to the finite-domain linear CSP
-(Constrain Satisfaction Problems).
+Azucar uses a new SAT-encoding method named "compact order
+encoding". In the compact order encoding, each integer is represented
+by using a numeral system of any base, and each digit-wise comparison
+is encoded by using order encoding.  In the order encoding, a
+comparison x <= a is encoded by a different Boolean variable for each
+integer variable x and integer value a.
 
 ================
 REQUIREMENTS
@@ -32,6 +31,13 @@ REQUIREMENTS
   - PicoSAT version 535 (http://fmv.jku.at/picosat/)
   - RSat (http://reasoning.cs.ucla.edu/rsat/)
   - or any other SAT solver
+
+================
+BUILD
+
+$ cd bin
+$ make
+
 
 ================
 INSTALLATION
@@ -49,28 +55,22 @@ INSTALLATION
 ================
 USAGE
 
-CSPs (Constraint Satisfaction Problems) and COPs (Constraint
-Optimization Problems) can be solved by Sugar.
+CSPs (Constraint Satisfaction Problems) can be solved by Azucar.
 
-  $ sugar examples/nqueens-8.csp
+  $ azucar examples/nqueens-8.csp
 
-  $ sugar examples/golombRuler-8.csp
+See docs/syntax.html for the syntax of Azucar CSP description.
 
-See docs/syntax.html for the syntax of Sugar CSP description.
-
-Sugar can also solve CSPs and MAX-CSPs written in XCSP 2.1 format for
+Azucar can also solve CSPs written in XCSP 2.1 format for
 the 2008 CSP solver competition (see http://cpai.ucc.ie/08/).
 
-  $ sugar -competition instance.xml
-
-  $ sugar -competition -max instance.xml
+  $ azucar -competition instance.xml
 
 ================
 DETAILED DESCRIPTION
 
-SAT-encoder and decoder are written in Java.
-Perl script "sugar" uses Java programs and SAT solver in the following
-way.
+SAT-encoder and decoder are written in Java.  Perl script "azucar"
+uses Java programs and SAT solver in the following way.
 
 * The following temporal files are used.
 
@@ -81,11 +81,11 @@ way.
 
 * XCSP to CSP conversion
 
-  $ java -cp sugar-v1-14.jar jp.ac.kobe_u.cs.sugar.XML2CSP file.xml file.csp
+  $ java -cp azucar-v0.0.0.jar jp.ac.kobe_u.cs.sugar.XML2CSP file.xml file.csp
 
 * Encoding CSP to SAT
 
-  $ java -jar sugar-v1-14.jar -encode file.csp file.cnf file.map
+  $ java -jar azucar-v0.0.0.jar -encode file.csp file.cnf file.map
 
 * Solving SAT
 
@@ -93,7 +93,7 @@ way.
 
 * Decoding SAT output
 
-  $ java -jar sugar-v1-14.jar [-competition] -decode file.out file.map
+  $ java -jar azucar-v0.0.0.jar [-competition] -decode file.out file.map
 
 ================
 LIMITATIONS AND KNOWN BUGS
@@ -103,11 +103,11 @@ LIMITATIONS AND KNOWN BUGS
 
 * Power functions are not supported.
 
-* CSPs with large domains (e.g. 10,000) will be encoded into very large
-  SAT files, and might not be solved by a SAT solver.
-       The size of generated SAT file is proportional to the square of
-  the domain size in most of the cases.  A very large SAT file (e.g. 
-  1GB) might not be solved by most of the SAT solvers.
+* CSPs with large domains (e.g. 10,000) will be encoded into very
+  large SAT files, and might not be solved by a SAT solver.  The size
+  of generated SAT file is proportional to the square of the domain
+  size in most of the cases.  A very large SAT file (e.g.  1GB) might
+  not be solved by most of the SAT solvers.
 
 ================
 PUBLICATIONS
@@ -129,10 +129,25 @@ PUBLICATIONS
   in Proceedings of the Second International CSP Solver Competition,
   pp.65--69, 2008.
 
+* Tomoya Tanjo, Naoyuki Tamura, Mutsunori Banbara:
+  Towards a Compact and Efficient SAT-Encoding of Finite Linear CSP,
+  The 9th International Workshop on Constraint Modelling and Reformulation (ModRef 2010),
+  2010.
+
+* Tomoya Tanjo, Naoyuki Tamura, Mutsunori Banbara:
+  A Compact and Efficient SAT-Encoding of Finite Domain CSP,
+  in Proceedings of the Fourteenth International Conference on Theory and Applications of Satisfiability Testing (SAT 2011), LNCS 6695,
+  pp.375-376, 2011.
+
+* Tomoya Tanjo, Naoyuki Tamura, Mutsunori Banbara:
+  Proposal of a compact and efficient SAT encoding using a numeral system of any base,
+  The First International Workshop on the Cross-Fertilization Between CSP and SAT (CSPSAT 2011),
+  2011.
+
 ================
 LICENSE
 
-This version of the Sugar software is distributed under the BSD
+This version of the Azucar software is distributed under the BSD
 license (http://www.opensource.org/licenses/bsd-license.php).
 
 See LICENSE file for more details.
@@ -140,9 +155,9 @@ See LICENSE file for more details.
 ================
 CONTACTS
 
-Naoyuki Tamura, Tomoya Tanjo, and Mutsunori Banbara
+Tomoya Tanjo, Naoyuki Tamura, and Mutsunori Banbara
 Information Science and Technology Center, Kobe University
 1-1 Rokkodai, Nada, Kobe 657-8501 Japan
-E-mail: tamura @ kobe-u.ac.jp, banbara @ kobe-u.ac.jp
+E-mail: tanjo @ stu.kobe-u.ac.jp, tamura @ kobe-u.ac.jp, banbara @ kobe-u.ac.jp
 
 ================================================================
