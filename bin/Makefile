@@ -26,7 +26,7 @@ all: javac jar # javadoc zip
 
 javac:
 	mkdir -p ../classes
-	javac -sourcepath ../src -d ../classes \
+	javac -source 5 -sourcepath ../src -d ../classes \
 		../src/jp/ac/kobe_u/cs/sugar/*.java \
 		../src/jp/ac/kobe_u/cs/sugar/*/*.java
 
