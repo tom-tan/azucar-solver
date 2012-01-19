@@ -1,18 +1,19 @@
 #!/usr/bin/perl
 ##
 ## This program is a part of Azucar software package (a SAT-based Constraint Solver).
-## http;//bach.istc.kobe-u.ac.jp/sugar/
-## (C) Naoyuki Tamura, Tomoya Tanjo, and Mutsunori Banbara
+## https://code.google.com/p/azucar-solver/
+## (C) Tomoya Tanjo, Naoyuki Tamura and Mutsunori Banbara
 ##
 use Getopt::Long;
 use FileHandle;
+use File::Basename;
 use IPC::Open2;
-#use strict;
+# use strict;
 $| = 1;
 
 my $version = "v0.0.1";
 my $java = "java";
-my $jar = "/home/tomoya/azucar/bin/azucar-$version.jar";
+my $jar = dirname($0)."/azucar-$version.jar";
 my $solver0 = "minisat";
 my $solver0_inc = "minisat-inc";
 my $tmp = "/tmp/azucar$$";
