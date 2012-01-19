@@ -1,42 +1,7 @@
 ================================================================
-Changes with Sugar version 1.14
+Changes with Azucar version 0.0.1
 
-* UTF-8 code support for CSP files
-
-* Incremental search mode for optimization problems
-
-* Show values of bool variables
-
-* Debug option is added
-
-* Following global constraints are added
-  - disjunctive
-  - lex_less
-  - lex_lesseq
-  - nvalue
-  - global_cardinality
-  - global_cardinality_with_costs
-  - count
-
-* Performance improvements
-  - Expressions are encoded from smaller domain size variables
-  - Smaller domain expressions are directly encoded withou introducing
-    new variables
-
-================================================================
-Changes with Sugar version 1.13
-
-* Global constraint "allDifferent" is renamed to "alldifferent".
-
-* Global constraint "weightedSum" is renamed to "weightedsum".
-
-* "alldifferent" constraint is modified to accept a single list
-  argument.
-  Both "(alldifferent x1 x2 x3)" and "(alldifferent (x1 x2 x3))"
-  can be used.
-
-* Maximization is supported.
-
-* Bug fix for picosat support.
+* Update README.
+* Minor bug fix.
 
 ================================================================

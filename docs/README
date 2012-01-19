@@ -1,5 +1,5 @@
 ================================================================
-README for Azucar version 0.0.0
+README for Azucar version 0.0.1
 
 Azucar: A SAT-based Constraint Solver
 
@@ -38,17 +38,16 @@ BUILD
 $ cd bin
 $ make
 
-
 ================
 INSTALLATION
 
 * Unzip the downloaded zip package.
 
-* Modify the following variable settings of "bin/sugar" to meet your
+* Modify the following variable settings of "bin/azucar" to meet your
   execution environment.
 
   - $java   : Java command path
-  - $jar    : Full path of the sugar-v1-14.jar file in the same directory
+  - $jar    : Full path of the azucar-v0.0.1.jar file in the same directory
   - $solver : Path of the SAT solver (e.g. MiniSat)
   - $tmp    : Path prefix for temporally created files
 
@@ -81,11 +80,17 @@ uses Java programs and SAT solver in the following way.
 
 * XCSP to CSP conversion
 
-  $ java -cp azucar-v0.0.0.jar jp.ac.kobe_u.cs.sugar.XML2CSP file.xml file.csp
+  $ java -cp azucar-v0.0.1.jar jp.ac.kobe_u.cs.sugar.XML2CSP file.xml file.csp
+
+  or
+
+  $ tools/xml2csp file.xml -o file.csp
+
+  tools/xml2csp requires Ruby 1.8 or later.
 
 * Encoding CSP to SAT
 
-  $ java -jar azucar-v0.0.0.jar -encode file.csp file.cnf file.map
+  $ java -jar azucar-v0.0.1.jar -encode file.csp file.cnf file.map
 
 * Solving SAT
 
@@ -93,7 +98,15 @@ uses Java programs and SAT solver in the following way.
 
 * Decoding SAT output
 
-  $ java -jar azucar-v0.0.0.jar [-competition] -decode file.out file.map
+  $ java -jar azucar-v0.0.1.jar [-competition] -decode file.out file.map
+
+* By default, Azucar divides each integer into two digits.
+  For larger domain CSPs (e.g. over 1,000,000), it might be better to
+  divide each integer into over two digits by using -m option such as:
+
+  $ azucar -m 4 instance.xml
+
+  In this case, Azucar divides each integer into four digits.
 
 ================
 LIMITATIONS AND KNOWN BUGS
@@ -103,18 +116,12 @@ LIMITATIONS AND KNOWN BUGS
 
 * Power functions are not supported.
 
-* CSPs with large domains (e.g. 10,000) will be encoded into very
-  large SAT files, and might not be solved by a SAT solver.  The size
-  of generated SAT file is proportional to the square of the domain
-  size in most of the cases.  A very large SAT file (e.g.  1GB) might
-  not be solved by most of the SAT solvers.
-
 ================
 PUBLICATIONS
 
 * Naoyuki Tamura, Akiko Taga, Satoshi Kitagawa, Mutsunori Banbara:
   Compiling Finite Linear CSP into SAT,
-  Constraints, Volume 14, Number 2, pp.254--272, June, 2009.
+  Constraints, Volume 14, Number 2, pp.254-272, June, 2009.
   DOI 10.1007/s10601-008-9061-0 (Open Access, You can freely download the paper)
   http://springer.r.delivery.net/r/r?2.1.Ee.2Tp.1gRdFJ.BxsAdG..N.HAQa.38pS.CLWEcC00
 
@@ -127,22 +134,25 @@ PUBLICATIONS
 * Naoyuki Tamura and Mutsunori Banbara:
   Sugar: A CSP to SAT Translator Based on Order Encoding,
   in Proceedings of the Second International CSP Solver Competition,
-  pp.65--69, 2008.
+  pp.65-69, 2008.
 
 * Tomoya Tanjo, Naoyuki Tamura, Mutsunori Banbara:
   Towards a Compact and Efficient SAT-Encoding of Finite Linear CSP,
   The 9th International Workshop on Constraint Modelling and Reformulation (ModRef 2010),
   2010.
+  http://www.it.uu.se/research/group/astra/ModRef10/papers/Tomoya%20Tanjo,%20Naoyuki%20Tamura%20and%20Mutsunori%20Banbara.%20Towards%20a%20Compact%20and%20Efficient%20SAT-encoding%20of%20Finite%20Linear%20CSP%20-%20ModRef%202010.pdf
 
 * Tomoya Tanjo, Naoyuki Tamura, Mutsunori Banbara:
   A Compact and Efficient SAT-Encoding of Finite Domain CSP,
-  in Proceedings of the Fourteenth International Conference on Theory and Applications of Satisfiability Testing (SAT 2011), LNCS 6695,
+  in Proceedings of the Fourteenth International Conference on Theory and
+  Applications of Satisfiability Testing (SAT 2011), LNCS 6695,
   pp.375-376, 2011.
 
 * Tomoya Tanjo, Naoyuki Tamura, Mutsunori Banbara:
   Proposal of a compact and efficient SAT encoding using a numeral system of any base,
   The First International Workshop on the Cross-Fertilization Between CSP and SAT (CSPSAT 2011),
   2011.
+  http://sysrun.haifa.il.ibm.com/hrl/cspsat2011/papers/tanjo_tamura_banbara%20.pdf
 
 ================
 LICENSE
