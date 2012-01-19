@@ -20,9 +20,10 @@ JAVADOC  = javadoc -locale en_US \
 	-bottom '<address><a href="$(WEBPAGE)">$(WEBTITLE)</a></address>' \
 	-link http://java.sun.com/javase/6/docs/api \
 	-classpath ../classes -sourcepath ../src -subpackages $(PACKAGE) \
-	-public -d ../docs/api
+	-public -d ../docs/api \
+	-source 5
 
-all: javac jar # javadoc zip
+all: javac jar zip # javadoc
 
 javac:
 	mkdir -p ../classes
