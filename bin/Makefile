@@ -27,7 +27,8 @@ all: javac jar zip # javadoc
 
 javac:
 	mkdir -p ../classes
-	javac -source 5 -sourcepath ../src -d ../classes \
+	javac -source 5 -Xlint:unchecked \
+		-sourcepath ../src -d ../classes \
 		../src/jp/ac/kobe_u/cs/sugar/*.java \
 		../src/jp/ac/kobe_u/cs/sugar/*/*.java
 

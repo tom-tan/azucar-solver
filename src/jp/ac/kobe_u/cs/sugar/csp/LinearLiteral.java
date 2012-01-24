@@ -51,8 +51,6 @@ public class LinearLiteral extends ArithmeticLiteral {
 
 	/*
 	 * Returns (int)Math.ceil((double)b/a)
-	 * BUG: b か a が Integer.(MIN/MAX)_VALUE
-	 * に近い時には間違った値を返す．
 	 */
 	static private int divceil(int b, int a) {
 		if ((a >= 0 && b >= 0) ||
@@ -67,9 +65,6 @@ public class LinearLiteral extends ArithmeticLiteral {
 
 	/*
 	 * Returns (int)Math.floor((double)b/a)
-	 * int -> double, double -> int のコストがかなり高い?
-	 * BUG: b か a が Integer.(MIN/MAX)_VALUE
-	 * に近い時には間違った値を返す．
 	 */
 	static private int divfloor(int b, int a) {
 		if (a >= 0 && b >= 0) {
@@ -82,26 +77,6 @@ public class LinearLiteral extends ArithmeticLiteral {
 			return (-b+a+1)/-a;
 		}
 	}
-
-	// static{
-	// 	int min = -100000000;
-	// 	int max = -100000000;
-	// 	for (int a = min ; a != max; a++) {
-	// 		for (int b = min; b != max; b++) {
-	// 			if (a != 0) {
-	// 				try{
-	// 					assert((int)Math.ceil((double)b/a) == divceil(b, a));
-	// 					assert((int)Math.floor((double)b/a) == divfloor(b, a));
-	// 				}catch(AssertionError e) {
-	// 					System.err.println("(b, a) = "+b +", "+ a);
-	// 					System.err.println("(ceil, divceil) = "+(int)Math.ceil((double)b/a)+" "+divceil(b, a));
-	// 					System.err.println("(floor, divfloor) = "+(int)Math.floor((double)b/a)+" "+divfloor(b, a));
-	// 					throw e;
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
 
 	@Override
 	public int[] getBound(IntegerVariable v) throws SugarException {

@@ -262,6 +262,25 @@ public class Converter {
 		csp.add(c);
 	}
 
+	private void convertMUL(Sequence x) throws SugarException {
+		assert x.isSequence(Expression.EQ);
+		checkArity(x, 2);
+		final Atom lhsExp = (Atom)x.get(1);
+		final Sequence mulExp = (Sequence)x.get(2);
+		if (!mulExp.isSequence(Expression.MUL))
+			syntaxError(x);
+		checkArity(mulExp, 2);
+		final Atom rhsExp1 = (Atom)mulExp.get(1);
+		final Atom rhsExp2 = (Atom)mulExp.get(2);
+
+		final IntegerVariable lhs = intMap.get(lhsExp.stringValue());
+		final IntegerVariable rhs1 = intMap.get(rhsExp1.stringValue());
+		final IntegerVariable rhs2 = intMap.get(rhsExp2.stringValue());
+		final Clause c = new Clause();
+		c.add(new ProductLiteral(lhs, rhs1, rhs2));
+		csp.add(c);
+	}
+
 	private void convertExpression(Expression x) throws SugarException {
 		if (x.isSequence(Expression.INT_DEFINITION)) {
 			convertIntDefinition((Sequence)x);
@@ -271,6 +290,9 @@ public class Converter {
 			convertObjectiveDefinition((Sequence)x);
 		} else if (x.isSequence(Expression.OR)) {
 			convertClause((Sequence)x);
+		} else {
+			assert x.isSequence(Expression.EQ);
+			convertMUL((Sequence)x);
 		}
 	}
 

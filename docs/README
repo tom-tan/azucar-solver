@@ -111,9 +111,6 @@ uses Java programs and SAT solver in the following way.
 ================
 LIMITATIONS AND KNOWN BUGS
 
-* Multiplications (also divisions and remainders) for two integer
-  variables can not be encoded.
-
 * Power functions are not supported.
 
 ================
