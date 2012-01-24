@@ -8,7 +8,7 @@ if $0 == __FILE__
   outfile = '/dev/stdout'
   verbose = false
   jopt = ''
-  jar = File.dirname($0)+'/../bin/azucar-v0.0.1.jar'
+  jar = File.dirname($0)+'/../bin/azucar-v0.1.0.jar'
   opt = ARGV.options{ |o|
     o.banner = "Usage: #{File.basename $0} [options] xml"
     o.on('-o=VAL', "Output file name (Default: stdout)",

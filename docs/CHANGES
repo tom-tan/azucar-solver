@@ -1,4 +1,9 @@
 ================================================================
+Changes with Azucar version 0.1.0
+
+* Add support for multiplications for two integer variables.
+
+================================================================
 Changes with Azucar version 0.0.1
 
 * Update README.
