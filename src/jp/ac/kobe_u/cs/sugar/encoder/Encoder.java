@@ -25,6 +25,7 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
 import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
+import jp.ac.kobe_u.cs.sugar.csp.ProductLiteral;
 
 /**
  * Encoder encodes CSP into SAT.
@@ -185,13 +186,18 @@ public abstract class Encoder {
 				newCls.setComment(c.getComment());
 
 				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
-					final LinearLiteral ll = (LinearLiteral)lit;
-					final LinearSum ls = ll.getLinearExpression();
-					for (Entry<IntegerVariable, Integer> es :
-								 ls.getCoef().entrySet()) {
-						ls.setB(ls.getB()+es.getKey().getOffset()*es.getValue());
+					if (lit instanceof LinearLiteral) {
+						final LinearLiteral ll = (LinearLiteral)lit;
+						final LinearSum ls = ll.getLinearExpression();
+						for (Entry<IntegerVariable, Integer> es :
+									 ls.getCoef().entrySet()) {
+							ls.setB(ls.getB()+es.getKey().getOffset()*es.getValue());
+						}
+						newCls.add(new LinearLiteral(ls, ll.getOperator()));
+					} else {
+						assert lit instanceof ProductLiteral;
+						newCls.add(lit);
 					}
-					newCls.add(new LinearLiteral(ls, ll.getOperator()));
 				}
 			}
 			assert newCls != null;

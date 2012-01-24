@@ -72,7 +72,7 @@ public class LinearSum {
 	}
 
 	public boolean isIntegerVariable() {
-		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;  
+		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;
 	}
 
 	public Integer getA(IntegerVariable v) {

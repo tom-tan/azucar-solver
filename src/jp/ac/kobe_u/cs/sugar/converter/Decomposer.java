@@ -353,24 +353,43 @@ public class Decomposer {
 			e1.multiply(d2.getLowerBound());
 			return e1;
 		} else if (d1.size() <= d2.size()) {
-			// 変数同士の乗算に対応するにはこの辺りをいじる．
-			// e1 と e2 を変数に置き換える
-			// final IntegerDomain newDom = d1.mul(d2);
-			// final Expression mulExp = e1.mul
-			// Atom newInt = newIntegerVariable(newDom, x1.mul(x2));
-			// newInt.eq(x1.mul(x2));
-			// return newInt;
-			Expression x = null;
-			Iterator<Integer> iter = d1.values();
-			while (iter.hasNext()) {
-				int a1 = iter.next();
-				if (x == null) {
-					x = x2.mul(a1);
-				} else {
-					x = (x1.ge(a1)).ifThenElse(x2.mul(a1), x);
-				}
+			Atom a1 = null;
+			if (x1.isAtom()) {
+				a1 = (Atom)x1;
+			} else {
+				a1 = newIntegerVariable(d1, x1);
+				final Expression eq = a1.eq(x1);
+				decomposeConstraint(eq);
+				addEquivalence(a1, x1);
 			}
-			return decomposeIF((Sequence)x);
+
+			Atom a2 = null;
+			if (x2.isAtom()) {
+				a2 = (Atom)x2;
+			} else {
+				a2 = newIntegerVariable(d2, x2);
+				final Expression eq = a2.eq(x2);
+				decomposeConstraint(eq);
+				addEquivalence(a2, x2);
+			}
+
+			final IntegerDomain newDom = d1.mul(d2);
+			final Atom newInt = newIntegerVariable(newDom, a1.mul(a2));
+			final Expression mul = newInt.eq(a1.mul(a2));
+			decomposed.add(mul);
+			return new LinearExpression(newInt);
+
+			// Expression x = null;
+			// Iterator<Integer> iter = d1.values();
+			// while (iter.hasNext()) {
+			// 	int a1 = iter.next();
+			// 	if (x == null) {
+			// 		x = x2.mul(a1);
+			// 	} else {
+			// 		x = (x1.ge(a1)).ifThenElse(x2.mul(a1), x);
+			// 	}
+			// }
+			// return decomposeIF((Sequence)x);
 		} else {
 			return decomposeMUL((Sequence)x2.mul(x1));
 		}

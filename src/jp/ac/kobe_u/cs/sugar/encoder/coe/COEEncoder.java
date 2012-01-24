@@ -19,6 +19,7 @@ import jp.ac.kobe_u.cs.sugar.csp.LinearLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
 import jp.ac.kobe_u.cs.sugar.csp.Literal;
 import jp.ac.kobe_u.cs.sugar.csp.Operator;
+import jp.ac.kobe_u.cs.sugar.csp.ProductLiteral;
 import jp.ac.kobe_u.cs.sugar.encoder.Encoder;
 import jp.ac.kobe_u.cs.sugar.encoder.oe.OEEncoder;
 
@@ -123,13 +124,18 @@ public class COEEncoder extends OEEncoder {
 				final Clause cls = new Clause(c.getBooleanLiterals());
 				cls.setComment(c.getComment());
 				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
-					final LinearLiteral ll = (LinearLiteral)lit;
-					if (ll.getLinearExpression().size() <= 3) {
-						cls.add(ll);
-						continue;
+					if (lit instanceof LinearLiteral) {
+						final LinearLiteral ll = (LinearLiteral)lit;
+						if (ll.getLinearExpression().size() <= 3) {
+							cls.add(ll);
+							continue;
+						}
+						final LinearSum ls = simplifyLinearExpression(ll.getLinearExpression(), newClauses);
+						cls.add(new LinearLiteral(ls, ll.getOperator()));
+					} else {
+						assert lit instanceof ProductLiteral;
+						cls.add(lit);
 					}
-					final LinearSum ls = simplifyLinearExpression(ll.getLinearExpression(), newClauses);
-					cls.add(new LinearLiteral(ls, ll.getOperator()));
 				}
 				newClauses.add(cls);
 			}
@@ -161,145 +167,151 @@ public class COEEncoder extends OEEncoder {
 				}
 
 				for (ArithmeticLiteral al: c.getArithmeticLiterals()) {
-					final LinearLiteral ll = (LinearLiteral)al;
-					final LinearSum ls = ll.getLinearExpression();
-					if (ll.getOperator() == Operator.EQ
-							&& ls.size() == 2 && ls.getB() == 0) {
-						// Special case: ax-by == 0
-						final IntegerVariable v1 = ls.getCoef().firstKey();
-						final IntegerVariable v2 = ls.getCoef().lastKey();
-						final int c1 = ls.getA(v1);
-						final int c2 = ls.getA(v2);
-						if (c1*c2 < 0) {
-							IntegerVariable lhs = Math.abs(c1)<Math.abs(c2) ? v1 : v2;
-							final IntegerVariable rhs = Math.abs(c1)<Math.abs(c2) ? v2 : v1;
-							final int lc = Math.abs(ls.getA(lhs));
-							final int rc = Math.abs(ls.getA(rhs));
-							if (lc > 1) {
-								// av == lc*lhs
-								final IntegerDomain dom = lhs.getDomain().mul(lc);
-								final IntegerVariable av = new IntegerVariable(dom);
-								csp.add(av);
-								final Literal lit = new EqMul(av, lc, lhs);
-								newClauses.add(new Clause(lit));
-								lhs = av;
+					if (al instanceof LinearLiteral) {
+						final LinearLiteral ll = (LinearLiteral)al;
+						final LinearSum ls = ll.getLinearExpression();
+						if (ll.getOperator() == Operator.EQ
+								&& ls.size() == 2 && ls.getB() == 0) {
+							// Special case: ax-by == 0
+							final IntegerVariable v1 = ls.getCoef().firstKey();
+							final IntegerVariable v2 = ls.getCoef().lastKey();
+							final int c1 = ls.getA(v1);
+							final int c2 = ls.getA(v2);
+							if (c1*c2 < 0) {
+								IntegerVariable lhs = Math.abs(c1)<Math.abs(c2) ? v1 : v2;
+								final IntegerVariable rhs = Math.abs(c1)<Math.abs(c2) ? v2 : v1;
+								final int lc = Math.abs(ls.getA(lhs));
+								final int rc = Math.abs(ls.getA(rhs));
+								if (lc > 1) {
+									// av == lc*lhs
+									final IntegerDomain dom = lhs.getDomain().mul(lc);
+									final IntegerVariable av = new IntegerVariable(dom);
+									csp.add(av);
+									final Literal lit = new EqMul(av, lc, lhs);
+									newClauses.add(new Clause(lit));
+									lhs = av;
+								}
+								cls.add(rc == 1 ? new OpXY(Operator.EQ, lhs, rhs) :
+												new EqMul(lhs, rc, rhs));
+								continue;
 							}
-							cls.add(rc == 1 ? new OpXY(Operator.EQ, lhs, rhs) :
-											new EqMul(lhs, rc, rhs));
-							continue;
+						} else if (ll.getOperator() == Operator.EQ && ls.size() == 1) {
+							// Special case: ax-b = 0
+							final IntegerVariable x = ls.getCoef().firstKey();
+							int a = ls.getA(x);
+							int b = ls.getB();
+							if (a*b <= 0) {
+								a = Math.abs(a);
+								b = Math.abs(b);
+								cls.add(a == 1 ? new OpXY(Operator.EQ, x, b) :
+												new EqMul(b, a, x));
+								continue;
+							}
 						}
-					} else if (ll.getOperator() == Operator.EQ && ls.size() == 1) {
-						// Special case: ax-b = 0
-						final IntegerVariable x = ls.getCoef().firstKey();
-						int a = ls.getA(x);
-						int b = ls.getB();
-						if (a*b <= 0) {
+						LinearSum lhs, rhs;
+						if (ls.getB() > 0) {
+							lhs = new LinearSum(ls.getB());
+							rhs = new LinearSum(0);
+						} else {
+							lhs = new LinearSum(0);
+							rhs = new LinearSum(-ls.getB());
+						}
+						for (Entry<IntegerVariable, Integer> es :
+									 ls.getCoef().entrySet()) {
+							int a = es.getValue();
+							final IntegerVariable v = es.getKey();
+							if (a == 1) {
+								lhs.setA(1, v);
+								continue;
+							} else if (a == -1) {
+								rhs.setA(1, v);
+								continue;
+							}
 							a = Math.abs(a);
-							b = Math.abs(b);
-							cls.add(a == 1 ? new OpXY(Operator.EQ, x, b) :
-											new EqMul(b, a, x));
-							continue;
+							assert v.getDomain().getLowerBound() == 0;
+							final IntegerDomain dom = v.getDomain().mul(a);
+							final IntegerVariable av = new IntegerVariable(dom);
+							csp.add(av);
+							final Literal lit = new EqMul(av, a, v);
+							newClauses.add(new Clause(lit));
+							if (es.getValue() > 0) {
+								lhs.add(new LinearSum(av));
+							} else {
+								rhs.add(new LinearSum(av));
+							}
 						}
-					}
-					LinearSum lhs, rhs;
-					if (ls.getB() > 0) {
-						lhs = new LinearSum(ls.getB());
-						rhs = new LinearSum(0);
+
+						int lsize = lhs.size() + (lhs.getB() == 0 ? 0 : 1);
+						int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
+						Operator op = ll.getOperator();
+						if (lsize > rsize) {
+							final LinearSum tmp = lhs;
+							lhs = rhs;
+							rhs = tmp;
+							switch(op) {
+							case LE: op = Operator.GE; break;
+							case GE: op = Operator.LE; break;
+							}
+							final int tmpsize = lsize;
+							lsize = rsize;
+							rsize = tmpsize;
+						}
+						assert lsize <= rsize;
+						assert lsize <= 2;
+						assert rsize <= 4;
+
+						if (rsize >= 3) {
+							rhs = simplifyForRCSP(rhs, newClauses, 2);
+						} else if (rsize == 2 && lsize == 2) {
+							if (rhs.getB() == 0) {
+								rhs = simplifyForRCSP(rhs, newClauses, 1);
+							} else {
+								final IntegerDomain dom = new IntegerDomain(0, rhs.getDomain().getUpperBound());
+								final List<IntegerHolder> rh = getHolders(rhs);
+								final IntegerVariable ax = new IntegerVariable(dom);
+								csp.add(ax);
+								final Literal geB = new OpXY(Operator.GE, ax, rhs.getB());
+								newClauses.add(new Clause(geB));
+								final Literal eqadd = new OpAdd(Operator.EQ, ax, rh.get(0),
+																								rh.get(1));
+								newClauses.add(new Clause(eqadd));
+								rhs = new LinearSum(ax);
+							}
+						}
+
+						final List<IntegerHolder> lh = getHolders(lhs);
+						final List<IntegerHolder> rh = getHolders(rhs);
+						assert lh.size()+rh.size() <= 3;
+
+						Literal lit = null;
+						if (lh.size() == 1 && rh.size() == 1) {
+							lit = new OpXY(op, lh.get(0), rh.get(0));
+
+						} else if (lh.size() == 1 && rh.size() == 2) {
+							lit = new OpAdd(op, lh.get(0), rh.get(0), rh.get(1));
+
+						} else if (lh.size() == 2 && rh.size() == 1) {
+							switch(op) {
+							case LE:
+								lit = new OpAdd(Operator.GE, rh.get(0),
+																lh.get(0), lh.get(1));
+								break;
+							case GE:
+								lit = new OpAdd(Operator.LE, rh.get(0),
+																lh.get(0), lh.get(1));
+								break;
+							default:
+								lit = new OpAdd(op, rh.get(0),
+																lh.get(0), lh.get(1));
+								break;
+							}
+						}
+						cls.add(lit);
 					} else {
-						lhs = new LinearSum(0);
-						rhs = new LinearSum(-ls.getB());
+						assert al instanceof ProductLiteral;
+						final ProductLiteral pl = (ProductLiteral)al;
+						cls.add(new EqMul(pl.getV(), pl.getV1(), pl.getV2()));
 					}
-					for (Entry<IntegerVariable, Integer> es :
-								 ls.getCoef().entrySet()) {
-						int a = es.getValue();
-						final IntegerVariable v = es.getKey();
-						if (a == 1) {
-							lhs.setA(1, v);
-							continue;
-						} else if (a == -1) {
-							rhs.setA(1, v);
-							continue;
-						}
-						a = Math.abs(a);
-						assert v.getDomain().getLowerBound() == 0;
-						final IntegerDomain dom = v.getDomain().mul(a);
-						final IntegerVariable av = new IntegerVariable(dom);
-						csp.add(av);
-						final Literal lit = new EqMul(av, a, v);
-						newClauses.add(new Clause(lit));
-						if (es.getValue() > 0) {
-							lhs.add(new LinearSum(av));
-						} else {
-							rhs.add(new LinearSum(av));
-						}
-					}
-
-					int lsize = lhs.size() + (lhs.getB() == 0 ? 0 : 1);
-					int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
-					Operator op = ll.getOperator();
-					if (lsize > rsize) {
-						final LinearSum tmp = lhs;
-						lhs = rhs;
-						rhs = tmp;
-						switch(op) {
-						case LE: op = Operator.GE; break;
-						case GE: op = Operator.LE; break;
-						}
-						final int tmpsize = lsize;
-						lsize = rsize;
-						rsize = tmpsize;
-					}
-					assert lsize <= rsize;
-					assert lsize <= 2;
-					assert rsize <= 4;
-
-					if (rsize >= 3) {
-						rhs = simplifyForRCSP(rhs, newClauses, 2);
-					} else if (rsize == 2 && lsize == 2) {
-						if (rhs.getB() == 0) {
-							rhs = simplifyForRCSP(rhs, newClauses, 1);
-						} else {
-							final IntegerDomain dom = new IntegerDomain(0, rhs.getDomain().getUpperBound());
-							final List<IntegerHolder> rh = getHolders(rhs);
-							final IntegerVariable ax = new IntegerVariable(dom);
-							csp.add(ax);
-							final Literal geB = new OpXY(Operator.GE, ax, rhs.getB());
-							newClauses.add(new Clause(geB));
-							final Literal eqadd = new OpAdd(Operator.EQ, ax, rh.get(0),
-																							rh.get(1));
-							newClauses.add(new Clause(eqadd));
-							rhs = new LinearSum(ax);
-						}
-					}
-
-					final List<IntegerHolder> lh = getHolders(lhs);
-					final List<IntegerHolder> rh = getHolders(rhs);
-					assert lh.size()+rh.size() <= 3;
-
-					Literal lit = null;
-					if (lh.size() == 1 && rh.size() == 1) {
-						lit = new OpXY(op, lh.get(0), rh.get(0));
-
-					} else if (lh.size() == 1 && rh.size() == 2) {
-						lit = new OpAdd(op, lh.get(0), rh.get(0), rh.get(1));
-
-					} else if (lh.size() == 2 && rh.size() == 1) {
-						switch(op) {
-						case LE:
-							lit = new OpAdd(Operator.GE, rh.get(0),
-															lh.get(0), lh.get(1));
-							break;
-						case GE:
-							lit = new OpAdd(Operator.LE, rh.get(0),
-															lh.get(0), lh.get(1));
-							break;
-						default:
-							lit = new OpAdd(op, rh.get(0),
-															lh.get(0), lh.get(1));
-							break;
-						}
-					}
-					cls.add(lit);
 				}
 				newClauses.add(cls);
 			}
