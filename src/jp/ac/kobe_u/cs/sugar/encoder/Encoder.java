@@ -30,7 +30,7 @@ import jp.ac.kobe_u.cs.sugar.csp.ProductLiteral;
 /**
  * Encoder encodes CSP into SAT.
  * @see CSP 
- * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
+ * @author Tomoya Tanjo (tanjo@stu.kobe-u.ac.jp)
  */
 public abstract class Encoder {
 	public static boolean simplifyAll = true;
@@ -196,7 +196,33 @@ public abstract class Encoder {
 						newCls.add(new LinearLiteral(ls, ll.getOperator()));
 					} else {
 						assert lit instanceof ProductLiteral;
-						newCls.add(lit);
+						final IntegerVariable z = ((ProductLiteral)lit).getV();
+						final IntegerVariable x = ((ProductLiteral)lit).getV1();
+						final IntegerVariable y = ((ProductLiteral)lit).getV2();
+						final int zoffset = z.getOffset();
+						final int xoffset = x.getOffset();
+						final int yoffset = y.getOffset();
+						if (zoffset == 0 && xoffset == 0 && yoffset == 0) {
+							newCls.add(lit);
+						} else {
+							/*
+								(z+zoffset) = (x+xoffset)(y+yoffset)
+								z = p+yoffset*x+xoffset*y+xoffset*yoffset-zoffset
+								--> -z + p + yoffset*x + xoffset*y + xoffset*yoffset-zoffset = 0
+								p = xy --> p=xy
+							*/
+							final IntegerDomain xdom = x.getDomain();
+							final IntegerDomain ydom = y.getDomain();
+							final LinearSum ls = new LinearSum(xoffset*yoffset-zoffset);
+							ls.setA(-1, z);
+							final IntegerVariable p = new IntegerVariable(new IntegerDomain(0, xdom.mul(ydom).getUpperBound()));
+							csp.add(p);
+							ls.setA(1, p);
+							ls.setA(yoffset, x);
+							ls.setA(xoffset, y);
+							newCls.add(new LinearLiteral(ls, Operator.EQ));
+							newClauses.add(new Clause(new ProductLiteral(p, x, y)));
+						}
 					}
 				}
 			}
@@ -322,7 +348,6 @@ public abstract class Encoder {
 			mapWriter.write('\n');
 		}
 		if (csp.getObjectiveVariable() != null) {
-			// muli-objective にするには変更が必要
 			String s = "objective ";
 			if (csp.getObjective().equals(CSP.Objective.MINIMIZE)) {
 				s += SugarConstants.MINIMIZE;
@@ -344,7 +369,6 @@ public abstract class Encoder {
 				}
 				mapWriter.write(sb.toString());
 				mapWriter.write('\n');
-				// bigints.add(v);
 			} else if (v.isDigit() || !v.isAux() || SugarMain.debug > 0) {
 				final int code = v.getCode();
 				StringBuilder sb = new StringBuilder();

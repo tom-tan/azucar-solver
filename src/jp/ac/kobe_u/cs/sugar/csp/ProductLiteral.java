@@ -51,14 +51,15 @@ public class ProductLiteral extends ArithmeticLiteral {
 			final int ub = muld.getUpperBound();
 			return new int[] { lb, ub };
 		}
-		final IntegerDomain lhsd = v.getDomain();
+		final IntegerDomain lhsd = this.v.getDomain();
 		IntegerDomain rhsd = null;
 		if (this.v1 == v) {
 			rhsd = v2.getDomain();
-		} else if (this.v2 == v) {
+		} else {
+			assert this.v2 == v;
 			rhsd = v1.getDomain();
 		}
-		if (rhsd.contains(0))
+		if (rhsd.contains(0) || rhsd.isEmpty())
 			return null;
 
 		final IntegerDomain dom = lhsd.div(rhsd);
