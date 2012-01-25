@@ -14,6 +14,7 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
 
 /**
  * z = x*y
+ * @author Tomoya Tanjo (tanjo@stu.kobe-u.ac.jp)
  */
 public class EqMul extends RCSPLiteral {
 	private final IntegerHolder z, x, y;
@@ -151,7 +152,6 @@ public class EqMul extends RCSPLiteral {
 			}
 
 			if (x.isConstant()) {
-				// x(i) と x(j) が同じ時には共有したほうがいい
 				for (int i=0; i<m; i++) {
 					ret.addAll((new EqMul(w[i], x.nthValue(i), y)).toCCSP(csp, encoder));
 				}
