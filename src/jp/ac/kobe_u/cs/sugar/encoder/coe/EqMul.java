@@ -200,8 +200,13 @@ public class EqMul extends RCSPLiteral {
 			}
 			zi[0] = z;
 
-			for (int i=0; i<m-1; i++) {
-				ret.addAll(shiftAddtoCCSP(zi[i], zi[i+1], new IntegerHolder(w[i]), csp));
+			if (m == 1) {
+				ret.add(new Clause(z.nth(0).le((new IntegerHolder(w[0])).nth(0))));
+				ret.add(new Clause(z.nth(0).ge((new IntegerHolder(w[0])).nth(0))));
+			} else {
+				for (int i=0; i<m-1; i++) {
+					ret.addAll(shiftAddtoCCSP(zi[i], zi[i+1], new IntegerHolder(w[i]), csp));
+				}
 			}
 		}
 		if (!ret.isEmpty()) {
