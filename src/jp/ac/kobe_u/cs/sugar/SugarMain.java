@@ -265,9 +265,13 @@ public class SugarMain {
 			if (csp.getObjectiveVariable() == null) {
 				Logger.println("s SATISFIABLE");
 			} else {
-				final String name = csp.getObjectiveVariable().getName();
-				final int value = csp.getObjectiveVariable().getValue();
+				final IntegerVariable obj = csp.getObjectiveVariable();
+				final String name = obj.getName();
+				final int value = obj.getValue();
 				Logger.println("c OBJECTIVE " + name + " " + value);
+				for (IntegerVariable digit : obj.getDigits()) {
+					Logger.println("c DIGITS: "+digit.getName() + " " + digit.getValue());
+				}
 				Logger.println("o " + value);
 			}
 			if (competition) {
