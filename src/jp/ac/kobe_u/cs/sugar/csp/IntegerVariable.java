@@ -197,6 +197,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 				vs[i] = new IntegerVariable(dom);
 				vs[i].isDigit(true);
 				vs[i].setComment(getName() + "["+i+"]");
+				if (this.isAux())
+					vs[i].isAux(true);
 			}
 		}
 		List<IntegerVariable> ret = new ArrayList<IntegerVariable>();

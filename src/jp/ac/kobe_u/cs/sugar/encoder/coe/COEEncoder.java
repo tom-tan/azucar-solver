@@ -85,9 +85,9 @@ public class COEEncoder extends OEEncoder {
 			}
 			bases = new int[1];
 			bases[0] = (int)Math.ceil(Math.pow(size, 1.0/ndigits));
-			Logger.fine("Compact Order Encoding: Largest Domain size = "+ size);
 		}
-		Logger.fine("Compact Order Encoding: Base = "+ bases[0]);
+		Logger.fine("Compact Order Encoding: Base = " + bases[0] +
+								", #Digits = " + ndigits);
 		csp.setBases(bases);
 		Logger.fine("EqMul (z=xy)  : " +EqMul.nOccur);
 		Logger.fine("EqAdd (z=x+y) : " +OpAdd.nEq);

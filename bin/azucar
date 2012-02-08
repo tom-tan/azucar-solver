@@ -23,6 +23,8 @@ my ($java_opt1, $java_opt2, $solver, $competition, $keep, $incremental, $prof);
 my ($max_csp, $csp_file, $map_file, $sat_file, $out_file);
 my ($memlimit, $timelimit, $solverlimit, $encoding, $base, $m, $enable_assert);
 my $nopropagate;
+my $found = 0;
+
 &GetOptions(
 	    'version' => \$showversion,
 	    'h|help' => \$help,
@@ -98,7 +100,7 @@ my $xml_file;
 my ($java_pid, $solver_pid, $result, $objective_value, $objective_offset);
 my ($objective, $objective_var);
 my (@objective_digits);
-my ($objd_var, $objd_code, @objd_values);
+my ($objd_var, $objd_code, $objd_value, @objd_values);
 
 my $time0 = time;
 
@@ -181,6 +183,11 @@ sub print {
 	$_ = $1;
 	if (/ERROR/i || $veryverbose) {
 	    &log($_);
+	}
+	if (/DIGITS: (\S+) (\d+)$/) {
+	    if ($1 eq $objd_var) {
+		$objd_value = $2;
+	    }
 	}
     } elsif (/^s (.*)$/) {
 	$result = $1;
@@ -399,15 +406,10 @@ sub solve {
     }
     &load_map($map_file);
     if ($objective eq "minimize") {
-	for my $arr (reverse @objective_digits) {
-	    $objd_var = $arr->[0];
-	    $objd_code = $arr->[1];
-	    @objd_values = @{$arr->[2]};
-	    if ($incremental) {
-		&minimize_inc($sat_file, $out_file, $map_file);
-	    } else {
-		&minimize($sat_file, $out_file, $map_file);
-	    }
+	if ($incremental) {
+	    &minimize_inc($sat_file, $out_file, $map_file);
+	} else {
+	    &minimize($sat_file, $out_file, $map_file);
 	}
     } elsif ($objective eq "maximize") {
 	for my $arr (reverse @objective_digits) {
@@ -440,13 +442,13 @@ sub load_map {
     while (<MAP>) {
 	chomp;
 	if (/^base/) {
-	    split;
+	    @_ = split;
 	    $base = $_[1];
 	} elsif (/^objective/) {
-	    split;
+	    @_ = split;
 	    ($objective, $objective_var) = ($_[1], $_[2]);
 	} elsif ($objective && /^int/) {
-	    split;
+	    @_ = split;
 	    if ($objective_var) {
 		if ($objective_var eq $_[1]) {
 		    $objective_offset = 0;
@@ -472,7 +474,7 @@ sub load_map {
 		$var_map{$var_name} = \@digit_dat;
 	    }
 	} elsif ($objective && /^bigint/) {
-	    split;
+	    @_ = split;
 	    if ($objective_var eq $_[1]) {
 		shift(@_);
 		shift(@_);
@@ -494,10 +496,23 @@ sub find {
 }
 
 sub minimize {
-    # この辺りは符号化法に依存している可能性大
     my ($sat_file, $out_file, $map_file) = @_;
+    my $arr = pop @objective_digits;
+    $objd_var = $arr->[0];
+    $objd_code = $arr->[1];
+    @objd_values = @{$arr->[2]};
+    my $digit_name = $objective_var."[".scalar(@objective_digits)."]";
+    open(SAT, "+<", $sat_file) || die;
+    seek(SAT, 0, 0);
+    my $line = <SAT>;
+    my ($p_, $cnf_, $nvar, $ncls) = split /\s+/, $line;
+    $ncls++;
+    my $newstr = "p cnf $nvar $ncls";
+    my $width = 64-length($newstr);
+    seek(SAT, 0, 0);
+    print SAT $newstr, " " x $width;
+    close(SAT);
     my $sat_size = (stat($sat_file))[7];
-    my $found = 0;
     my $i0 = 0;
     my $i1 = scalar(@objd_values);
     while ($i0 < $i1) {
@@ -513,9 +528,9 @@ sub minimize {
 	}
 	close(SAT);
 	&log("OBJECTIVE BOUND:",
-	     $objd_values[$i0], "<=", $objd_var,
+	     $objd_values[$i0], "<=", $digit_name,
 	     "<=", $objd_values[$i1]);
-	&log("SEARCHING: $objd_var <= $value");
+	&log("SEARCHING: $digit_name <= $value");
 	&sat($sat_file, $out_file);
 	open(IN, "<$out_file") || die;
 	do {
@@ -523,22 +538,19 @@ sub minimize {
 	} while (/^c/ || /^\s*$/);
 	close(IN);
 	if (/^(s\s+)?SAT/) {
-	    &log("FOUND: $objd_var <= $value");
+	    &log("FOUND: $digit_name <= $value");
 	    if (! $found) {
 		&print("s SATISFIABLE");
 	    }
 	    $found = 1;
 	    $i1 = $i;
 	    &decode($out_file, $map_file);
-	    while ($i1 > 0 && $objective_value < $value) {
-              # ここの条件がおかしい
-              # objective_value: bigint の値
-              # value: 桁の値
+	    while ($i1 > 0 && $objd_value < $value) {
 		$i1--;
 		$value = $objd_values[$i1];
 	    }
 	} elsif (/^(s\s+)?UNSAT/) {
-	    &log("NOT FOUND: $objd_var <= $value");
+	    &log("NOT FOUND: $digit_name <= $value");
 	    $i0 = $i + 1;
 	} else {
 	    &error("unknown output $_ in $out_file");
@@ -546,17 +558,22 @@ sub minimize {
 	}
     }
     if ($found) {
-	die "Assertion failure." if $i0 != $i1;
 	open(SAT, "+<", $sat_file) || die;
 	seek(SAT, $sat_size, 0);
-	if ($i < @objd_values - 1) {
+	if ($i0 < @objd_values - 1) {
 	    my $code = $objd_code+$i0;
 	    print SAT "$code 0\n         ";
+	} else {
+	    print SAT "1 -1 0\n          ";
 	}
 	close(SAT);
-	&log("OBJECTIVE $objd_var $objective_value");
-	# 下はまずい
-	&print("s OPTIMUM FOUND");
+	if (scalar(@objective_digits) == 0) {
+	    &log("OBJECTIVE $objective_var $objective_value");
+	    &print("s OPTIMUM FOUND");
+	} else {
+	    @_ = ($sat_file, $out_file, $map_file);
+	    goto &minimize;
+	}
     } else {
 	&print("s UNSATISFIABLE");
     }
@@ -564,14 +581,28 @@ sub minimize {
 
 sub maximize {
     my ($sat_file, $out_file, $map_file) = @_;
+    my $arr = pop @objective_digits;
+    $objd_var = $arr->[0];
+    $objd_code = $arr->[1];
+    @objd_values = @{$arr->[2]};
+    my $digit_name = $objective_var."[".scalar(@objective_digits)."]";
+    open(SAT, "+<", $sat_file) || die;
+    seek(SAT, 0, 0);
+    my $line = <SAT>;
+    my ($p_, $cnf_, $nvar, $ncls) = split /\s+/, $line;
+    $ncls++;
+    my $newstr = "p cnf $nvar $ncls";
+    my $width = 64-length($newstr);
+    seek(SAT, 0, 0);
+    print SAT $newstr, " " x $width;
+    close(SAT);
     my $sat_size = (stat($sat_file))[7];
-    my $found = 0;
     my $i0 = -1;
-    my $i1 = scalar(@objective_values) - 1;
+    my $i1 = scalar(@objd_values) - 1;
     while ($i0 < $i1) {
 	my $i = int(($i0+$i1) / 2);
-	my $value = $objective_values[$i];
-	my $code = $objective_code + $i;
+	my $value = $objd_values[$i];
+	my $code = $objd_code + $i;
 	open(SAT, "+<", $sat_file) || die;
 	seek(SAT, $sat_size, 0);
 	if ($i >= 0) {
@@ -580,28 +611,28 @@ sub maximize {
 	    print SAT "1 -1 0\n           ";
 	}
 	close(SAT);
-	&log("OBJECTIVE BOUND:",
-	     $objective_values[$i0], "<=", $objective_var,
-	     "<=", $objective_values[$i1]);
-	&log("SEARCHING: $objective_var > $value");
+	&log("OBJECTIVE BOUND:", 
+	     $objd_values[$i0], "<=", $digit_name,
+	     "<=", $objd_values[$i1]);
+	&log("SEARCHING: $digit_name > $value");
 	&sat($sat_file, $out_file);
 	open(IN, "<$out_file") || die;
 	chomp($_ = <IN>);
 	close(IN);
 	if (/^(s\s+)?SAT/) {
-	    &log("FOUND: $objective_var > $value");
+	    &log("FOUND: $digit_name > $value");
 	    if (! $found) {
 		&print("s SATISFIABLE");
 	    }
 	    $found = 1;
 	    $i0 = $i;
 	    &decode($out_file, $map_file);
-	    while ($i0 < @objective_values && $objective_value > $value) {
+	    while ($i0 < @objd_values && $objd_value > $value) {
 		$i0++;
-		$value = $objective_values[$i0];
+		$value = $objd_values[$i0];
 	    }
 	} elsif (/^(s\s+)?UNSAT/) {
-	    &log("NOT FOUND: $objective_var > $value");
+	    &log("NOT FOUND: $objd_var > $value");
 	    $i1 = $i;
 	} else {
 	    &error("unknown output $_ in $out_file");
@@ -609,8 +640,20 @@ sub maximize {
 	}
     }
     if ($found) {
-	&log("OBJECTIVE $objective_var $objective_value");
-	&print("s OPTIMUM FOUND");
+	open(SAT, "+<", $sat_file) || die;
+	seek(SAT, $sat_size, 0);
+	if ($i0 >= 0) {
+	    my $code = $objd_code+$i0;
+	    print SAT "-$code 0\n         ";
+	}
+	close(SAT);
+	if (scalar(@objective_digits) == 0) {
+	    &log("OBJECTIVE $objective_var $objective_value");
+	    &print("s OPTIMUM FOUND");
+	} else {
+	    @_ = ($sat_file, $out_file, $map_file);
+	    goto &maximize;
+	}
     } else {
 	&print("s UNSATISFIABLE");
     }
@@ -663,20 +706,30 @@ sub sat {
 
 sub minimize_inc {
     my ($sat_file, $out_file, $map_file) = @_;
-    my $i0 = 0;
-    my $i1 = scalar(@objective_values);
-    my $found = 0;
     &sat_inc_open($sat_file, $out_file);
+    &minimize_inc1($sat_file, $out_file, $map_file);
+    &sat_inc_close();
+}
+
+sub minimize_inc1 {
+    my ($sat_file, $out_file, $map_file) = @_;
+    my $arr = pop @objective_digits;
+    $objd_var = $arr->[0];
+    $objd_code = $arr->[1];
+    @objd_values = @{$arr->[2]};
+    my $digit_name = $objective_var."[".scalar(@objective_digits)."]";
+    my $i0 = 0;
+    my $i1 = scalar(@objd_values);
     while ($i0 < $i1) {
 	my $i = int(($i0+$i1) / 2);
-	my $value = $objective_values[$i];
-	my $code = $objective_code + $i;
+	my $value = $objd_values[$i];
+	my $code = $objd_code + $i;
 	&log("OBJECTIVE BOUND:",
-	     $objective_values[$i0], "<=", $objective_var,
-	     "<=", $objective_values[$i1]);
-	&log("SEARCHING: $objective_var <= $value");
+	     $objd_values[$i0], "<=", $digit_name,
+	     "<=", $objd_values[$i1]);
+	&log("SEARCHING: $digit_name <= $value");
 	unlink $out_file;
-	if ($i < @objective_values - 1) {
+	if ($i < @objd_values - 1) {
 	    &send("solve $code 0");
 	} else {
 	    &send("solve 0");
@@ -686,37 +739,40 @@ sub minimize_inc {
 	chomp($_ = <IN>);
 	close(IN);
 	if (/^(s\s+)?SAT/) {
-	    &log("FOUND: $objective_var <= $value");
+	    &log("FOUND: $objd_var <= $value");
 	    if (! $found) {
 		&print("s SATISFIABLE");
 	    }
 	    $found = 1;
 	    $i1 = $i;
 	    &decode($out_file, $map_file);
-	    while ($i1 > 0 && $objective_value < $value) {
+	    while ($i1 > 0 && $objd_value < $value) {
 		$i1--;
-		$value = $objective_values[$i1];
+		$value = $objd_values[$i1];
 	    }
-	    $code = $objective_code+$i1;
+	    $code = $objd_code+$i1;
 	    &send("add $code 0");
 	    &recv();
 	} elsif (/^(s\s+)?UNSAT/) {
-	    &log("NOT FOUND: $objective_var <= $value");
+	    &log("NOT FOUND: $objd_var <= $value");
 	    &send("add -$code 0");
 	    &recv();
 	    $i0 = $i + 1;
 	} else {
 	    &error("unknown output $_ in $out_file");
 	    &send("exit");
-	    &sat_inc_close();
 	    return;
 	}
     }
     &send("exit");
-    &sat_inc_close();
     if ($found) {
-	&log("OBJECTIVE $objective_var $objective_value");
-	&print("s OPTIMUM FOUND");
+	if (scalar(@objective_digits) == 0) {
+	    &log("OBJECTIVE $objective_var $objective_value");
+	    &print("s OPTIMUM FOUND");
+	} else {
+	    @_ = ($sat_file, $out_file, $map_file);
+	    goto &minimize_inc1;
+	}
     } else {
 	&print("s UNSATISFIABLE");
     }
@@ -724,18 +780,28 @@ sub minimize_inc {
 
 sub maximize_inc {
     my ($sat_file, $out_file, $map_file) = @_;
-    my $i0 = -1;
-    my $i1 = scalar(@objective_values) - 1;
-    my $found = 0;
     &sat_inc_open($sat_file, $out_file);
+    &maximize_inc1($sat_file, $out_file, $map_file);
+    &sat_inc_close();
+}
+
+sub maximize_inc1 {
+    my ($sat_file, $out_file, $map_file) = @_;
+    my $arr = pop @objective_digits;
+    $objd_var = $arr->[0];
+    $objd_code = $arr->[1];
+    @objd_values = @{$arr->[2]};
+    my $digit_name = $objective_var."[".scalar(@objective_digits)."]";
+    my $i0 = -1;
+    my $i1 = scalar(@objd_values) - 1;
     while ($i0 < $i1) {
 	my $i = int(($i0+$i1) / 2);
-	my $value = $objective_values[$i];
-	my $code = $objective_code + $i;
+	my $value = $objd_values[$i];
+	my $code = $objd_code + $i;
 	&log("OBJECTIVE BOUND:",
-	     $objective_values[$i0], "<=", $objective_var,
-	     "<=", $objective_values[$i1]);
-	&log("SEARCHING: $objective_var > $value");
+	     $objd_values[$i0], "<=", $digit_name,
+	     "<=", $objd_values[$i1]);
+	&log("SEARCHING: $digit_name > $value");
 	unlink $out_file;
 	if ($i >= 0) {
 	    &send("solve -$code 0");
@@ -747,37 +813,40 @@ sub maximize_inc {
 	chomp($_ = <IN>);
 	close(IN);
 	if (/^(s\s+)?SAT/) {
-	    &log("FOUND: $objective_var > $value");
+	    &log("FOUND: $objd_var > $value");
 	    if (! $found) {
 		&print("s SATISFIABLE");
 	    }
 	    $found = 1;
 	    $i0 = $i;
 	    &decode($out_file, $map_file);
-	    while ($i0 < @objective_values && $objective_value > $value) {
+	    while ($i0 < @objd_values && $objd_value > $value) {
 		$i0++;
-		$value = $objective_values[$i0];
+		$value = $objd_values[$i0];
 	    }
-	    $code = $objective_code+$i1;
+	    $code = $objd_code+$i1;
 	    &send("add -$code 0");
 	    &recv();
 	} elsif (/^(s\s+)?UNSAT/) {
-	    &log("NOT FOUND: $objective_var > $value");
+	    &log("NOT FOUND: $objd_var > $value");
 	    &send("add $code 0");
 	    &recv();
 	    $i1 = $i;
 	} else {
 	    &error("unknown output $_ in $out_file");
 	    &send("exit");
-	    &sat_inc_close();
 	    return;
 	}
     }
     &send("exit");
-    &sat_inc_close();
     if ($found) {
-	&log("OBJECTIVE $objective_var $objective_value");
-	&print("s OPTIMUM FOUND");
+	if (scalar(@objective_digits) == 0) {
+	    &log("OBJECTIVE $objective_var $objective_value");
+	    &print("s OPTIMUM FOUND");
+	} else {
+	    @_ = ($sat_file, $out_file, $map_file);
+	    goto &maximize_inc1;
+	}
     } else {
 	&print("s UNSATISFIABLE");
     }
