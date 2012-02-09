@@ -121,6 +121,7 @@
 (define false #f)
 (define eq =)
 (define (ne x y) (not (= x y)))
+(define != ne)
 (define le <=)
 (define lt <)
 (define ge >=)
