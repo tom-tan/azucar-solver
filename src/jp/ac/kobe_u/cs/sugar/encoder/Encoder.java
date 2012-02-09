@@ -130,8 +130,9 @@ public abstract class Encoder {
 			while(iter.hasNext()) {
 				final int i = iter.next();
 				if (lst+2 == i) {
-					final Clause c = new Clause(new LinearLiteral(new LinearSum(1, v, -lst),
+					final Clause c = new Clause(new LinearLiteral(new LinearSum(1, v, -(lst+1)),
 																												Operator.NE));
+					c.setComment(v.getName() + " != " + (lst+1));
 					ret.add(c);
 				} else if (lst+1 != i) {
 					final BooleanVariable b = new BooleanVariable();
