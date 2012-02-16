@@ -51,7 +51,7 @@ public class COEEncoder extends OEEncoder {
 			if (l.getOperator() == Operator.EQ)
 				return false;
 			return l.getVariables().size() == 1
-				&& l.getVariables().iterator().next().getDomain().getUpperBound() < bases[0];
+				&& l.getUpperBound() < bases[0];
 		} else if (lit instanceof EqMul) {
 			return false;
 		} else if (lit instanceof OpAdd) {
@@ -78,15 +78,19 @@ public class COEEncoder extends OEEncoder {
 		// System.out.println("======== CSP =========\n"+csp);
 		toRCSP();
 		// System.out.println("======== CSP =========\n"+csp);
-		if (bases == null) {
-			int size = 0;
-			for (IntegerVariable v : csp.getIntegerVariables()) {
-				size = Math.max(size, v.getDomain().size());
+		int ub = -1;
+		for (Clause c : csp.getClauses()) {
+			for (ArithmeticLiteral l : c.getArithmeticLiterals()) {
+				ub = Math.max(ub, ((RCSPLiteral)l).getUpperBound());
 			}
-			bases = new int[1];
-			bases[0] = (int)Math.ceil(Math.pow(size, 1.0/ndigits));
 		}
-		Logger.fine("Compact Order Encoding: Base = " + bases[0] +
+		if (bases == null) {
+			bases = new int[1];
+			bases[0] = (int)Math.ceil(Math.pow((ub+1), 1.0/ndigits));
+		} else {
+			ndigits = (int)Math.ceil(Math.log(ub+1)/Math.log(bases[0]));
+		}
+		Logger.fine("Compact Order Encoding: maximum domain size = "+(ub+1)+", Base = " + bases[0] +
 								", #Digits = " + ndigits);
 		csp.setBases(bases);
 		Logger.fine("EqMul (z=xy)  : " +EqMul.nOccur);

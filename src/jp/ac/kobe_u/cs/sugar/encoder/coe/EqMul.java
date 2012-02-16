@@ -259,6 +259,12 @@ public class EqMul extends RCSPLiteral {
 	}
 
 	@Override
+	public int getUpperBound() {
+		return Math.max(Math.max(z.getUpperBound(), x.getUpperBound()),
+										y.getUpperBound());
+	}
+
+	@Override
 	public boolean isValid() throws SugarException {
 		final IntegerDomain zd = z.getDomain();
 		final IntegerDomain xd = x.getDomain();
