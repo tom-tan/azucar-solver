@@ -31,6 +31,13 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 		}
 	}
 
+	public int getUpperBound() {
+		if (isConstant_)
+			return constant;
+		else
+			return variable.getDomain().getUpperBound();
+	}
+
 	private void intToDigits(int b) {
 		assert digits == null;
 		assert isConstant_;
