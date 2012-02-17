@@ -94,6 +94,8 @@ public class LinearLiteral extends ArithmeticLiteral {
 				lb = divceil(-olb, a);
 			}
 			break;
+		case GE:
+			throw new SugarException("This code is never called.");
 		case EQ:
 			if (a > 0) {
 				lb = divceil(-oub, a);
@@ -124,14 +126,14 @@ public class LinearLiteral extends ArithmeticLiteral {
 
 	@Override
 	public boolean isValid() throws SugarException {
+		final IntegerDomain d = linearSum.getDomain();
 		switch(op) {
 		case LE:
-			return linearSum.getDomain().getUpperBound() <= 0;
+			return d.getUpperBound() <= 0;
 		case EQ:
-			return linearSum.getDomain().contains(0)
-			  && linearSum.getDomain().size() == 1;
+			return d.contains(0) && d.size() == 1;
 		case NE:
-			return !linearSum.getDomain().contains(0);
+			return !d.contains(0);
 		default:
 			assert false;
 			throw new SugarException("This code is never called.");
