@@ -1,4 +1,10 @@
 ================================================================
+Changes with Azucar version 0.2.0
+
+* Add support for COP and Max-CSP.
+* Some bug fix.
+
+================================================================
 Changes with Azucar version 0.1.0
 
 * Add support for multiplications for two integer variables.

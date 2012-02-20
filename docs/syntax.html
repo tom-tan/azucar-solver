@@ -134,8 +134,6 @@
 
     <h3>Remarks</h3>
     <ul>
-      <li>At least one argument of <tt>mul</tt> should be an integer constant.
-        However, some special cases (such as <tt>(&lt; (* x y) 0)</tt>) are allowed.
       <li>The second argument of <tt>div</tt> and <tt>mod</tt> should be
         a positive integer constant.
       <li><tt>pow</tt> is not supported.
@@ -536,26 +534,26 @@
 </pre>
 
     <!-- ================================================================ -->
-    <!-- <h2>Objective Declaration</h2> -->
-    <!-- <h3>Syntax</h3> -->
-    <!-- <pre class="definition"> -->
-    <!--   <i>ObjectiveDeclaration</i> ::= -->
-    <!--   <tt>(objective</tt> <i>Goal</i> <i>IntegerVariableName</i><tt>)</tt> -->
-    <!--   <i>Goal</i> ::= -->
-    <!--   <tt>minimize</tt> | <tt>maximize</tt> -->
-    <!-- </pre> -->
+    <h2>Objective Declaration</h2>
+    <h3>Syntax</h3>
+    <pre class="definition">
+<i>ObjectiveDeclaration</i> ::=
+    <tt>(objective</tt> <i>Goal</i> <i>IntegerVariableName</i><tt>)</tt>
+<i>Goal</i> ::=
+    <tt>minimize</tt> | <tt>maximize</tt>
+</pre>
 
-    <!-- <h3>Remarks</h3> -->
-    <!-- <ul> -->
-    <!--   <li>Objective declaration should not be duplicated. -->
-    <!--   <li>MAX-CSP should not include objective declarations. -->
-    <!-- </ul> -->
+    <h3>Remarks</h3>
+    <ul>
+      <li>Objective declaration should not be duplicated.
+      <li>MAX-CSP should not include objective declarations.
+    </ul>
 
-    <!-- <h3>Examples</h3> -->
-    <!-- <pre class="program"> -->
-    <!--   (objective minimize x0)  ; The objective is minimizing the value of x0. -->
-    <!--   (objective maximize x1)  ; The objective is maximizing the value of x1. -->
-    <!-- </pre> -->
+    <h3>Examples</h3>
+    <pre class="program">
+(objective minimize x0)  ; The objective is minimizing the value of x0.
+(objective maximize x1)  ; The objective is maximizing the value of x1.
+</pre>
 
     <!-- ================================================================ -->
     <h2>CSP</h2>
@@ -569,7 +567,8 @@
     <i>IntegerVariableDefinition</i> |
     <i>BooleanVariableDefinition</i> |
     <i>RelationDefinition</i> |
-    <i>PredicateDefinition</i> |      <!-- <i>ObjectiveDeclaration</i> | -->
+    <i>PredicateDefinition</i> |
+    <i>ObjectiveDeclaration</i> |
     <i>Constaint</i>
 </pre>
 
@@ -605,33 +604,33 @@
 ; END
 </pre>
 
-<!--     <pre class="program"> -->
-<!-- ; Golomb ruler of 4 marks -->
-<!-- (int length 6 7) -->
-<!-- (objective minimize length) -->
-<!-- (int m_0 0 0) -->
-<!-- (int m_1 0 7) -->
-<!-- (int m_2 0 7) -->
-<!-- (int m_3 0 7) -->
-<!-- (&lt; m_0 m_1) -->
-<!-- (&lt; m_1 m_2) -->
-<!-- (&lt; m_2 m_3) -->
-<!-- (&lt;= m_3 length) -->
-<!-- (int d_1_0 0 7) -->
-<!-- (= d_1_0 (- m_1 m_0)) -->
-<!-- (int d_2_0 0 7) -->
-<!-- (= d_2_0 (- m_2 m_0)) -->
-<!-- (int d_3_0 0 7) -->
-<!-- (= d_3_0 (- m_3 m_0)) -->
-<!-- (int d_2_1 0 7) -->
-<!-- (= d_2_1 (- m_2 m_1)) -->
-<!-- (int d_3_1 0 7) -->
-<!-- (= d_3_1 (- m_3 m_1)) -->
-<!-- (int d_3_2 0 7) -->
-<!-- (= d_3_2 (- m_3 m_2)) -->
-<!-- (alldifferent d_1_0 d_2_0 d_3_0 d_2_1 d_3_1 d_3_2) -->
-<!-- ; END -->
-<!-- </pre> -->
+    <pre class="program">
+; Golomb ruler of 4 marks
+(int length 6 7)
+(objective minimize length)
+(int m_0 0 0)
+(int m_1 0 7)
+(int m_2 0 7)
+(int m_3 0 7)
+(&lt; m_0 m_1)
+(&lt; m_1 m_2)
+(&lt; m_2 m_3)
+(&lt;= m_3 length)
+(int d_1_0 0 7)
+(= d_1_0 (- m_1 m_0))
+(int d_2_0 0 7)
+(= d_2_0 (- m_2 m_0))
+(int d_3_0 0 7)
+(= d_3_0 (- m_3 m_0))
+(int d_2_1 0 7)
+(= d_2_1 (- m_2 m_1))
+(int d_3_1 0 7)
+(= d_3_1 (- m_3 m_1))
+(int d_3_2 0 7)
+(= d_3_2 (- m_3 m_2))
+(alldifferent d_1_0 d_2_0 d_3_0 d_2_1 d_3_1 d_3_2)
+; END
+</pre>
 
     <pre class="program">
 ; 4-Queens Problem
@@ -645,52 +644,52 @@
 ; END
 </pre>
 
-<!--     <pre class="program"> -->
-<!-- ; Open-Shop Scheduling Problem gp03-01 -->
-<!-- (int makespan 1000 1509) -->
-<!-- (objective minimize makespan) -->
-<!-- (int s_0_0 0 1509) -->
-<!-- (&lt;= (+ s_0_0 661) makespan) -->
-<!-- (int s_0_1 0 1509) -->
-<!-- (&lt;= (+ s_0_1 6) makespan) -->
-<!-- (int s_0_2 0 1509) -->
-<!-- (&lt;= (+ s_0_2 333) makespan) -->
-<!-- (int s_1_0 0 1509) -->
-<!-- (&lt;= (+ s_1_0 168) makespan) -->
-<!-- (int s_1_1 0 1509) -->
-<!-- (&lt;= (+ s_1_1 489) makespan) -->
-<!-- (int s_1_2 0 1509) -->
-<!-- (&lt;= (+ s_1_2 343) makespan) -->
-<!-- (int s_2_0 0 1509) -->
-<!-- (&lt;= (+ s_2_0 171) makespan) -->
-<!-- (int s_2_1 0 1509) -->
-<!-- (&lt;= (+ s_2_1 505) makespan) -->
-<!-- (int s_2_2 0 1509) -->
-<!-- (&lt;= (+ s_2_2 324) makespan) -->
-<!-- (or (&lt;= (+ s_0_0 661) s_0_1) (&lt;= (+ s_0_1 6) s_0_0)) -->
-<!-- (or (&lt;= (+ s_0_0 661) s_0_2) (&lt;= (+ s_0_2 333) s_0_0)) -->
-<!-- (or (&lt;= (+ s_0_1 6) s_0_2) (&lt;= (+ s_0_2 333) s_0_1)) -->
-<!-- (or (&lt;= (+ s_1_0 168) s_1_1) (&lt;= (+ s_1_1 489) s_1_0)) -->
-<!-- (or (&lt;= (+ s_1_0 168) s_1_2) (&lt;= (+ s_1_2 343) s_1_0)) -->
-<!-- (or (&lt;= (+ s_1_1 489) s_1_2) (&lt;= (+ s_1_2 343) s_1_1)) -->
-<!-- (or (&lt;= (+ s_2_0 171) s_2_1) (&lt;= (+ s_2_1 505) s_2_0)) -->
-<!-- (or (&lt;= (+ s_2_0 171) s_2_2) (&lt;= (+ s_2_2 324) s_2_0)) -->
-<!-- (or (&lt;= (+ s_2_1 505) s_2_2) (&lt;= (+ s_2_2 324) s_2_1)) -->
-<!-- (or (&lt;= (+ s_0_0 661) s_1_0) (&lt;= (+ s_1_0 168) s_0_0)) -->
-<!-- (or (&lt;= (+ s_0_0 661) s_2_0) (&lt;= (+ s_2_0 171) s_0_0)) -->
-<!-- (or (&lt;= (+ s_1_0 168) s_2_0) (&lt;= (+ s_2_0 171) s_1_0)) -->
-<!-- (or (&lt;= (+ s_0_1 6) s_1_1) (&lt;= (+ s_1_1 489) s_0_1)) -->
-<!-- (or (&lt;= (+ s_0_1 6) s_2_1) (&lt;= (+ s_2_1 505) s_0_1)) -->
-<!-- (or (&lt;= (+ s_1_1 489) s_2_1) (&lt;= (+ s_2_1 505) s_1_1)) -->
-<!-- (or (&lt;= (+ s_0_2 333) s_1_2) (&lt;= (+ s_1_2 343) s_0_2)) -->
-<!-- (or (&lt;= (+ s_0_2 333) s_2_2) (&lt;= (+ s_2_2 324) s_0_2)) -->
-<!-- (or (&lt;= (+ s_1_2 343) s_2_2) (&lt;= (+ s_2_2 324) s_1_2)) -->
-<!-- ; END -->
-<!-- </pre> -->
+    <pre class="program">
+; Open-Shop Scheduling Problem gp03-01
+(int makespan 1000 1509)
+(objective minimize makespan)
+(int s_0_0 0 1509)
+(&lt;= (+ s_0_0 661) makespan)
+(int s_0_1 0 1509)
+(&lt;= (+ s_0_1 6) makespan)
+(int s_0_2 0 1509)
+(&lt;= (+ s_0_2 333) makespan)
+(int s_1_0 0 1509)
+(&lt;= (+ s_1_0 168) makespan)
+(int s_1_1 0 1509)
+(&lt;= (+ s_1_1 489) makespan)
+(int s_1_2 0 1509)
+(&lt;= (+ s_1_2 343) makespan)
+(int s_2_0 0 1509)
+(&lt;= (+ s_2_0 171) makespan)
+(int s_2_1 0 1509)
+(&lt;= (+ s_2_1 505) makespan)
+(int s_2_2 0 1509)
+(&lt;= (+ s_2_2 324) makespan)
+(or (&lt;= (+ s_0_0 661) s_0_1) (&lt;= (+ s_0_1 6) s_0_0))
+(or (&lt;= (+ s_0_0 661) s_0_2) (&lt;= (+ s_0_2 333) s_0_0))
+(or (&lt;= (+ s_0_1 6) s_0_2) (&lt;= (+ s_0_2 333) s_0_1))
+(or (&lt;= (+ s_1_0 168) s_1_1) (&lt;= (+ s_1_1 489) s_1_0))
+(or (&lt;= (+ s_1_0 168) s_1_2) (&lt;= (+ s_1_2 343) s_1_0))
+(or (&lt;= (+ s_1_1 489) s_1_2) (&lt;= (+ s_1_2 343) s_1_1))
+(or (&lt;= (+ s_2_0 171) s_2_1) (&lt;= (+ s_2_1 505) s_2_0))
+(or (&lt;= (+ s_2_0 171) s_2_2) (&lt;= (+ s_2_2 324) s_2_0))
+(or (&lt;= (+ s_2_1 505) s_2_2) (&lt;= (+ s_2_2 324) s_2_1))
+(or (&lt;= (+ s_0_0 661) s_1_0) (&lt;= (+ s_1_0 168) s_0_0))
+(or (&lt;= (+ s_0_0 661) s_2_0) (&lt;= (+ s_2_0 171) s_0_0))
+(or (&lt;= (+ s_1_0 168) s_2_0) (&lt;= (+ s_2_0 171) s_1_0))
+(or (&lt;= (+ s_0_1 6) s_1_1) (&lt;= (+ s_1_1 489) s_0_1))
+(or (&lt;= (+ s_0_1 6) s_2_1) (&lt;= (+ s_2_1 505) s_0_1))
+(or (&lt;= (+ s_1_1 489) s_2_1) (&lt;= (+ s_2_1 505) s_1_1))
+(or (&lt;= (+ s_0_2 333) s_1_2) (&lt;= (+ s_1_2 343) s_0_2))
+(or (&lt;= (+ s_0_2 333) s_2_2) (&lt;= (+ s_2_2 324) s_0_2))
+(or (&lt;= (+ s_1_2 343) s_2_2) (&lt;= (+ s_2_2 324) s_1_2))
+; END
+</pre>
 
-    <hr>
-    <address>
-      <a href="http://bach.istc.kobe-u.ac.jp/tamura.html">Naoyuki Tamura</a>
-    </address>
+    <!-- <hr> -->
+    <!-- <address> -->
+    <!--   <a href="http://code.google.com/p/azucar-solver/">Tomoya Tanjo</a> -->
+    <!-- </address> -->
   </body>
 </html>
