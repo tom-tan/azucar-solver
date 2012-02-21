@@ -1,6 +1,6 @@
 ================================================================
-README for tool programs of Sugar (A SAT-based Constraint Solver) 
-http://bach.istc.kobe-u.ac.jp/sugar/
+README for tool programs of Azucar (A SAT-based Constraint Solver) 
+http://code.google.com/p/azucar-solver/
 
 See individual files for more details.
 
@@ -36,5 +36,8 @@ misc/nqueens.pl
 
 misc/socialGolfer.pl
 	Social Golfer Problems
+
+misc/csp-mode.el
+  Emacs suppor for CSP files
 
 ================================================================
