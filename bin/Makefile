@@ -9,7 +9,7 @@ APP = $(APP0)-$(VER)
 JAR = $(APP).jar
 ZIP = $(APP).zip
 
-#WEBPAGE = http://bach.istc.kobe-u.ac.jp/sugar/
+WEBPAGE = http://code.google.com/p/azucar-solver/
 WEBTITLE = Azucar: A SAT-based Constraint Solver
 PACKAGE = jp.ac.kobe_u.cs.sugar
 
