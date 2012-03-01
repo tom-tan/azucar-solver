@@ -11,9 +11,9 @@ if $0 == __FILE__
   jar = File.dirname($0)+'/../bin/azucar-v0.2.0.jar'
   opt = ARGV.options{ |o|
     o.banner = "Usage: #{File.basename $0} [options] xml"
-    o.on('-o=VAL', "Output file name (Default: stdout)",
+    o.on('-o VAL', "Output file name (Default: stdout)",
          String) { |output| outfile = output }
-    o.on('--jopt=VAL', 'java option', String) { |opt|
+    o.on('--jopt VAL', 'java option', String) { |opt|
       jopt = opt
     }
     o.on('-v', 'verbose mode') { verbose = true }
