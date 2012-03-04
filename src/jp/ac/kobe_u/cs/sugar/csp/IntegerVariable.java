@@ -164,8 +164,10 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	}
 
 	public IntegerVariable[] getDigits() {
-		if (vs == null)
-			vs = new IntegerVariable[0];
+		if (vs == null) {
+			vs = new IntegerVariable[1];
+			vs[0] = this;
+		}
 		return vs;
 	}
 

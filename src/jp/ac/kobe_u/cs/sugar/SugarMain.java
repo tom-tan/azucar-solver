@@ -169,7 +169,6 @@ public class SugarMain {
 				break;
 			final String[] s = line.split("\\s+");
 			if (s[0].equals("objective")) {
-				// multi-objective にするなら要変更
 				if (s[1].equals(SugarConstants.MINIMIZE)) {
 					csp.setObjective(CSP.Objective.MINIMIZE);
 				} else if (s[1].equals(SugarConstants.MAXIMIZE)) {
