@@ -1,4 +1,10 @@
 ================================================================
+Changes with Azucar version 0.2.1
+
+* Bug fix: return wrong answer when the domain size of
+  objective variable is 2.
+
+================================================================
 Changes with Azucar version 0.2.0
 
 * Add support for COP and Max-CSP.
