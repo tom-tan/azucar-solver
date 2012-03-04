@@ -11,7 +11,7 @@ use IPC::Open2;
 # use strict;
 $| = 1;
 
-my $version = "v0.2.0";
+my $version = "v0.2.1";
 my $java = "java";
 my $jar = dirname($0)."/azucar-$version.jar";
 my $solver0 = "minisat";

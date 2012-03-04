@@ -1,5 +1,5 @@
-VER = v0.2.0
-VERSION = 0.2.0
+VER = v0.2.1
+VERSION = 0.2.1
 
 APP0 = azucar
 BINDIR = /usr/local/bin
