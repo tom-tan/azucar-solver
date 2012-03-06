@@ -20,9 +20,11 @@ my $solver0_inc = "minisat-inc";
 my $tmp = "/tmp/azucar$$";
 
 my ($showversion, $help, $debug, $verbose, $veryverbose, $option);
-my ($java_opt1, $java_opt2, $solver, $competition, $keep, $incremental, $prof);
+my ($solver, $competition, $keep, $incremental, $prof);
 my ($max_csp, $csp_file, $map_file, $sat_file, $out_file);
 my ($timelimit, $solverlimit, $encoding, $base, $m, $enable_assert);
+my $java_opt1 = "";
+my $java_opt2 = "";
 my $memlimit = 0;
 my $nopropagate;
 my $found = 0;
@@ -172,6 +174,7 @@ sub setup {
 }
 
 sub log {
+    no warnings 'uninitialized';
     $_ = join(" ", @_);
     if (/ERROR/i || $verbose) {
 	my $time = time - $time0;
@@ -436,7 +439,7 @@ sub load_map {
 	return;
     }
     my %var_map;
-    $objective = undef;
+    $objective = "";
     $objective_var = undef;
     $objective_offset = undef;
     @objective_digits = ();
@@ -486,7 +489,8 @@ sub load_map {
 	    }
 	}
     }
-    chomp($_ = <MAP>);
+    $_ = <MAP> || '';
+    chomp;
     close(MAP);
     @objective_digits = map { my @ar = ($_, $var_map{$_}->[0], $var_map{$_}->[1]); \@ar } @objective_digits;
 }
