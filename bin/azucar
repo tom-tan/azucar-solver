@@ -14,7 +14,13 @@ $| = 1;
 
 my $version = "v0.2.1";
 my $java = "java";
-my $jar = dirname($0)."/azucar-$version.jar";
+my $jar;
+if( -e dirname($0)."/azucar-$version.jar") {
+    $jar = dirname($0)."/azucar-$version.jar";
+} else {
+    $jar = "/usr/local/lib/azucar/azucar-$version.jar";
+}
+
 my $solver0 = "minisat";
 my $solver0_inc = "minisat-inc";
 my $tmp = "/tmp/azucar$$";
