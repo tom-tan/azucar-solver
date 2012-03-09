@@ -115,45 +115,25 @@ public class Decomposer {
 			domainExp = (Sequence)seq.get(2);
 			SortedSet<Integer> d = new TreeSet<Integer>();
 			Sequence x = (Sequence)seq.get(2);
-			if (x.length() == 1) {
-				if (x.get(0).isAtom()) {
-					int val = ((Atom)x.get(0)).integerValue();
-					domainExp = Expression.create(val);
-					domain = new IntegerDomain(val, val);
-				} else {
-					Sequence seq1 = (Sequence)x.get(0);
+			for (int i = 0; i < x.length(); i++) {
+				if (x.get(i).isInteger()) {
+					d.add(x.get(i).integerValue());
+				} else if (x.get(i).isSequence()) {
+					Sequence seq1 = (Sequence)x.get(i);
 					if (seq1.matches("II")) {
-						int lb = seq1.get(0).integerValue();
-						int ub = seq1.get(1).integerValue();
-						Expression[] exps = {Expression.create(lb),
-																 Expression.create(ub)};
-						domainExp = Expression.create(Expression.create(exps));
-						domain = new IntegerDomain(lb, ub);
+						int value0 = ((Sequence)x.get(i)).get(0).integerValue();
+						int value1 = ((Sequence)x.get(i)).get(1).integerValue();
+						for (int value = value0; value <= value1; value++) {
+							d.add(value);
+						}
 					} else {
 						throw new SugarException("Bad definition " + seq);
 					}
+				} else {
+					throw new SugarException("Bad definition " + seq);
 				}
-			} else {
-				for (int i = 0; i < x.length(); i++) {
-					if (x.get(i).isInteger()) {
-						d.add(x.get(i).integerValue());
-					} else if (x.get(i).isSequence()) {
-						Sequence seq1 = (Sequence)x.get(i);
-						if (seq1.matches("II")) {
-							int value0 = ((Sequence)x.get(i)).get(0).integerValue();
-							int value1 = ((Sequence)x.get(i)).get(1).integerValue();
-							for (int value = value0; value <= value1; value++) {
-								d.add(value);
-							}
-						} else {
-							throw new SugarException("Bad definition " + seq);
-							}
-					} else {
-						throw new SugarException("Bad definition " + seq);
-					}
-				}
-				domain = new IntegerDomain(d);
 			}
+			domain = new IntegerDomain(d);
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
 			int lb = seq.get(2).integerValue();
