@@ -116,16 +116,22 @@ public class Decomposer {
 			SortedSet<Integer> d = new TreeSet<Integer>();
 			Sequence x = (Sequence)seq.get(2);
 			if (x.length() == 1) {
-				Sequence seq1 = (Sequence)x.get(0);
-				if (seq1.matches("II")) {
-					int lb = seq1.get(0).integerValue();
-					int ub = seq1.get(1).integerValue();
-					Expression[] exps = {Expression.create(lb),
-															 Expression.create(ub)};
-					domainExp = Expression.create(Expression.create(exps));
-					domain = new IntegerDomain(lb, ub);
+				if (x.get(0).isAtom()) {
+					int val = ((Atom)x.get(0)).integerValue();
+					domainExp = Expression.create(val);
+					domain = new IntegerDomain(val, val);
 				} else {
-					throw new SugarException("Bad definition " + seq);
+					Sequence seq1 = (Sequence)x.get(0);
+					if (seq1.matches("II")) {
+						int lb = seq1.get(0).integerValue();
+						int ub = seq1.get(1).integerValue();
+						Expression[] exps = {Expression.create(lb),
+																 Expression.create(ub)};
+						domainExp = Expression.create(Expression.create(exps));
+						domain = new IntegerDomain(lb, ub);
+					} else {
+						throw new SugarException("Bad definition " + seq);
+					}
 				}
 			} else {
 				for (int i = 0; i < x.length(); i++) {
