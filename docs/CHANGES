@@ -1,4 +1,9 @@
 ================================================================
+Changes with Azucar version 0.2.2
+
+* Bug fix: (int x (13)) should be accepted.
+
+================================================================
 Changes with Azucar version 0.2.1
 
 * Bug fix: return wrong answer when the domain size of
