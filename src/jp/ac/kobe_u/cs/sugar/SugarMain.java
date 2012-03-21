@@ -162,7 +162,7 @@ public class SugarMain {
 		String objectiveVariableName = null;
 		final BufferedReader rd =
 			new BufferedReader(new InputStreamReader(new FileInputStream(mapFileName), "UTF-8"));
-    final HashMap<IntegerVariable, String[]> digitMap = new HashMap<IntegerVariable, String[]>();
+		final HashMap<IntegerVariable, String[]> digitMap = new HashMap<IntegerVariable, String[]>();
 		while (true) {
 			final String line = rd.readLine();
 			if (line == null)
