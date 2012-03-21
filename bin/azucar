@@ -146,8 +146,8 @@ sub usage {
 #    print "\t-timelimit sec   : time limit in seconds (reserved for CSP solver competition)\n";
     print "\t-encoding enc    : encoding method (oe and coe are supported)\n";
     print "\t-m m             : the number of digits (only for COE)\n";
-    print "\t-b B             : uses a numeral system of base B (only for COE)\n";
-    print "\t-nopropagate     : do not propagate\n";
+    print "\t-b B             : use a numeral system of base B (only for COE)\n";
+    print "\t-nopropagate     : do not propagate in a preprocessing procedure\n";
     exit(1);
 }
 
