@@ -14,7 +14,7 @@ public class LLExpression {
 		linearSum = new LinearSum(v);
 	}
 
-	public LLExpression(int v) {
+	public LLExpression(long v) {
 		linearSum = new LinearSum(v);
 	}
 
@@ -32,7 +32,7 @@ public class LLExpression {
 		return new LinearLiteral(l, Operator.LE);
 	}
 
-	public LinearLiteral le(int e) {
+	public LinearLiteral le(long e) {
 		LinearSum l = new LinearSum(linearSum);
 		l.setB(l.getB()-e);
 		return new LinearLiteral(l, Operator.LE);
@@ -42,14 +42,14 @@ public class LLExpression {
 		return rhs.le(this);
 	}
 
-	public LinearLiteral ge(int e) {
+	public LinearLiteral ge(long e) {
 		LinearSum l = new LinearSum(linearSum);
 		l.setB(l.getB()-e);
 		l.multiply(-1);
 		return new LinearLiteral(l, Operator.LE);
 	}
 
-	public LLExpression add(int e) {
+	public LLExpression add(long e) {
 		LinearSum l = new LinearSum(linearSum);
 		l.setB(l.getB()+e);
 		return new LLExpression(l);
@@ -61,11 +61,11 @@ public class LLExpression {
 		return new LLExpression(l);
 	}
 
-	public LLExpression sub(int e) {
+	public LLExpression sub(long e) {
 		return add(-e);
 	}
 
-	public LLExpression mul(int c) {
+	public LLExpression mul(long c) {
 		LinearSum l = new LinearSum(linearSum);
 		l.multiply(c);
 		return new LLExpression(l);

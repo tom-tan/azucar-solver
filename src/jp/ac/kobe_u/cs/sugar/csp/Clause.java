@@ -163,9 +163,9 @@ public class Clause {
 		int count = 0;
 		for (IntegerVariable v : getCommonVariables()) {
 			assert boolLiterals.isEmpty();
-			int[] bound = null;
+			long[] bound = null;
 			for (ArithmeticLiteral lit : arithLiterals) {
-				int[] b = lit.getBound(v);
+				long[] b = lit.getBound(v);
 				if (b == null) {
 					bound = null;
 					break;

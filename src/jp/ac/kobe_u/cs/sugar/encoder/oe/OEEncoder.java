@@ -43,7 +43,7 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public int getCode(LinearLiteral lit) throws SugarException {
+	public long getCode(LinearLiteral lit) throws SugarException {
 		if (! isSimple(lit)) {
 			throw new SugarException("Internal error " + lit.toString());
 		}
@@ -52,19 +52,19 @@ public class OEEncoder extends Encoder {
 			throw new SugarException("Internal error " + lit.toString());
 		}
 		final LinearSum ls = lit.getLinearExpression();
-		final int b = ls.getB();
-		int code;
+		final long b = ls.getB();
+		long code;
 		if (ls.size() == 0) {
 			code = (b <= 0) ? TRUE_CODE : FALSE_CODE;
 		} else {
 			final IntegerVariable v = ls.getCoef().firstKey();
-			final int a = ls.getA(v);
+			final long a = ls.getA(v);
 			code = getCodeLE(v, a, -b);
 		}
 		return code;
 	}
 
-	private int getCodeLE(IntegerVariable var, int value) {
+	private long getCodeLE(IntegerVariable var, long value) {
 		final IntegerDomain domain = var.getDomain();
 		if (value < domain.getLowerBound()) {
 			return FALSE_CODE;
@@ -74,7 +74,7 @@ public class OEEncoder extends Encoder {
 		return var.getCode() + sizeLE(domain, value) - 1;
 	}
 
-	private int sizeLE(IntegerDomain d, int value) {
+	private long sizeLE(IntegerDomain d, long value) {
 		if (value < d.getLowerBound())
 			return 0;
 		if (value >= d.getUpperBound())
@@ -90,9 +90,9 @@ public class OEEncoder extends Encoder {
 	protected void encode(IntegerVariable v) throws SugarException, IOException {
 		writer.writeComment(v.toString());
 		final IntegerDomain domain = v.getDomain();
-		final int[] clause = new int[2];
-		int a0 = domain.getLowerBound();
-		for (int a = a0 + 1; a <= domain.getUpperBound(); a++) {
+		final long[] clause = new long[2];
+		long a0 = domain.getLowerBound();
+		for (long a = a0 + 1; a <= domain.getUpperBound(); a++) {
 			if (domain.contains(a)) {
 				clause[0] = negateCode(getCodeLE(v, a0));
 				clause[1] = getCodeLE(v, a);
@@ -109,18 +109,18 @@ public class OEEncoder extends Encoder {
 	 * <--> v1>=c1 -> v2>=c2 -> a3*v3+b+a1*c1+a2*c2<= 0 (when a1>0, a2>0)
 	 * 
 	 */
-	private void encode(LinearSum ls, IntegerVariable[] vs, int i, int s, int[] clause)
+	private void encode(LinearSum ls, IntegerVariable[] vs, int i, long s, long[] clause)
 		throws IOException, SugarException {
 		if (i >= vs.length - 1) {
-			final int a = ls.getA(vs[i]);
+			final long a = ls.getA(vs[i]);
 			// encoder.writeComment(a + "*" + vs[i].getName() + " <= " + (-s));
 			clause[i] = getCodeLE(vs[i], a, -s);
 			writer.writeClause(clause);
 		} else {
-			int lb0 = s;
-			int ub0 = s;
+			long lb0 = s;
+			long ub0 = s;
 			for (int j = i + 1; j < vs.length; j++) {
-				int a = ls.getA(vs[j]); 
+				long a = ls.getA(vs[j]); 
 				if (a > 0) {
 					lb0 += a * vs[j].getDomain().getLowerBound();
 					ub0 += a * vs[j].getDomain().getUpperBound();
@@ -129,10 +129,10 @@ public class OEEncoder extends Encoder {
 					ub0 += a * vs[j].getDomain().getLowerBound();
 				}
 			}
-			final int a = ls.getA(vs[i]);
+			final long a = ls.getA(vs[i]);
 			final IntegerDomain domain = vs[i].getDomain();
-			int lb = domain.getLowerBound();
-			int ub = domain.getUpperBound();
+			long lb = domain.getLowerBound();
+			long ub = domain.getUpperBound();
 			if (a >= 0) {
 				// ub = Math.min(ub, (int)Math.floor(-(double)lb0 / a));
 				if (-lb0 >= 0) {
@@ -141,9 +141,9 @@ public class OEEncoder extends Encoder {
 					ub = Math.min(ub, (-lb0-a+1)/a);
 				}
 				// XXX
-				final Iterator<Integer> iter = domain.values(lb, ub);
+				final Iterator<Long> iter = domain.values(lb, ub);
 				while (iter.hasNext()) {
-					final int c = iter.next();
+					final long c = iter.next();
 					// vs[i]>=c -> ...
 					// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
 					clause[i] = getCodeLE(vs[i], c - 1);
@@ -161,9 +161,9 @@ public class OEEncoder extends Encoder {
 				// XXX
 				clause[i] = negateCode(getCodeLE(vs[i], lb - 1));
 				encode(ls, vs, i+1, s+a*(lb-1), clause);
-				Iterator<Integer> iter = domain.values(lb, ub);
+				Iterator<Long> iter = domain.values(lb, ub);
 				while (iter.hasNext()) {
-					final int c = iter.next();
+					final long c = iter.next();
 					// vs[i]<=c -> ...
 					clause[i] = negateCode(getCodeLE(vs[i], c));
 					encode(ls, vs, i+1, s+a*c, clause);
@@ -173,7 +173,7 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	protected void encode(LinearLiteral lit, int[] clause) throws SugarException, IOException {
+	protected void encode(LinearLiteral lit, long[] clause) throws SugarException, IOException {
 		if (lit.getOperator() == Operator.EQ
 		    || lit.getOperator() == Operator.NE) {
 			throw new SugarException("Internal error " + lit.toString());
@@ -193,11 +193,11 @@ public class OEEncoder extends Encoder {
 	}
 
 
-	private int getCodeLE(IntegerVariable v, int a, int b) {
-		int code;
+	private long getCodeLE(IntegerVariable v, long a, long b) {
+		long code;
 		if (a >= 0) {
 //			int c = (int) Math.floor((double) b / a);
-			int c;
+			long c;
 			if (b >= 0) {
 				c = b/a;
 			} else {
@@ -206,7 +206,7 @@ public class OEEncoder extends Encoder {
 			code = getCodeLE(v, c);
 		} else {
 //			int c = (int) Math.ceil((double) b / a) - 1;
-			int c;
+			long c;
 			if (b >= 0) {
 				c = b/a - 1;
 			} else {
@@ -301,7 +301,7 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public int getSatVariablesSize(IntegerVariable v) {
+	public long getSatVariablesSize(IntegerVariable v) {
 		return v.getDomain().size()-1;
 	}
 }

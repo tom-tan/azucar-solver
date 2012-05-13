@@ -19,7 +19,7 @@ public class PowerLiteral extends ArithmeticLiteral {
 	}
 
 	@Override
-	public int[] getBound(IntegerVariable v) throws SugarException {
+	public long[] getBound(IntegerVariable v) throws SugarException {
 		return null;
 	}
 

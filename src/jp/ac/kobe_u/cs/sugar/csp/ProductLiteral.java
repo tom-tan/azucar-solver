@@ -44,12 +44,12 @@ public class ProductLiteral extends ArithmeticLiteral {
 	}
 
 	@Override
-	public int[] getBound(IntegerVariable v) throws SugarException {
+	public long[] getBound(IntegerVariable v) throws SugarException {
 		if (this.v == v) {
 			final IntegerDomain muld = v1.getDomain().mul(v2.getDomain());
-			final int lb = muld.getLowerBound();
-			final int ub = muld.getUpperBound();
-			return new int[] { lb, ub };
+			final long lb = muld.getLowerBound();
+			final long ub = muld.getUpperBound();
+			return new long[] { lb, ub };
 		}
 		final IntegerDomain lhsd = this.v.getDomain();
 		IntegerDomain rhsd = null;
@@ -63,7 +63,7 @@ public class ProductLiteral extends ArithmeticLiteral {
 			return null;
 
 		final IntegerDomain dom = lhsd.div(rhsd);
-		return new int[] { dom.getLowerBound(), dom.getUpperBound() };
+		return new long[] { dom.getLowerBound(), dom.getUpperBound() };
 	}
 
 	@Override

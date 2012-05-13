@@ -23,16 +23,16 @@ import jp.ac.kobe_u.cs.sugar.expression.Expression;
  * @author Naoyuki Tamura
  */
 public class LinearSum {
-	private int b;
-	private SortedMap<IntegerVariable,Integer> coef;
+	private long b;
+	private SortedMap<IntegerVariable, Long> coef;
 	private IntegerDomain domain = null;
 
-	public LinearSum(int b) {
-		coef = new TreeMap<IntegerVariable,Integer>();
+	public LinearSum(long b) {
+		coef = new TreeMap<IntegerVariable, Long>();
 		this.b = b;
 	}
 
-	public LinearSum(int a0, IntegerVariable v0, int b) {
+	public LinearSum(long a0, IntegerVariable v0, long b) {
 		this(b);
 		coef.put(v0, a0);
 	}
@@ -43,7 +43,7 @@ public class LinearSum {
 
 	public LinearSum(LinearSum e) {
 		b = e.b;
-		coef = new TreeMap<IntegerVariable,Integer>(e.coef);
+		coef = new TreeMap<IntegerVariable, Long>(e.coef);
 		domain = null;
 	}
 
@@ -55,15 +55,15 @@ public class LinearSum {
 		return coef.size();
 	}
 
-	public int getB() {
+	public long getB() {
 		return b;
 	}
 
-	public void setB(int b) {
+	public void setB(long b) {
 		this.b = b;
 	}
 
-	public SortedMap<IntegerVariable,Integer> getCoef() {
+	public SortedMap<IntegerVariable,Long> getCoef() {
 		return coef;
 	}
 
@@ -75,15 +75,15 @@ public class LinearSum {
 		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;
 	}
 
-	public Integer getA(IntegerVariable v) {
-		Integer a = coef.get(v);
+	public Long getA(IntegerVariable v) {
+		Long a = coef.get(v);
 		if (a == null) {
-			a = 0;
+			a = 0L;
 		}
 		return a;
 	}
 
-	public void setA(int a, IntegerVariable v) {
+	public void setA(long a, IntegerVariable v) {
 		if (a == 0) {
 			coef.remove(v);
 		} else {
@@ -126,7 +126,7 @@ public class LinearSum {
 	public void add(LinearSum linearSum) {
 		b += linearSum.b;
 		for (IntegerVariable v : linearSum.coef.keySet()) {
-			int a = getA(v) + linearSum.getA(v);
+			long a = getA(v) + linearSum.getA(v);
 			setA(a, v);
 		}
 		domain = null;
@@ -139,7 +139,7 @@ public class LinearSum {
 	public void subtract(LinearSum linearSum) {
 		b -= linearSum.b;
 		for (IntegerVariable v : linearSum.coef.keySet()) {
-			int a = getA(v) - linearSum.getA(v);
+			long a = getA(v) - linearSum.getA(v);
 			setA(a, v);
 		}
 		domain = null;
@@ -149,27 +149,27 @@ public class LinearSum {
 	 * Multiplies the given constant.
 	 * @param c the constant to be multiplied by
 	 */
-	public void multiply(int c) {
+	public void multiply(long c) {
 		b *= c;
 		for (IntegerVariable v : coef.keySet()) {
-			int a = c * getA(v);
+			long a = c * getA(v);
 			setA(a, v);
 		}
 		domain = null;
 	}
 
-	public void divide(int c) {
+	public void divide(long c) {
 		b /= c;
 		for (IntegerVariable v : coef.keySet()) {
-			int a = getA(v) / c;
+			long a = getA(v) / c;
 			setA(a, v);
 		}
 		domain = null;
 	}
 
-	private int gcd(int p, int q) {
+	private long gcd(long p, long q) {
 		while (true) {
-			int r = p % q;
+			long r = p % q;
 			if (r == 0)
 				break;
 			p = q;
@@ -178,11 +178,11 @@ public class LinearSum {
 		return q;
 	}
 
-	public int factor() {
+	public long factor() {
 		if (size() == 0) {
 			return b == 0 ? 1 : Math.abs(b);
 		}
-		int gcd = Math.abs(getA(coef.firstKey()));
+		long gcd = Math.abs(getA(coef.firstKey()));
 		for (IntegerVariable v : coef.keySet()) {
 			gcd = gcd(gcd, Math.abs(getA(v)));
 			if (gcd == 1)
@@ -195,7 +195,7 @@ public class LinearSum {
 	}
 
 	public void factorize() {
-		int factor = factor();
+		long factor = factor();
 		if (factor > 1) {
 			divide(factor);
 		}
@@ -205,7 +205,7 @@ public class LinearSum {
 		if (domain == null) {
 			domain = new IntegerDomain(b, b);
 			for (IntegerVariable v : coef.keySet()) {
-				int a = getA(v);
+				long a = getA(v);
 				domain = domain.add(v.getDomain().mul(a));
 			}
 		}
@@ -217,7 +217,7 @@ public class LinearSum {
 		IntegerDomain d = new IntegerDomain(b, b);
 		for (IntegerVariable v1 : coef.keySet()) {
 			if (! v1.equals(v)) {
-				int a = getA(v1);
+				long a = getA(v1);
 				d = d.add(v1.getDomain().mul(a));
 			}
 		}
@@ -253,12 +253,12 @@ public class LinearSum {
 		vs = coef.keySet().toArray(vs);
 		Arrays.sort(vs, new Comparator<IntegerVariable>() {
 			public int compare(IntegerVariable v1, IntegerVariable v2) {
-				int s1 = v1.getDomain().size();
-				int s2 = v2.getDomain().size();
+				long s1 = v1.getDomain().size();
+				long s2 = v2.getDomain().size();
 				if (s1 != s2)
 					return s1 < s2 ? -1 : 1;
-				int a1 = Math.abs(getA(v1));
-				int a2 = Math.abs(getA(v2));
+				long a1 = Math.abs(getA(v1));
+				long a2 = Math.abs(getA(v2));
 				if (a1 != a2)
 					return a1 > a2 ? -1 : 1;
 				return v1.compareTo(v2);
@@ -314,7 +314,7 @@ public class LinearSum {
 		final int PRIME = 31;
 		int result = 1;
 		result = PRIME * result + ((coef == null) ? 0 : coef.hashCode());
-		result = PRIME * result + b;
+		result = PRIME * result + (int)b;
 		return result;
 	}
 
@@ -346,7 +346,7 @@ public class LinearSum {
 		StringBuilder sb = new StringBuilder();
 		sb.append("(add ");
 		for (IntegerVariable v : coef.keySet()) {
-			int c = getA(v);
+			long c = getA(v);
 			if (c == 0) {
 			}else if(c == 1) {
 				sb.append(v.getName());

@@ -39,17 +39,17 @@ public class EqMul extends RCSPLiteral {
 				 new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public EqMul(int z, int x, IntegerVariable y) {
+	public EqMul(long z, long x, IntegerVariable y) {
 		this(new IntegerHolder(z),
 				 new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public EqMul(IntegerVariable z, int x, IntegerVariable y) {
+	public EqMul(IntegerVariable z, long x, IntegerVariable y) {
 		this(new IntegerHolder(z),
 				 new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public EqMul(IntegerVariable z, int x, IntegerHolder y) {
+	public EqMul(IntegerVariable z, long x, IntegerHolder y) {
 		this(new IntegerHolder(z), new IntegerHolder(x), y);
 	}
 
@@ -80,7 +80,7 @@ public class EqMul extends RCSPLiteral {
 				return (new OpXY(Operator.EQ, z, y)).toCCSP(csp, encoder);
 			}
 			final IntegerHolder[] v = new IntegerHolder[m];
-			final int a = x.getValue();
+			final long a = x.getValue();
 			for (int i=0; i<m; i++) {
 				final IntegerDomain d = new IntegerDomain(0, a*y.nth(i).getDomain().getUpperBound());
 				final IntegerVariable vi = new IntegerVariable(d);
@@ -132,9 +132,9 @@ public class EqMul extends RCSPLiteral {
 		} else {
 			// z = xy
 			final IntegerVariable[] w = new IntegerVariable[m];
-			final int uby = y.getDomain().getUpperBound();
-			for (int i=0, ubz = z.getDomain().getUpperBound();
-					 i<m; i++, ubz /= b) {
+			final long uby = y.getDomain().getUpperBound();
+      long ubz = z.getDomain().getUpperBound();
+			for (int i=0; i<m; i++, ubz /= b) {
 				IntegerDomain d;
 				if (x.isConstant()) {
 					d = new IntegerDomain(0, Math.min(x.nthValue(i)*uby, ubz));
@@ -259,7 +259,7 @@ public class EqMul extends RCSPLiteral {
 	}
 
 	@Override
-	public int getUpperBound() {
+	public long getUpperBound() {
 		return Math.max(Math.max(z.getUpperBound(), x.getUpperBound()),
 										y.getUpperBound());
 	}

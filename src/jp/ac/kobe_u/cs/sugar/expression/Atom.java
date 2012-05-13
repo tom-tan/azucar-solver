@@ -28,7 +28,7 @@ public class Atom extends Expression {
 
 	@Override
 	public boolean isInteger() {
-		return atom instanceof Integer;
+		return atom instanceof Long;
 	}
 
 	@Override
@@ -37,8 +37,8 @@ public class Atom extends Expression {
 	}
 
 	@Override
-	public Integer integerValue() {
-		return (Integer)atom;
+	public Long integerValue() {
+		return (Long)atom;
 	}
 
 	@SuppressWarnings("unchecked")

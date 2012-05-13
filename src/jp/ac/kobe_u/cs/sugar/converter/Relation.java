@@ -22,7 +22,7 @@ public class Relation {
 	public int arity;
 	public boolean conflicts;
 	private HashSet<Tuple> tupleSet;
-	private static final int UNDEF = Integer.MIN_VALUE;
+	private static final long UNDEF = Long.MIN_VALUE;
 	private LinearExpression[] les;
 	private Map<String,IntegerDomain> domMap;
 
@@ -37,22 +37,22 @@ public class Relation {
 			throw new SugarException("Syntax error " + body);
 		}
 		int n = body.length() - 1;
-		int[][] tuples = new int[n][];
+		long[][] tuples = new long[n][];
 		for (int i = 1; i <= n; i++) {
 			if (! body.get(i).isSequence()) {
 				throw new SugarException("Syntax error " + body);
 			}
 			Sequence seq = (Sequence)body.get(i);
-			int[] tuple = new int[arity];
+			long[] tuple = new long[arity];
 			for (int j = 0; j < arity; j++) {
 				tuple[j] = seq.get(j).integerValue();
 			}
 			tuples[i-1] = tuple;
 		}
 		tupleSet = new HashSet<Tuple>();
-		for (int[] tuple : tuples) {
+		for (long[] tuple : tuples) {
 			tupleSet.add(new Tuple(tuple.clone()));
-			int[] tuple0 = tuple.clone();
+			long[] tuple0 = tuple.clone();
 			for (int i = tuple.length - 1; i >= 1; i--) {
 				tuple0[i] = UNDEF;
 				tupleSet.add(new Tuple(tuple0.clone()));
@@ -61,9 +61,9 @@ public class Relation {
 	}
 
 	private class Tuple {
-		public int[] values;
+		public long[] values;
 
-		public Tuple(int[] values) {
+		public Tuple(long[] values) {
 			this.values = values;
 		}
 
@@ -97,10 +97,10 @@ public class Relation {
 	}
 
 	private class Brick {
-		public int[] lb;
-		public int[] ub;
+		public long[] lb;
+		public long[] ub;
 
-		public Brick(int[] lb, int[] ub) {
+		public Brick(long[] lb, long[] ub) {
 			this.lb = lb;
 			this.ub = ub;
 		}
@@ -130,7 +130,7 @@ public class Relation {
 	}
 
 	private List<Brick> combineBricks2(List<Brick> bricks1, List<Brick> bricks2,
-			int i, int value1, int value2) {
+			int i, long value1, long value2) {
 		List<Brick> bricks = new ArrayList<Brick>();
 		int j = 0;
 		while (j < bricks1.size()) {
@@ -157,7 +157,7 @@ public class Relation {
 			while (j2 < bricks2.size()) {
 				Brick brick2 = bricks2.get(j2);
 				if (contactInside(brick1, brick2, i)) {
-					int[] ub = brick1.ub.clone();
+					long[] ub = brick1.ub.clone();
 					ub[i] = brick2.ub[i];
 					brick1.ub = ub;
 					if (! contactInside(brick2, brick1, i)) {
@@ -166,7 +166,7 @@ public class Relation {
 					bricks2.remove(j2);
 					break;
 				} else if (contactInside(brick2, brick1, i)) {
-					int[] lb = brick2.lb.clone();
+					long[] lb = brick2.lb.clone();
 					lb[i] = brick1.lb[i];
 					brick2.lb = lb;
 					bricks.add(brick2);
@@ -182,18 +182,18 @@ public class Relation {
 		return bricks;
 	}
 
-	private List<Brick> combineBricks(int i, List<Integer> values, Tuple tuple) throws SugarException {
+	private List<Brick> combineBricks(int i, List<Long> values, Tuple tuple) throws SugarException {
 		List<Brick> bricks = null;
 		if (i == les.length - 1) {
 			bricks = new ArrayList<Brick>();
-			Iterator<Integer> iter = les[i].getDomain(domMap).values();
-			int lb[] = null;
-			int ub[] = null;
+			Iterator<Long> iter = les[i].getDomain(domMap).values();
+			long lb[] = null;
+			long ub[] = null;
 			while (iter.hasNext()) {
-				int value = iter.next();
+				long value = iter.next();
 				tuple.values[i] = value;
 				if (conflicts(tuple)) {
-					int[] point = tuple.values.clone();
+					long[] point = tuple.values.clone();
 					if (lb == null) {
 						lb = ub = point;
 					} else {
@@ -211,10 +211,10 @@ public class Relation {
 			}
 		} else {
 			if (values == null) {
-				values = new ArrayList<Integer>();
-				Iterator<Integer> iter = les[i].getDomain(domMap).values();
+				values = new ArrayList<Long>();
+				Iterator<Long> iter = les[i].getDomain(domMap).values();
 				while (iter.hasNext()) {
-					int value = iter.next();
+					long value = iter.next();
 					values.add(value);
 				}
 			}
@@ -235,8 +235,8 @@ public class Relation {
 						bricks = combineBricks(i + 1, null, tuple);
 					} else {
 						bricks = new ArrayList<Brick>();
-						int[] lb = tuple.values.clone();
-						int[] ub = tuple.values.clone();
+						long[] lb = tuple.values.clone();
+						long[] ub = tuple.values.clone();
 						for (int j = i + 1; j < les.length; j++) {
 							lb[j] = les[j].getDomain(domMap).getLowerBound();
 							ub[j] = les[j].getDomain(domMap).getUpperBound();
@@ -248,8 +248,8 @@ public class Relation {
 				int m = size / 2;
 				List<Brick> bricks1 = combineBricks(i, values.subList(0, m), tuple);
 				List<Brick> bricks2 = combineBricks(i, values.subList(m, size), tuple);
-				int value1 = values.get(m - 1);
-				int value2 = values.get(m);
+				long value1 = values.get(m - 1);
+				long value2 = values.get(m);
 				bricks = combineBricks2(bricks1, bricks2, i, value1, value2);
 			}
 		}
@@ -262,7 +262,7 @@ public class Relation {
 	}
 
 	private List<Brick> getConflictBricks() throws SugarException {
-		Tuple tuple = new Tuple(new int[les.length]);
+		Tuple tuple = new Tuple(new long[les.length]);
 		List<Brick> bricks = combineBricks(0, null, tuple);
 		return bricks;
 	}

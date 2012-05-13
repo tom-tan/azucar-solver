@@ -35,8 +35,8 @@ public class GlobalConstraints {
 		}
 		Expression x = Expression.create(xs);
 		if (Decomposer.OPT_PIGEON) {
-			int lb = Integer.MAX_VALUE;
-			int ub = Integer.MIN_VALUE;
+			long lb = Integer.MAX_VALUE;
+			long ub = Integer.MIN_VALUE;
 			for (int i = 0; i < n; i++) {
 				IntegerDomain d = decomposer.decomposeFormula(seq.get(i+di)).getDomain(map);
 				lb = Math.min(lb, d.getLowerBound());
@@ -97,8 +97,8 @@ public class GlobalConstraints {
 		Expression[] t1 = new Expression[n];
 		List<Expression> xs = new ArrayList<Expression>();
 		xs.add(Expression.AND);
-		int lb = Integer.MAX_VALUE;
-		int ub = Integer.MIN_VALUE;
+		long lb = Long.MAX_VALUE;
+		long ub = Long.MIN_VALUE;
 		for (int i = 0; i < n; i++) {
 			if (! seq1.get(i).isSequence(3)) {
 				decomposer.syntaxError(seq);
@@ -126,7 +126,7 @@ public class GlobalConstraints {
 			lb = Math.min(lb, d1.getLowerBound());
 			ub = Math.max(ub, d2.getUpperBound() - 1);
 		}
-		for (int value = lb; value <= ub; value++) {
+		for (long value = lb; value <= ub; value++) {
 			Expression t = Expression.create(value);
 			List<Expression> sum = new ArrayList<Expression>();
 			sum.add(Expression.ADD);
@@ -352,8 +352,8 @@ public class GlobalConstraints {
 			if (! ws.get(0).isInteger() || ! ws.get(1).isInteger()) {
 				decomposer.syntaxError(seq);
 			}
-			int a = ws.get(0).integerValue();
-			int b = ws.get(1).integerValue();
+			int a = ws.get(0).integerValue().intValue();
+			int b = ws.get(1).integerValue().intValue();
 			Expression w = ws.get(2);
 			if (a < 1 || a > vars.length() || b < 1 || b > counts.length()) {
 				decomposer.syntaxError(seq);

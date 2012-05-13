@@ -45,7 +45,7 @@ public class OpXY extends RCSPLiteral {
 		this(op, new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public OpXY(Operator op, IntegerVariable x, int y) {
+	public OpXY(Operator op, IntegerVariable x, long y) {
 		this(op, new IntegerHolder(x), new IntegerHolder(y));
 	}
 
@@ -138,7 +138,7 @@ public class OpXY extends RCSPLiteral {
 	}
 
 	@Override
-	public int getUpperBound() {
+	public long getUpperBound() {
 		return Math.max(x.getUpperBound(), y.getUpperBound());
 	}
 

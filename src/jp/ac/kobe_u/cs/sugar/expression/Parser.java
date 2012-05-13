@@ -93,7 +93,7 @@ public class Parser {
 				expressions.add(x);
 				break;
 			case StreamTokenizer.TT_NUMBER:
-				int value = (int)st.nval;
+				long value = (long)st.nval;
 				x = Expression.create(value);
 				expressions.add(x);
 				break;

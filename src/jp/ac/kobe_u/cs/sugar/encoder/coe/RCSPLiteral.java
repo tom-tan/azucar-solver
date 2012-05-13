@@ -13,11 +13,11 @@ public abstract class RCSPLiteral extends ArithmeticLiteral {
 	public abstract List<Clause> toCCSP(CSP csp, COEEncoder encoder) throws SugarException;
 
 	@Override
-	public int[] getBound(IntegerVariable v) throws SugarException {
+	public long[] getBound(IntegerVariable v) throws SugarException {
 		throw new SugarException("Not supported.");
 	}
 
-	public abstract int getUpperBound();
+	public abstract long getUpperBound();
 	public abstract boolean isValid() throws SugarException;
 
 	@Override

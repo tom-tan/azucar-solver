@@ -103,13 +103,13 @@ public class CNFWriter {
 		}
 	}
 
-	public void writeClause(int[] clause) throws IOException {
-		for (int code : clause) {
+	public void writeClause(long[] clause) throws IOException {
+		for (long code : clause) {
 			if (code == Encoder.TRUE_CODE) {
 				return;
 			}
 		}
-		for (int code : clause) {
+		for (long code : clause) {
 			if (code != Encoder.FALSE_CODE) {
 				write(code + " ");
 			}
@@ -118,8 +118,8 @@ public class CNFWriter {
 		satClausesCount++;
 	}
 
-	public void writeClause(List<Integer> clause0) throws IOException {
-		int[] clause = new int[clause0.size()];
+	public void writeClause(List<Long> clause0) throws IOException {
+		long[] clause = new long[clause0.size()];
 		for (int i = 0; i < clause.length; i++) {
 			clause[i] = clause0.get(i);
 		}
@@ -147,7 +147,7 @@ public class CNFWriter {
 		satFile1.close();
 	}
 
-	public void addSatVariables(int nvars) {
+	public void addSatVariables(long nvars) {
 		satVariablesCount += nvars;
 	}
 
