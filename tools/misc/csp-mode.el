@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2012  by Tomoya Tanjo
 
-;; Author: Tomoya Tanjo <tanjo@stu.kobe-u.ac.jp>
+;; Author: Tomoya Tanjo <tanjo@nii.ac.jp>
 ;; Keywords: major-mode, csp
 
 (require 'generic)

@@ -14,7 +14,7 @@ import jp.ac.kobe_u.cs.sugar.csp.Operator;
 
 /**
  * z = x*y
- * @author Tomoya Tanjo (tanjo@stu.kobe-u.ac.jp)
+ * @author Tomoya Tanjo (tanjo@nii.ac.jp)
  */
 public class EqMul extends RCSPLiteral {
 	private final IntegerHolder z, x, y;
