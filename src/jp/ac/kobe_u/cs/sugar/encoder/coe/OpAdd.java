@@ -39,7 +39,7 @@ public class OpAdd extends RCSPLiteral {
 		}
 	}
 
-	public OpAdd(Operator op, IntegerVariable z, int x, IntegerVariable y) {
+	public OpAdd(Operator op, IntegerVariable z, long x, IntegerVariable y) {
 		this(op, new IntegerHolder(z), new IntegerHolder(x),
 				 new IntegerHolder(y));
 	}
@@ -217,7 +217,7 @@ public class OpAdd extends RCSPLiteral {
 	}
 
 	@Override
-	public int getUpperBound() {
+	public long getUpperBound() {
 		return Math.max(Math.max(z.getUpperBound(), x.getUpperBound()),
 										y.getUpperBound());
 	}

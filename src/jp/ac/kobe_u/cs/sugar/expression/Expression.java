@@ -112,11 +112,11 @@ public abstract class Expression implements Comparable<Expression> {
 	public static final Expression NIL =
 		create(SugarConstants.NIL);
 	public static final Expression ZERO =
-		intern(new Atom(0));
+		intern(new Atom(0L));
 	public static final Expression ONE =
-		intern(new Atom(1));
-	private String comment = null; 
-	
+		intern(new Atom(1L));
+	private String comment = null;
+
 	private static Expression intern(Expression x) {
 		if (intern) {
 			if (! map.containsKey(x)) {
@@ -130,7 +130,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return x;
 	}
 	
-	public static Expression create(int i) {
+	public static Expression create(long i) {
 		if (i == 0) {
 			return ZERO;
 		} else if (i == 1) {
@@ -195,7 +195,7 @@ public abstract class Expression implements Comparable<Expression> {
 	public static void clear() {
 		map.clear();
 	}
-	
+
 	public boolean isAtom() {
 		return false;
 	}
@@ -211,7 +211,7 @@ public abstract class Expression implements Comparable<Expression> {
 	public boolean isInteger() {
 		return false;
 	}
-	
+
 	public boolean isSequence() {
 		return false;
 	}
@@ -228,7 +228,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return null;
 	}
 
-	public Integer integerValue() {
+	public Long integerValue() {
 		return null;
 	}
 
@@ -268,7 +268,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(EQ, this, x);
 	}
 
-	public Expression eq(int x) {
+	public Expression eq(long x) {
 		return eq(create(x));
 	}
 
@@ -276,7 +276,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(NE, this, x);
 	}
 
-	public Expression ne(int x) {
+	public Expression ne(long x) {
 		return ne(create(x));
 	}
 
@@ -284,7 +284,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(LE, this, x);
 	}
 
-	public Expression le(int x) {
+	public Expression le(long x) {
 		return le(create(x));
 	}
 
@@ -292,7 +292,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(LT, this, x);
 	}
 
-	public Expression lt(int x) {
+	public Expression lt(long x) {
 		return lt(create(x));
 	}
 
@@ -300,7 +300,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(GE, this, x);
 	}
 
-	public Expression ge(int x) {
+	public Expression ge(long x) {
 		return ge(create(x));
 	}
 
@@ -308,7 +308,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(GT, this, x);
 	}
 
-	public Expression gt(int x) {
+	public Expression gt(long x) {
 		return gt(create(x));
 	}
 
@@ -324,7 +324,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(ADD, this, x);
 	}
 
-	public Expression add(int x) {
+	public Expression add(long x) {
 		return add(create(x));
 	}
 
@@ -340,7 +340,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(SUB, this, x);
 	}
 
-	public Expression sub(int x) {
+	public Expression sub(long x) {
 		return sub(create(x));
 	}
 
@@ -348,7 +348,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MUL, this, x);
 	}
 
-	public Expression mul(int x) {
+	public Expression mul(long x) {
 		return mul(create(x));
 	}
 
@@ -364,7 +364,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MOD, this, x);
 	}
 
-	public Expression mod(int x) {
+	public Expression mod(long x) {
 		return mod(create(x));
 	}
 
@@ -372,7 +372,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MIN, this, x);
 	}
 
-	public Expression min(int x) {
+	public Expression min(long x) {
 		return min(create(x));
 	}
 
@@ -380,7 +380,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MAX, this, x);
 	}
 
-	public Expression max(int x) {
+	public Expression max(long x) {
 		return max(create(x));
 	}
 
@@ -388,71 +388,71 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(IF, this, x, y);
 	}
 
-	public Expression ifThenElse(int x, Expression y) {
+	public Expression ifThenElse(long x, Expression y) {
 		return create(IF, this, create(x), y);
 	}
 
-	public Expression ifThenElse(Expression x, int y) {
+	public Expression ifThenElse(Expression x, long y) {
 		return create(IF, this, x, create(y));
 	}
 
-	public Expression ifThenElse(int x, int y) {
+	public Expression ifThenElse(long x, long y) {
 		return create(IF, this, create(x), create(y));
 	}
 
 	public static Expression alldifferent(Expression x) {
 		return create(ALLDIFFERENT, x);
 	}
-	
+
 	/*
 	public static Expression alldifferent(Expression[] xs) {
 		return create(ALLDIFFERENT, create(xs));
 	}
-	
+
 	public static Expression alldifferent(List<Expression> xs) {
 		return create(ALLDIFFERENT, create(xs));
 	}
 	*/
-	
+
 	public static Expression weightedsum(Expression x, Expression y, Expression z) {
 		return create(WEIGHTEDSUM, x, y, z);
 	}
-	
-	public static Expression weightedsum(Expression x, Expression y, int z) {
+
+	public static Expression weightedsum(Expression x, Expression y, long z) {
 		return create(WEIGHTEDSUM, x, y, create(z));
 	}
-	
+
 	/*
 	public static Expression weightedsum(Expression[] xs, Expression y, Expression z) {
 		return create(WEIGHTEDSUM, create(xs), y, z);
 	}
-	
+
 	public static Expression weightedsum(Expression[] xs, Expression y, int z) {
 		return create(WEIGHTEDSUM, create(xs), y, create(z));
 	}
-	
+
 	public static Expression weightedsum(List<Expression> xs, Expression y, Expression z) {
 		return create(WEIGHTEDSUM, create(xs), y, z);
 	}
-	
+
 	public static Expression weightedsum(List<Expression> xs, Expression y, int z) {
 		return create(WEIGHTEDSUM, create(xs), y, create(z));
 	}
 	*/
-	
+
 	public static Expression cumulative(Expression x, Expression y) {
 		return create(CUMULATIVE, x, y);
 	}
-	
-	public static Expression cumulative(Expression x, int y) {
+
+	public static Expression cumulative(Expression x, long y) {
 		return create(CUMULATIVE, x, create(y));
 	}
-	
+
 	/*
 	public static Expression cumulative(Expression[] xs, Expression y) {
 		return create(CUMULATIVE, create(xs), y);
 	}
-	
+
 	public static Expression cumulative(Expression[] xs, int y) {
 		return create(CUMULATIVE, create(xs), create(y));
 	}
@@ -460,12 +460,12 @@ public abstract class Expression implements Comparable<Expression> {
 	public static Expression cumulative(List<Expression> xs, Expression y) {
 		return create(CUMULATIVE, create(xs), y);
 	}
-	
+
 	public static Expression cumulative(List<Expression> xs, int y) {
 		return create(CUMULATIVE, create(xs), create(y));
 	}
 	*/
-	
+
 	public static Expression element(Expression x, Expression y, Expression z) {
 		return create(ELEMENT, x, y, z);
 	}
@@ -474,53 +474,53 @@ public abstract class Expression implements Comparable<Expression> {
 	public static Expression element(Expression x, Expression[] ys, Expression z) {
 		return create(ELEMENT, x, create(ys), z);
 	}
-	
+
 	public static Expression element(Expression x, List<Expression> ys, Expression z) {
 		return create(ELEMENT, x, create(ys), z);
 	}
 	*/
-	
+
 	public static Expression disjunctive(Expression x) {
 		return create(DISJUNCTIVE, x);
 	}
-	
+
 	public static Expression lex_less(Expression x, Expression y) {
 		return create(LEX_LESS, x, y);
 	}
-	
+
 	public static Expression lex_lesseq(Expression x, Expression y) {
 		return create(LEX_LESSEQ, x, y);
 	}
-	
+
 	public static Expression nvalue(Expression x, Expression y) {
 		return create(NVALUE, x, y);
 	}
-	
-	public static Expression nvalue(int x, Expression y) {
+
+	public static Expression nvalue(long x, Expression y) {
 		return create(NVALUE, create(x), y);
 	}
-	
+
 	public static Expression count(Expression x, Expression y, Expression z, Expression w) {
 		return create(COUNT, x, y, z, w);
 	}
-	
+
 	public static Expression global_cardinality(Expression x, Expression y) {
 		return create(GLOBAL_CARDINALITY, x, y);
 	}
-	
+
 	public static Expression global_cardinality_with_costs(Expression x, Expression y,
 			Expression z, Expression w) {
 		return create(GLOBAL_CARDINALITY_WITH_COSTS, x, y, z, w);
 	}
-	
+
 	public static Expression global_cardinality_with_costs(Expression x, Expression y,
-			Expression z, int w) {
+			Expression z, long w) {
 		return create(GLOBAL_CARDINALITY_WITH_COSTS, x, y, z, create(w));
 	}
-	
-	public static void appendString(StringBuilder sb, int[] xs) {
+
+	public static void appendString(StringBuilder sb, long[] xs) {
 		String delim = "";
-		for (int x : xs) {
+		for (long x : xs) {
 			sb.append(delim + x);
 			delim = " ";
 		}

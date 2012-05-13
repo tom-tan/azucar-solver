@@ -5,7 +5,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;
 import java.util.ArrayList;
-import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
@@ -20,10 +20,10 @@ public abstract class Decoder {
 		this.csp = csp;
 	}
 
-	public abstract void decode(IntegerVariable v, BitSet satValues);
+	public abstract void decode(IntegerVariable v, HashMap<Long, Boolean> satValues);
 	public abstract void decodeBigInteger(IntegerVariable v) throws SugarException;
 
-	protected void decode(BooleanVariable v, BitSet satValues) {
+	protected void decode(BooleanVariable v, HashMap<Long, Boolean> satValues) {
 		v.setValue(satValues.get(v.getCode()));
 	}
 
@@ -52,7 +52,7 @@ public abstract class Decoder {
 		}
 		if (result.startsWith("SAT")) {
 			sat = true;
-			final BitSet satValues = new BitSet();
+			final HashMap<Long, Boolean> satValues = new HashMap<Long, Boolean>();
 			while (true) {
 				st.nextToken();
 				if (st.ttype == StreamTokenizer.TT_EOF)
@@ -71,10 +71,10 @@ public abstract class Decoder {
 					}
 					break;
 				case StreamTokenizer.TT_NUMBER:
-					final int value = (int)st.nval;
-					final int i = Math.abs(value);
+					final long value = (long)st.nval;
+					final long i = Math.abs(value);
 					if (i > 0) {
-						satValues.set(i, value > 0);
+						satValues.put(i, value > 0);
 					}
 					break;
 				default:

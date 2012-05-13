@@ -9,11 +9,11 @@ import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
  */
 public class IntegerHolder implements Comparable<IntegerHolder>{
 	private boolean isConstant_;
-	private int constant;
+	private long constant;
 	private int[] digits;
 	private IntegerVariable variable;
 
-	public IntegerHolder(int v) {
+	public IntegerHolder(long v) {
 		constant = v;
 		isConstant_ = true;
 	}
@@ -31,7 +31,7 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 		}
 	}
 
-	public int getUpperBound() {
+	public long getUpperBound() {
 		if (isConstant_)
 			return constant;
 		else
@@ -42,10 +42,10 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 		assert digits == null;
 		assert isConstant_;
 		final int m = (int)Math.ceil(Math.log(constant+1)/Math.log(b));
-		int ub = constant;
+		long ub = constant;
 		digits = new int[m];
 		for (int i=0; i<m; i++, ub /= b) {
-			digits[i] = ub%b;
+			digits[i] = (int)(ub%b);
 		}
 		assert constant == 0 || digits[m-1] > 0;
 	}
@@ -84,8 +84,8 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 			return 0;
 		if (v == null)
 			return 1;
-		final int ub1 = isConstant_ ? constant : variable.getDomain().getUpperBound();
-		final int ub2 = v.isConstant_ ? v.constant : v.variable.getDomain().getUpperBound();
+		final long ub1 = isConstant_ ? constant : variable.getDomain().getUpperBound();
+		final long ub2 = v.isConstant_ ? v.constant : v.variable.getDomain().getUpperBound();
 		if (ub1 != ub2)
 			return ub1 < ub2 ? -1 : 1;
 		return this.toString().compareTo(v.toString());
@@ -120,12 +120,12 @@ public class IntegerHolder implements Comparable<IntegerHolder>{
 		return variable;
 	}
 
-	public int getValue() {
+	public long getValue() {
 		assert isConstant_;
 		return constant;
 	}
 
 	public String toString() {
-		return isConstant_ ? Integer.toString(constant) : variable.getName();
+		return isConstant_ ? Long.toString(constant) : variable.getName();
 	}
 }

@@ -10,18 +10,18 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 public class BooleanVariable implements Comparable<BooleanVariable> {
 	private static final String AUX_PRE = "_$B";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
-	private static int auxBooleanVariablesSize = 0;
+	private static long auxBooleanVariablesSize = 0;
 	private String name;
 	private boolean aux;
 	private String comment = null;
-	private int code;
+	private long code;
 	private boolean value;
 
 	public static void setPrefix(String pre) {
 		AUX_NAME_PREFIX = AUX_PRE + pre;
 	}
 
-	public static void setIndex(int index) {
+	public static void setIndex(long index) {
 		auxBooleanVariablesSize = 0;
 	}
 
@@ -80,7 +80,7 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	 * Returns the code value in the encoded representation. 
 	 * @return the code value in the encoded representation
 	 */
-	public int getCode() {
+	public long getCode() {
 		return code;
 	}
 
@@ -88,7 +88,7 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	 * Sets the code value in the encoded representation. 
 	 * @param code the code value
 	 */
-	public void setCode(int code) {
+	public void setCode(long code) {
 		this.code = code;
 	}
 

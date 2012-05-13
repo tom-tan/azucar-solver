@@ -183,7 +183,7 @@ public class SugarMain {
 				ef.setBases(bases);
 			} else if (s[0].equals("bigint")) {
 				final String name = s[1];
-				final int offset = Integer.parseInt(s[2]);
+				final long offset = Long.parseLong(s[2]);
 				final String[] digits = new String[s.length-3];
 				for (int i=3, j=0; i<s.length ; i++, j++) {
 					digits[j] = s[i];
@@ -197,33 +197,33 @@ public class SugarMain {
 				}
 			} else if (s[0].equals("int")) {
 				final String name = s[1];
-				final int offset = Integer.parseInt(s[2]);
-				final int code = Integer.parseInt(s[3]);
+				final long offset = Long.parseLong(s[2]);
+				final long code = Long.parseLong(s[3]);
 				IntegerDomain domain = null;
 				if (s.length == 5) {
-					int lb;
-					int ub;
+					long lb;
+					long ub;
 					final int pos = s[4].indexOf("..");
 					if (pos < 0) {
-						lb = ub = Integer.parseInt(s[4]);
+						lb = ub = Long.parseLong(s[4]);
 					} else {
-						lb = Integer.parseInt(s[4].substring(0, pos));
-						ub = Integer.parseInt(s[4].substring(pos+2));
+						lb = Long.parseLong(s[4].substring(0, pos));
+						ub = Long.parseLong(s[4].substring(pos+2));
 					}
 					domain = new IntegerDomain(lb, ub);
 				} else {
-					SortedSet<Integer> d = new TreeSet<Integer>();
+					SortedSet<Long> d = new TreeSet<Long>();
 					for (int i = 4; i < s.length; i++) {
-						int lb;
-						int ub;
+						long lb;
+						long ub;
 						final int pos = s[i].indexOf("..");
 						if (pos < 0) {
-							lb = ub = Integer.parseInt(s[i]);
+							lb = ub = Long.parseLong(s[i]);
 						} else {
-							lb = Integer.parseInt(s[i].substring(0, pos));
-							ub = Integer.parseInt(s[i].substring(pos+2));
+							lb = Long.parseLong(s[i].substring(0, pos));
+							ub = Long.parseLong(s[i].substring(pos+2));
 						}
-						for (int value = lb; value <= ub; value++) {
+						for (long value = lb; value <= ub; value++) {
 							d.add(value);
 						}
 					}
@@ -239,7 +239,7 @@ public class SugarMain {
 			} else if (s[0].equals("bool")) {
 				// TODO
 				final String name = s[1];
-				final int code = Integer.parseInt(s[2]);
+				final long code = Long.parseLong(s[2]);
 				final BooleanVariable v = new BooleanVariable(name);
 				v.setCode(code);
 				csp.add(v);
@@ -266,7 +266,7 @@ public class SugarMain {
 			} else {
 				final IntegerVariable obj = csp.getObjectiveVariable();
 				final String name = obj.getName();
-				final int value = obj.getValue();
+				final long value = obj.getValue();
 				Logger.println("c OBJECTIVE " + name + " " + value);
 				for (IntegerVariable digit : obj.getDigits()) {
 					Logger.println("c DIGITS: "+digit.getName() + " " + digit.getValue());

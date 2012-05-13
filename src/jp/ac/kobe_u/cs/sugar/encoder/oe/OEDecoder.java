@@ -1,6 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.encoder.oe;
 
-import java.util.BitSet;
+import java.util.HashMap;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
@@ -14,14 +14,14 @@ public class OEDecoder extends Decoder {
 	}
 
 	@Override
-	public void decode(IntegerVariable v, BitSet satValues) {
+	public void decode(IntegerVariable v, HashMap<Long, Boolean> satValues) {
 		assert v.getDigits().length <= 1;
 		final IntegerDomain domain = v.getDomain();
-		final int lb = domain.getLowerBound();
-		final int ub = domain.getUpperBound();
-		int code = v.getCode();
+		final long lb = domain.getLowerBound();
+		final long ub = domain.getUpperBound();
+		long code = v.getCode();
 		v.setValue(ub);
-		for (int c = lb; c < ub; c++) {
+		for (long c = lb; c < ub; c++) {
 			if (domain.contains(c)) {
 				if (satValues.get(code)) {
 					v.setValue(c);

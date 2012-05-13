@@ -75,14 +75,14 @@ public class Decomposer {
 		Expression domain = null;
 		if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
-			int lb = seq.get(2).integerValue();
-			int ub = seq.get(3).integerValue();
+			long lb = seq.get(2).integerValue();
+			long ub = seq.get(3).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(ub)};
 			domain = Expression.create(Expression.create(exps));
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
-			int lb = seq.get(2).integerValue();
+			long lb = seq.get(2).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(lb)};
 			domain = Expression.create(Expression.create(exps));
@@ -113,7 +113,7 @@ public class Decomposer {
 		} else if (seq.matches("WWS")) {
 			name = seq.get(1).stringValue();
 			domainExp = (Sequence)seq.get(2);
-			SortedSet<Integer> d = new TreeSet<Integer>();
+			SortedSet<Long> d = new TreeSet<Long>();
 			Sequence x = (Sequence)seq.get(2);
 			for (int i = 0; i < x.length(); i++) {
 				if (x.get(i).isInteger()) {
@@ -121,9 +121,9 @@ public class Decomposer {
 				} else if (x.get(i).isSequence()) {
 					Sequence seq1 = (Sequence)x.get(i);
 					if (seq1.matches("II")) {
-						int value0 = ((Sequence)x.get(i)).get(0).integerValue();
-						int value1 = ((Sequence)x.get(i)).get(1).integerValue();
-						for (int value = value0; value <= value1; value++) {
+						long value0 = ((Sequence)x.get(i)).get(0).integerValue();
+						long value1 = ((Sequence)x.get(i)).get(1).integerValue();
+						for (long value = value0; value <= value1; value++) {
 							d.add(value);
 						}
 					} else {
@@ -136,15 +136,15 @@ public class Decomposer {
 			domain = new IntegerDomain(d);
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
-			int lb = seq.get(2).integerValue();
-			int ub = seq.get(3).integerValue();
+			long lb = seq.get(2).integerValue();
+			long ub = seq.get(3).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(ub)};
 			domainExp = Expression.create(Expression.create(exps));
 			domain = new IntegerDomain(lb, ub);
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
-			int lb = seq.get(2).integerValue();
+			long lb = seq.get(2).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(lb)};
 			domainExp = Expression.create(Expression.create(exps));
@@ -217,7 +217,7 @@ public class Decomposer {
 			syntaxError(seq);
 		}
 		String name = seq.get(1).stringValue();
-		int arity = seq.get(2).integerValue();
+		int arity = seq.get(2).integerValue().intValue();
 		Sequence body = (Sequence)seq.get(3);
 		Relation rel = new Relation(name, arity, body);
 		relationMap.put(name, rel);
@@ -395,7 +395,7 @@ public class Decomposer {
 		Atom r = newIntegerVariable(rd, x1.mod(x2));
 		Expression px = x2.mul(q);
 		if (d2.size() == 1) {
-			int value2 = d2.getLowerBound();
+			long value2 = d2.getLowerBound();
 			if (value2 == 1) {
 				return e1;
 			} else if (value2 == -1) {
@@ -432,7 +432,7 @@ public class Decomposer {
 		Atom r = newIntegerVariable(rd, x1.mod(x2));
 		Expression px = x2.mul(q);
 		if (d2.size() == 1) {
-			int value2 = d2.getLowerBound();
+			long value2 = d2.getLowerBound();
 			// TODO
 			if (value2 <= 0) {
 				throw new SugarException("Unsupported " + seq);

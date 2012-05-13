@@ -258,7 +258,7 @@ public class CSP {
 	}
 
 	public String summary() {
-		int size = 0;
+		long size = 0;
 		for (IntegerVariable v : integerVariables) {
 			size = Math.max(size, v.getDomain().size());
 		}

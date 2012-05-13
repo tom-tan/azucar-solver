@@ -115,13 +115,13 @@ public class Sequence extends Expression {
 					return false;
 				break;
 			default:
-				throw new SugarException("Unknown pattern name " + Character.toString(c));	
+				throw new SugarException("Unknown pattern name " + Character.toString(c));
 			}
 			i++;
 		}
 		return i == expressions.length;
 	}
-	
+
 	public int compareTo(Expression x) {
 		if (x == null)
 			return 1;

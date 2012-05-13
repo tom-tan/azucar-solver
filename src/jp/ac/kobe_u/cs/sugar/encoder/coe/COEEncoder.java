@@ -78,7 +78,7 @@ public class COEEncoder extends OEEncoder {
 		// System.out.println("======== CSP =========\n"+csp);
 		toRCSP();
 		// System.out.println("======== CSP =========\n"+csp);
-		int ub = -1;
+		long ub = -1;
 		for (Clause c : csp.getClauses()) {
 			for (ArithmeticLiteral l : c.getArithmeticLiterals()) {
 				ub = Math.max(ub, ((RCSPLiteral)l).getUpperBound());
@@ -179,13 +179,13 @@ public class COEEncoder extends OEEncoder {
 							// Special case: ax-by == 0
 							final IntegerVariable v1 = ls.getCoef().firstKey();
 							final IntegerVariable v2 = ls.getCoef().lastKey();
-							final int c1 = ls.getA(v1);
-							final int c2 = ls.getA(v2);
+							final long c1 = ls.getA(v1);
+							final long c2 = ls.getA(v2);
 							if (c1*c2 < 0) {
 								IntegerVariable lhs = Math.abs(c1)<Math.abs(c2) ? v1 : v2;
 								final IntegerVariable rhs = Math.abs(c1)<Math.abs(c2) ? v2 : v1;
-								final int lc = Math.abs(ls.getA(lhs));
-								final int rc = Math.abs(ls.getA(rhs));
+								final long lc = Math.abs(ls.getA(lhs));
+								final long rc = Math.abs(ls.getA(rhs));
 								if (lc > 1) {
 									// av == lc*lhs
 									final IntegerDomain dom = lhs.getDomain().mul(lc);
@@ -202,8 +202,8 @@ public class COEEncoder extends OEEncoder {
 						} else if (ll.getOperator() == Operator.EQ && ls.size() == 1) {
 							// Special case: ax-b = 0
 							final IntegerVariable x = ls.getCoef().firstKey();
-							int a = ls.getA(x);
-							int b = ls.getB();
+							long a = ls.getA(x);
+							long b = ls.getB();
 							if (a*b <= 0) {
 								a = Math.abs(a);
 								b = Math.abs(b);
@@ -220,9 +220,9 @@ public class COEEncoder extends OEEncoder {
 							lhs = new LinearSum(0);
 							rhs = new LinearSum(-ls.getB());
 						}
-						for (Entry<IntegerVariable, Integer> es :
+						for (Entry<IntegerVariable, Long> es :
 									 ls.getCoef().entrySet()) {
-							int a = es.getValue();
+							long a = es.getValue();
 							final IntegerVariable v = es.getKey();
 							if (a == 1) {
 								lhs.setA(1, v);
@@ -334,8 +334,8 @@ public class COEEncoder extends OEEncoder {
 		List<IntegerVariable> newVars = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			newVars.addAll(v.splitToDigits(csp));
-			final int lb = v.getDomain().getLowerBound();
-			final int ub = v.getDomain().getUpperBound();
+			final long lb = v.getDomain().getLowerBound();
+			final long ub = v.getDomain().getUpperBound();
 			final int m = v.getDigits().length;
 			if (m > 1 || ub <= Math.pow(bases[0], m)-1) {
 				newClauses.addAll((new OpXY(Operator.LE, v, ub)).toCCSP(csp, this));
@@ -396,14 +396,14 @@ public class COEEncoder extends OEEncoder {
 		final LinearSum lhs = new LinearSum(0);
 		final LinearSum rhs = new LinearSum(0);
 		for (IntegerVariable v: exp.getVariables()) {
-			int a = exp.getA(v);
+			long a = exp.getA(v);
 			if (a > 0) {
 				lhs.setA(a, v);
 			} else {
 				rhs.setA(-a, v);
 			}
 		}
-		final int b = exp.getB();
+		final long b = exp.getB();
 		final int rest = (b == 0 ? 3 : 2);
 		int lhs_len = 0, rhs_len = 0;
 		if (lhs.size() == 0) {
@@ -419,7 +419,7 @@ public class COEEncoder extends OEEncoder {
 		}
 		final LinearSum e = new LinearSum(b);
 		for (LinearSum ei: lhs.split(lhs_len)) {
-			final int factor = ei.factor();
+			final long factor = ei.factor();
 			if (factor > 1) {
 				ei.divide(factor);
 			}
@@ -444,7 +444,7 @@ public class COEEncoder extends OEEncoder {
 			e.add(ei);
 		}
 		for (LinearSum ei: rhs.split(rhs_len)) {
-			final int factor = ei.factor();
+			final long factor = ei.factor();
 			if (factor > 1) {
 				ei.divide(factor);
 			}
@@ -559,7 +559,7 @@ public class COEEncoder extends OEEncoder {
 	}
 
 	@Override
-	public int getSatVariablesSize(IntegerVariable v) {
+	public long getSatVariablesSize(IntegerVariable v) {
 		if (v.getDigits().length >= 2)
 			return 0;
 		return super.getSatVariablesSize(v);

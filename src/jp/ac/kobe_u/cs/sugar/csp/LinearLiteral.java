@@ -25,7 +25,7 @@ public class LinearLiteral extends ArithmeticLiteral {
 		assert op.equals(Expression.LE)
 			|| op.equals(Expression.EQ)
 			|| op.equals(Expression.NE);
-		int factor = linearSum.factor();
+		long factor = linearSum.factor();
 		if (factor > 1) {
 			linearSum.divide(factor);
 		}
@@ -36,7 +36,7 @@ public class LinearLiteral extends ArithmeticLiteral {
 	}
 
 	public LinearLiteral(LinearSum linearSum, Operator op) {
-		int factor = linearSum.factor();
+		long factor = linearSum.factor();
 		if (factor > 1) {
 			linearSum.divide(factor);
 		}
@@ -50,9 +50,9 @@ public class LinearLiteral extends ArithmeticLiteral {
 	}
 
 	/*
-	 * Returns (int)Math.ceil((double)b/a)
+	 * Returns (long)Math.ceil((double)b/a)
 	 */
-	static private int divceil(int b, int a) {
+	static private long divceil(long b, long a) {
 		if ((a >= 0 && b >= 0) ||
 				(a < 0  && b <  0)) {
 			return b/a;
@@ -64,9 +64,9 @@ public class LinearLiteral extends ArithmeticLiteral {
 	}
 
 	/*
-	 * Returns (int)Math.floor((double)b/a)
+	 * Returns (long)Math.floor((double)b/a)
 	 */
-	static private int divfloor(int b, int a) {
+	static private long divfloor(long b, long a) {
 		if (a >= 0 && b >= 0) {
 			return b/a;
 		} else if (a < 0 && b < 0) {
@@ -79,13 +79,13 @@ public class LinearLiteral extends ArithmeticLiteral {
 	}
 
 	@Override
-	public int[] getBound(IntegerVariable v) throws SugarException {
-		final int a = linearSum.getA(v);
+	public long[] getBound(IntegerVariable v) throws SugarException {
+		final long a = linearSum.getA(v);
 		final IntegerDomain d = linearSum.getDomainExcept(v);
-		final int olb = d.getLowerBound();
-		final int oub = d.getUpperBound();
-		int lb = v.getDomain().getLowerBound();
-		int ub = v.getDomain().getUpperBound();
+		final long olb = d.getLowerBound();
+		final long oub = d.getUpperBound();
+		long lb = v.getDomain().getLowerBound();
+		long ub = v.getDomain().getUpperBound();
 		switch(op) {
 		case LE:
 			if (a > 0) {
@@ -109,7 +109,7 @@ public class LinearLiteral extends ArithmeticLiteral {
 		}
 		if (lb > ub)
 			return null;
-		return new int[] { lb, ub };
+		return new long[] { lb, ub };
 	}
 
 	/**
