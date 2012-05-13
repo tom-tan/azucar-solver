@@ -30,7 +30,7 @@ import jp.ac.kobe_u.cs.sugar.csp.ProductLiteral;
 /**
  * Encoder encodes CSP into SAT.
  * @see CSP 
- * @author Tomoya Tanjo (tanjo@stu.kobe-u.ac.jp)
+ * @author Tomoya Tanjo (tanjo@nii.ac.jp)
  */
 public abstract class Encoder {
 	public static boolean simplifyAll = true;
