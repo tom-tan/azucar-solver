@@ -259,8 +259,8 @@ public class SugarMain {
 			v.setDigits(digits);
 		}
 
-		final Decoder encoder = ef.createDecoder(csp);
-		if (encoder.decode(outFileName)) {
+		final Decoder decoder = ef.createDecoder(csp);
+		if (decoder.decode(outFileName)) {
 			if (csp.getObjectiveVariable() == null) {
 				Logger.println("s SATISFIABLE");
 			} else {

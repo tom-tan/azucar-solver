@@ -20,8 +20,8 @@ public class COEDecoder extends OEDecoder {
 	public void decodeBigInteger(IntegerVariable v) {
 		assert v.getDigits().length > 1;
 		final int b = bases[0];
-		int dbase = 1;
-		int value = 0;
+		long dbase = 1;
+		long value = 0;
 		for (IntegerVariable digit: v.getDigits()) {
 			value += dbase*digit.getValue();
 			dbase *= b;
