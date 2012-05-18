@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -13,15 +14,15 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 public class IntegerVariable implements Comparable<IntegerVariable> {
 	private static final String AUX_PRE = "_$I";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
-	private static long auxIntegerVariablesSize = 0;
+	private static BigInteger auxIntegerVariablesSize = 0;
 	private String name;
 	private IntegerDomain domain;
 	private boolean aux;
 	private String comment = null;
 	private boolean modified = true;
-	private long code;
-	private long value;
-	private long offset;
+	private BigInteger code;
+	private BigInteger value;
+	private BigInteger offset;
 	private boolean isDigit_;
 	private IntegerVariable[] vs = null;
 
@@ -29,8 +30,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		AUX_NAME_PREFIX = AUX_PRE + pre;
 	}
 
-	public static void setIndex(long index) {
-		auxIntegerVariablesSize = 0;
+	public static void setIndex(BigInteger index) {
+		auxIntegerVariablesSize = index;
 	}
 
 	public IntegerVariable(String name, IntegerDomain domain) throws SugarException {
@@ -44,7 +45,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	}
 
 	public IntegerVariable(IntegerDomain domain) throws SugarException {
-		this(AUX_NAME_PREFIX + (++auxIntegerVariablesSize), domain);
+		this(AUX_NAME_PREFIX + (auxIntegerVariablesSize.add(BigInteger.ONE)), domain);
+		auxIntegerVariablesSize = auxIntegerVariablesSize.add(BigInteger.ONE);
 		aux = true;
 	}
 
@@ -80,11 +82,11 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		this.aux = aux;
 	}
 
-	public long getOffset() {
+	public BigInteger getOffset() {
 		return offset;
 	}
 
-	public void setOffset(long off) {
+	public void setOffset(BigInteger off) {
 		offset = off;
 	}
 
@@ -118,7 +120,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		this.modified = modified;
 	}
 
-	public long bound(long lb, long ub) throws SugarException {
+	public BigInteger bound(BigInteger lb, BigInteger ub) throws SugarException {
 		IntegerDomain oldDomain = domain;
 		domain = domain.bound(lb, ub);
 		if (! domain.equals(oldDomain)) {
@@ -131,7 +133,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * Returns the code value in the encoded representation. 
 	 * @return the code value in the encoded representation
 	 */
-	public long getCode() {
+	public BigInteger getCode() {
 		return code;
 	}
 
@@ -139,7 +141,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * Sets the code value in the encoded representation. 
 	 * @param code the code value
 	 */
-	public void setCode(long code) {
+	public void setCode(BigInteger code) {
 		this.code = code;
 	}
 
@@ -147,7 +149,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * Returns the value of the integer variable.
 	 * @return the value
 	 */
-	public long getValue() {
+	public BigInteger getValue() {
 		return value;
 	}
 
@@ -155,7 +157,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * Sets the value of the integer variable.
 	 * @param value the value to set
 	 */
-	public void setValue(long value) {
+	public void setValue(BigInteger value) {
 		this.value = value;
 	}
 
@@ -184,9 +186,9 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	}
 
 	public List<IntegerVariable> splitToDigits(CSP csp) throws SugarException {
-		long ub = domain.getUpperBound();
+		BigInteger ub = domain.getUpperBound();
 		long b = csp.getBases()[0];
-		int m = (int)Math.ceil(Math.log(ub+1)/Math.log(b));
+		int m = (int)Math.ceil(Math.log(ub.add(BigInteger.ONE)).divide(Math.log(b)));
 
 		vs = new IntegerVariable[m];
 		if (m == 1) {

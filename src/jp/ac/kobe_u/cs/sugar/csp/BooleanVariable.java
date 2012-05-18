@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
+import java.math.BigInteger;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 
 /**
@@ -10,19 +11,19 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 public class BooleanVariable implements Comparable<BooleanVariable> {
 	private static final String AUX_PRE = "_$B";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
-	private static long auxBooleanVariablesSize = 0;
+	private static BigInteger auxBooleanVariablesSize = BigInteger.ZERO;
 	private String name;
 	private boolean aux;
 	private String comment = null;
-	private long code;
+	private BigInteger code;
 	private boolean value;
 
 	public static void setPrefix(String pre) {
 		AUX_NAME_PREFIX = AUX_PRE + pre;
 	}
 
-	public static void setIndex(long index) {
-		auxBooleanVariablesSize = 0;
+	public static void setIndex(BigInteger index) {
+		auxBooleanVariablesSize = index;
 	}
 
 	/**
@@ -36,7 +37,8 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	}
 
 	public BooleanVariable() throws SugarException {
-		this(AUX_NAME_PREFIX + (++auxBooleanVariablesSize));
+		this(AUX_NAME_PREFIX + (auxBooleanVariablesSize+BigInteger.ONE));
+		auxBooleanVariablesSize = auxBooleanVariablesSize+BigInteger.ONE;
 		aux = true;
 	}
 
@@ -80,7 +82,7 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	 * Returns the code value in the encoded representation. 
 	 * @return the code value in the encoded representation
 	 */
-	public long getCode() {
+	public BigInteger getCode() {
 		return code;
 	}
 
@@ -88,7 +90,7 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	 * Sets the code value in the encoded representation. 
 	 * @param code the code value
 	 */
-	public void setCode(long code) {
+	public void setCode(BigInteger code) {
 		this.code = code;
 	}
 

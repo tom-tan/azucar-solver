@@ -5,6 +5,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.List;
 import java.util.ArrayList;
+import java.math.BigInteger;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
@@ -16,16 +17,16 @@ import jp.ac.kobe_u.cs.sugar.expression.Expression;
  */
 public class IntegerDomain {
 	public static long MAX_SET_SIZE = 128;
-	private long lb;
-	private long ub;
-	private SortedSet<Long> domain;
+	private BigInteger lb;
+	private BigInteger ub;
+	private SortedSet<BigInteger> domain;
 
-	private static IntegerDomain create(SortedSet<Long> domain) throws SugarException {
-		long lb = domain.first();
-		long ub = domain.last();
+	private static IntegerDomain create(SortedSet<BigInteger> domain) throws SugarException {
+		BigInteger lb = domain.first();
+		BigInteger ub = domain.last();
 		if (domain.size() <= MAX_SET_SIZE) {
 			boolean sparse = false;
-			for (long value = lb; value <= ub; value++) {
+			for (BigInteger value = lb; value.compareTo(ub) <= 0; value = value+BigInteger.ONE) {
 				if (! domain.contains(value)) {
 					sparse = true;
 					break;
@@ -43,8 +44,8 @@ public class IntegerDomain {
 		return new IntegerDomain(domain);
 	}
 
-	public IntegerDomain(long lb, long ub) throws SugarException {
-		if (lb > ub) {
+	public IntegerDomain(BigInteger lb, BigInteger ub) throws SugarException {
+		if (lb.compareTo(ub) > 0) {
 			throw new SugarException("Illegal domain instantiation " + lb + " " + ub);
 		}
 		this.lb = lb;
@@ -52,7 +53,7 @@ public class IntegerDomain {
 		domain = null;
 	}
 
-	public IntegerDomain(SortedSet<Long> domain) {
+	public IntegerDomain(SortedSet<BigInteger> domain) {
 		lb = domain.first();
 		ub = domain.last();
 		this.domain = domain;
@@ -63,17 +64,17 @@ public class IntegerDomain {
 		ub = d.ub;
 		domain = null;
 		if (d.domain != null) {
-			domain = new TreeSet<Long>(d.domain);
+			domain = new TreeSet<BigInteger>(d.domain);
 		}
 	}
 
 	private IntegerDomain() {
-		domain = new TreeSet<Long>();
+		domain = new TreeSet<BigInteger>();
 	}
 
-	public long size() {
+	public BigInteger size() {
 		if (domain == null) {
-			return lb <= ub ? ub - lb + 1 : 0;
+			return lb.compareTo(ub) <= 0 ? ub.subtract(lb).add(BigInteger.ONE) : BigInteger.ZERO;
 		} else {
 			return domain.size();
 		}
@@ -87,7 +88,7 @@ public class IntegerDomain {
 		return size() == 0;
 	}
 
-	public long getLowerBound() {
+	public BigInteger getLowerBound() {
 		if (domain == null) {
 			return lb;
 		} else {
@@ -95,7 +96,7 @@ public class IntegerDomain {
 		}
 	}
 
-	public long getUpperBound() {
+	public BigInteger getUpperBound() {
 		if (domain == null) {
 			return ub;
 		} else {
@@ -103,40 +104,42 @@ public class IntegerDomain {
 		}
 	}
 
-	public boolean contains(long value) {
+	public boolean contains(BigInteger value) {
 		if (domain == null) {
-			return lb <= value && value <= ub;
+			return lb.compareTo(value) <= 0 && value.compareTo(ub) <= 0;
 		} else {
 			return domain.contains(value);
 		}
 	}
 
-	public IntegerDomain bound(long lb, long ub) throws SugarException {
-		if (lb <= this.lb && this.ub <= ub)
+	public IntegerDomain bound(BigInteger lb, BigInteger ub) throws SugarException {
+		if (lb.compareTo(this.lb) <= 0 && this.ub.compareTo(ub) <= 0)
 			return this;
 		if (domain == null) {
-			lb = Math.max(this.lb, lb);
-			ub = Math.min(this.ub, ub);
-			return lb > ub ? new IntegerDomain() : new IntegerDomain(lb, ub);
+			lb = this.lb.max(lb);
+			ub = this.ub.min(ub);
+			return lb.compareTo(ub) > 0 ? new IntegerDomain() : new IntegerDomain(lb, ub);
 		} else {
-			return new IntegerDomain(domain.subSet(lb, ub + 1));
+			return new IntegerDomain(domain.subSet(lb, ub.add(BigInteger.ONE)));
 		}
 	}
 
-	private class Iter implements Iterator<Long> {
-		long value;
-		long ub;
+	private class Iter implements Iterator<BigInteger> {
+		BigInteger value;
+		BigInteger ub;
 
-		public Iter(long lb, long ub) {
+		public Iter(BigInteger lb, BigInteger ub) {
 			value = lb;
 			this.ub = ub;
 		}
 
 		public boolean hasNext() {
-			return value <= ub;
+			return value.compareTo(ub) <= 0;
 		}
 
-		public Long next() {
+		public BigInteger next() {
+			BigInteger ret = value;
+			value = value.add(BigInteger.ONE);
 			return value++;
 		}
 
@@ -144,29 +147,29 @@ public class IntegerDomain {
 		}
 	}
 
-	public Iterator<Long> values(long lb, long ub) {
-		if (lb > ub) {
+	public Iterator<BigInteger> values(BigInteger lb, BigInteger ub) {
+		if (lb.compareTo(ub) > 0) {
 			return new Iter(lb, ub);
 		} else if (domain == null) {
-				lb = Math.max(lb, this.lb);
-				ub = Math.min(ub, this.ub);
+				lb = lb.max(this.lb);
+				ub = ub.min(this.ub);
 				return new Iter(lb, ub);
 		} else {
-			return domain.subSet(lb, ub + 1).iterator();
+			return domain.subSet(lb, ub.add(BigInteger.ONE)).iterator();
 		}
 	}
 
-	public Iterator<Long> values() {
+	public Iterator<BigInteger> values() {
 		return values(lb, ub);
 	}
 
 	public IntegerDomain cup(IntegerDomain d1) throws SugarException {
 		if (domain == null || d1.domain == null) {
-			long lb = Math.min(this.lb, d1.lb);
-			long ub = Math.max(this.ub, d1.ub);
+			BigInteger lb = this.lb.min(d1.lb);
+			BigInteger ub = this.ub.max(d1.ub);
 			return new IntegerDomain(lb, ub);
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>(domain);
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>(domain);
 			d.addAll(d1.domain);
 			// return new IntegerDomain(d);
 			return create(d);
@@ -179,8 +182,8 @@ public class IntegerDomain {
 		} else if (domain == null) {
 			return d1.bound(lb, ub);
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
 				if (d1.contains(value)) {
 					d.add(value);
 				}
@@ -191,11 +194,11 @@ public class IntegerDomain {
 
 	public IntegerDomain neg() throws SugarException {
 		if (domain == null) {
-			return new IntegerDomain(-ub, -lb);
+			return new IntegerDomain(ub.negate(), lb.negate());
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
-				d.add(-value);
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
+				d.add(value.negate());
 			}
 			// return new IntegerDomain(d);
 			return create(d);
@@ -204,30 +207,30 @@ public class IntegerDomain {
 
 	public IntegerDomain abs() throws SugarException {
 		if (domain == null) {
-			long lb0 = Math.min(Math.abs(lb), Math.abs(ub));
-			long ub0 = Math.max(Math.abs(lb), Math.abs(ub));
-			if (lb <= 0 && 0 <= ub) {
+			BigInteger lb0 = lb.abs().min(ub.abs());
+			BigInteger ub0 = lb.abs().max(ub.abs());
+			if (lb.compareTo(0) <= 0 && ub.compareTo(0) >= 0) {
 				return new IntegerDomain(0, ub0);
 			} else {
 				return new IntegerDomain(lb0, ub0);
 			}
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
-				d.add(Math.abs(value));
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
+				d.add(value.abs());
 			}
 			// return new IntegerDomain(d);
 			return create(d);
 		}
 	}
 
-	public IntegerDomain add(long a) throws SugarException {
+	public IntegerDomain add(BigInteger a) throws SugarException {
 		if (domain == null) {
-			return new IntegerDomain(lb+a, ub+a);
+			return new IntegerDomain(lb.add(a), ub.add(a));
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
-				d.add(value + a);
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
+				d.add(value.add(a));
 			}
 			// return new IntegerDomain(d);
 			return create(d);
@@ -241,14 +244,14 @@ public class IntegerDomain {
 			return d.add(lb);
 		}
 		if (domain == null || d.domain == null) {
-			long lb0 = lb + d.lb;
-			long ub0 = ub + d.ub;
+			BigInteger lb0 = lb.add(d.lb);
+			BigInteger ub0 = ub.add(d.ub);
 			return new IntegerDomain(lb0, ub0);
 		} else {
-			SortedSet<Long> d0 = new TreeSet<Long>();
-			for (long value1 : domain) {
-				for (long value2 : d.domain) {
-					d0.add(value1 + value2);
+			SortedSet<BigInteger> d0 = new TreeSet<BigInteger>();
+			for (BigInteger value1 : domain) {
+				for (BigInteger value2 : d.domain) {
+					d0.add(value1.add(value2));
 				}
 			}
 			// return new IntegerDomain(d0);
@@ -256,32 +259,32 @@ public class IntegerDomain {
 		}
 	}
 
-	public IntegerDomain sub(long a) throws SugarException {
-		return add(-a);
+	public IntegerDomain sub(BigInteger a) throws SugarException {
+		return add(a.negate());
 	}
 
 	public IntegerDomain sub(IntegerDomain d) throws SugarException {
 		return add(d.neg());
 	}
 
-	public IntegerDomain mul(long a) throws SugarException {
+	public IntegerDomain mul(BigInteger a) throws SugarException {
 		if (domain == null) {
 			// XXX
 			if (false && size() <= MAX_SET_SIZE) {
-				SortedSet<Long> d = new TreeSet<Long>();
-				for (long value = lb; value <= ub; value++) {
-					d.add(value * a);
+				SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+				for (BigInteger value = lb; value.compareTo(ub) <= 0; value = value.add(BigInteger.ONE)) {
+					d.add(value.mul(a));
 				}
 				return create(d);
-			} else if (a < 0) {
-				return new IntegerDomain(ub*a, lb*a);
+			} else if (a.compareTo(0) < 0) {
+				return new IntegerDomain(ub.mul(a), lb.mul(a));
 			} else {
-				return new IntegerDomain(lb*a, ub*a);
+				return new IntegerDomain(lb.mul(a), ub.mul(a));
 			}
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
-				d.add(value * a);
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
+				d.add(value.mul(a));
 			}
 			return create(d);
 		}
@@ -295,41 +298,41 @@ public class IntegerDomain {
 		}
 		if (domain == null || d.domain == null
 				|| size() * d.size() > MAX_SET_SIZE) {
-			long b00 = lb * d.lb;
-			long b01 = lb * d.ub;
-			long b10 = ub * d.lb;
-			long b11 = ub * d.ub;
-			long lb0 = Math.min(Math.min(b00, b01), Math.min(b10, b11));
-			long ub0 = Math.max(Math.max(b00, b01), Math.max(b10, b11));
+			BigInteger b00 = lb.mul(d.lb);
+			BigInteger b01 = lb.mul(d.ub);
+			BigInteger b10 = ub.mul(d.lb);
+			BigInteger b11 = ub.mul(d.ub);
+			BigInteger lb0 = b00.min(b01).min(b10.min(b11));
+			BigInteger ub0 = b00.max(b01).max(b10.max(b11));
 			return new IntegerDomain(lb0, ub0);
 		} else {
-			SortedSet<Long> d0 = new TreeSet<Long>();
-			for (long value1 : domain) {
-				for (long value2 : d.domain) {
-					d0.add(value1 * value2);
+			SortedSet<BigInteger> d0 = new TreeSet<BigInteger>();
+			for (BigInteger value1 : domain) {
+				for (BigInteger value2 : d.domain) {
+					d0.add(value1.mul(value2));
 				}
 			}
 			return create(d0);
 		}
 	}
 
-	private long div(long x, long y) {
-		if (x < 0 && x % y != 0) {
-			return x / y - 1;
+	private BigInteger div(BigInteger x, BigInteger y) {
+		if (x.compareTo(0) < 0 && x.remainder(y).compareTo(0) != 0) {
+			return x.divide(y.subtract(1));
 		}
-		return x / y;
+		return x.divide(y);
 	}
 
-	public IntegerDomain div(long a) throws SugarException {
+	public IntegerDomain div(BigInteger a) throws SugarException {
 		if (domain == null) {
-			if (a < 0) {
+			if (a.compareTo(0) < 0) {
 				return new IntegerDomain(div(ub,a), div(lb,a));
 			} else {
 				return new IntegerDomain(div(lb,a), div(ub,a));
 			}
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
 				d.add(div(value, a));
 			}
 			return create(d);
@@ -342,25 +345,25 @@ public class IntegerDomain {
 		}
 		if (domain == null || d.domain == null
 				|| size() * d.size() > MAX_SET_SIZE) {
-			long b00 = div(lb, d.lb);
-			long b01 = div(lb, d.ub);
-			long b10 = div(ub, d.lb);
-			long b11 = div(ub, d.ub);
-			long lb0 = Math.min(Math.min(b00, b01), Math.min(b10, b11));
-			long ub0 = Math.max(Math.max(b00, b01), Math.max(b10, b11));
-			if (d.lb <= 1 && 1 <= d.ub) {
-				lb0 = Math.min(lb0, Math.min(lb, ub));
-				ub0 = Math.max(ub0, Math.max(lb, ub));
+			BigInteger b00 = div(lb, d.lb);
+			BigInteger b01 = div(lb, d.ub);
+			BigInteger b10 = div(ub, d.lb);
+			BigInteger b11 = div(ub, d.ub);
+			BigInteger lb0 = b00.min(b01).min(b10.min(b11));
+			BigInteger ub0 = b00.max(b01).max(b10.max(b11));
+			if (d.lb.compareTo(1) <= 0 && d.ub.compareTo(1) >= 0) {
+				lb0 = lb0.min(lb.min(ub));
+				ub0 = ub0.max(lb.max(ub));
 			}
-			if (d.lb <= -1 && -1 <= d.ub) {
-				lb0 = Math.min(lb0, Math.min(-lb, -ub));
-				ub0 = Math.max(ub0, Math.max(-lb, -ub));
+			if (d.lb.compareTo(-1) <= 0 && d.ub.compareTo(-1) >= 0) {
+				lb0 = lb0.min(lb.negate().min(ub.negate()));
+				ub0 = ub0.max(lb.negate().max(ub.negate()));
 			}
 			return new IntegerDomain(lb0, ub0);
 		} else {
-			SortedSet<Long> d0 = new TreeSet<Long>();
-			for (long value1 : domain) {
-				for (long value2 : d.domain) {
+			SortedSet<BigInteger> d0 = new TreeSet<BigInteger>();
+			for (BigInteger value1 : domain) {
+				for (BigInteger value2 : d.domain) {
 					d0.add(div(value1, value2));
 				}
 			}
@@ -368,14 +371,14 @@ public class IntegerDomain {
 		}
 	}
 
-	public IntegerDomain mod(long a) throws SugarException {
-		a = Math.abs(a);
+	public IntegerDomain mod(BigInteger a) throws SugarException {
+		a = a.abs();
 		if (domain == null) {
-			return new IntegerDomain(0, a - 1);
+			return new IntegerDomain(0, a.subtract(1));
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
-				d.add(value % a);
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
+				d.add(value.reminder(a));
 			}
 			return create(d);
 		}
@@ -386,46 +389,46 @@ public class IntegerDomain {
 			return mod(d.lb);
 		}
 		if (domain == null || d.domain == null) {
-			long lb0 = 0;
-			long ub0 = Math.max(Math.abs(d.lb), Math.abs(d.ub)) - 1;
+			BigInteger lb0 = BigInteger.ZERO;
+			BigInteger ub0 = d.lb.abs().max(d.ub.abs()).subtract(1);
 			return new IntegerDomain(lb0, ub0);
 		} else {
-			SortedSet<Long> d0 = new TreeSet<Long>();
-			for (long value1 : domain) {
-				for (long value2 : d.domain) {
-					d0.add(value1 % value2);
+			SortedSet<BigInteger> d0 = new TreeSet<BigInteger>();
+			for (BigInteger value1 : domain) {
+				for (BigInteger value2 : d.domain) {
+					d0.add(value1.reminder(value2));
 				}
 			}
 			return create(d0);
 		}
 	}
 
-	public IntegerDomain pow(long a) throws SugarException {
+	public IntegerDomain pow(BigInteger a) throws SugarException {
 		if (domain == null) {
-			long a1 = (long)Math.round(Math.pow(lb, a));
-			long a2 = (long)Math.round(Math.pow(ub, a));
-			long lb0 = Math.min(a1, a2);
-			long ub0 = Math.max(a1, a2);
-			if (a % 2 == 0 && lb <= 0 && 0 <= ub) {
+			BigInteger a1 = lb.pow(a);
+			BigInteger a2 = ub.pow(a);
+			BigInteger lb0 = a1.min(a2);
+			BigInteger ub0 = a1.max(a2);
+			if (a.reminder(2) == 0 && lb.compareTo(0) <= 0 && ub.compareTo(0) >= 0) {
 				return new IntegerDomain(0, ub0);
 			} else {
 				return new IntegerDomain(lb0, ub0);
 			}
 		} else {
-			SortedSet<Long> d = new TreeSet<Long>();
-			for (long value : domain) {
-				d.add((long)Math.round(Math.pow(value, a)));
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+			for (BigInteger value : domain) {
+				d.add(value.pow(a));
 			}
 			return create(d);
 		}
 	}
 
 	public IntegerDomain min(IntegerDomain d) throws SugarException {
-		long lb0 = Math.min(lb, d.lb);
-		long ub0 = Math.min(ub, d.ub);
-		if (ub <= d.lb) {
+		BigInteger lb0 = lb.min(d.lb);
+		BigInteger ub0 = ub.min(d.ub);
+		if (ub.compareTo(d.lb) <= 0) {
 			return this;
-		} else if (d.ub <= lb) {
+		} else if (d.ub.compareTo(lb) <= 0) {
 			return d;
 		}
 		if (domain == null) {
@@ -436,22 +439,22 @@ public class IntegerDomain {
 			}
 		} else {
 			if (d.domain == null) {
-				return create(domain.subSet(lb0, ub0 + 1));
+				return create(domain.subSet(lb0, ub0.add(BigInteger.ONE)));
 			} else {
-				SortedSet<Long> d1 = new TreeSet<Long>(domain);
+				SortedSet<BigInteger> d1 = new TreeSet<BigInteger>(domain);
 				d1.addAll(d.domain);
-				d1 = d1.subSet(lb0, ub0 + 1);
+				d1 = d1.subSet(lb0, ub0.add(BigInteger.ONE));
 				return create(d1);
 			}
 		}
 	}
 
 	public IntegerDomain max(IntegerDomain d) throws SugarException {
-		long lb0 = Math.max(lb, d.lb);
-		long ub0 = Math.max(ub, d.ub);
-		if (lb >= d.ub) {
+		BigInteger lb0 = lb.max(d.lb);
+		BigInteger ub0 = ub.max(d.ub);
+		if (lb.compareTo(d.ub) >= 0) {
 			return this;
-		} else if (d.lb >= ub) {
+		} else if (d.lb.compareTo(ub) >= 0) {
 			return d;
 		}
 		if (domain == null) {
@@ -462,17 +465,17 @@ public class IntegerDomain {
 			}
 		} else {
 			if (d.domain == null) {
-				return create(domain.subSet(lb0, ub0 + 1));
+				return create(domain.subSet(lb0, ub0.add(BigInteger.ONE)));
 			} else {
-				SortedSet<Long> d1 = new TreeSet<Long>(domain);
+				SortedSet<BigInteger> d1 = new TreeSet<BigInteger>(domain);
 				d1.addAll(d.domain);
-				d1 = d1.subSet(lb0, ub0 + 1);
+				d1 = d1.subSet(lb0, ub0.add(BigInteger.ONE));
 				return create(d1);
 			}
 		}
 	}
 
-	public SortedSet<Long> headSet(long value) {
+	public SortedSet<BigInteger> headSet(BigInteger value) {
 		return domain.headSet(value);
 	}
 
@@ -482,15 +485,15 @@ public class IntegerDomain {
 			                         Expression.create(ub)));
 		}
 		List<Expression> doms = new ArrayList<Expression>();
-		long value0 = Long.MIN_VALUE;
-		long value1 = Long.MIN_VALUE;
-		for (long value : domain) {
-			if (value0 == Long.MIN_VALUE) {
+		BigInteger value0 = null;
+		BigInteger value1 = null;
+		for (BigInteger value : domain) {
+			if (value0 == null) {
 				value0 = value1 = value;
-			} else if (value1 + 1 == value) {
+			} else if (value1.add(BigInteger.ONE).compareTo(value) == 0) {
 				value1 = value;
 			} else {
-				if (value0 == value1) {
+				if (value0.compareTo(value1) == 0) {
 					doms.add(Expression.create(value0));
 				} else {
 					doms.add(Expression.create(Expression.create(value0),
@@ -499,7 +502,7 @@ public class IntegerDomain {
 				value0 = value1 = value;
 			}
 		}
-		if (value0 == value1) {
+		if (value0.compareTo(value1) == 0) {
 			doms.add(Expression.create(value0));
 		} else {
 			doms.add(Expression.create(Expression.create(value0),
@@ -513,16 +516,16 @@ public class IntegerDomain {
 			sb.append(lb + ".." + ub);
 		} else {
 			String delim = "";
-			long value0 = Long.MIN_VALUE;
-			long value1 = Long.MIN_VALUE;
-			for (long value : domain) {
-				if (value0 == Long.MIN_VALUE) {
+			BigInteger value0 = null;
+			BigInteger value1 = null;
+			for (BigInteger value : domain) {
+				if (value0 == null) {
 					value0 = value1 = value;
-				} else if (value1 + 1 == value) {
+				} else if (value1.add(BigInteger.ONE).compareTo(value) == 0) {
 					value1 = value;
 				} else {
 					sb.append(delim);
-					if (value0 == value1) {
+					if (value0.compareTo(value1) == 0) {
 						sb.append(value0);
 					} else {
 						sb.append(value0 + ".." + value1);
@@ -531,9 +534,9 @@ public class IntegerDomain {
 					value0 = value1 = value;
 				}
 			}
-			if (value0 != Long.MIN_VALUE) {
+			if (value0 != null) {
 				sb.append(delim);
-				if (value0 == value1) {
+				if (value0.compareTo(value1) == 0) {
 					sb.append(value0);
 				} else {
 					sb.append(value0 + ".." + value1);
@@ -550,16 +553,16 @@ public class IntegerDomain {
 		} else {
 			sb.append("(");
 			String delim = "";
-			long value0 = Long.MIN_VALUE;
-			long value1 = Long.MIN_VALUE;
-			for (long value : domain) {
-				if (value0 == Long.MIN_VALUE) {
+			BigInteger value0 = null;
+			BigInteger value1 = null;
+			for (BigInteger value : domain) {
+				if (value0 == null) {
 					value0 = value1 = value;
-				} else if (value1 + 1 == value) {
+				} else if (value1.add(BigInteger.ONE).compareTo(value) == 0) {
 					value1 = value;
 				} else {
 					sb.append(delim);
-					if (value0 == value1) {
+					if (value0.compareTo(value1) == 0) {
 						sb.append(value0);
 					} else {
 						sb.append("(" + value0 + " " + value1 + ")");
@@ -568,9 +571,9 @@ public class IntegerDomain {
 					value0 = value1 = value;
 				}
 			}
-			if (value0 != Long.MIN_VALUE) {
+			if (value0 != null) {
 				sb.append(delim);
-				if (value0 == value1) {
+				if (value0.compareTo(value1) == 0) {
 					sb.append(value0);
 				} else {
 					sb.append("(" + value0 + " " + value1 + ")");
