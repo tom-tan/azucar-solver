@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
@@ -103,13 +104,13 @@ public class CNFWriter {
 		}
 	}
 
-	public void writeClause(long[] clause) throws IOException {
-		for (long code : clause) {
+	public void writeClause(BigInteger[] clause) throws IOException {
+		for (BigInteger code : clause) {
 			if (code == Encoder.TRUE_CODE) {
 				return;
 			}
 		}
-		for (long code : clause) {
+		for (BigInteger code : clause) {
 			if (code != Encoder.FALSE_CODE) {
 				write(code + " ");
 			}
@@ -118,8 +119,8 @@ public class CNFWriter {
 		satClausesCount++;
 	}
 
-	public void writeClause(List<Long> clause0) throws IOException {
-		long[] clause = new long[clause0.size()];
+	public void writeClause(List<BigInteger> clause0) throws IOException {
+		BigInteger[] clause = new BigInteger[clause0.size()];
 		for (int i = 0; i < clause.length; i++) {
 			clause[i] = clause0.get(i);
 		}
