@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
+import java.math.BigInteger;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -75,14 +76,14 @@ public class Decomposer {
 		Expression domain = null;
 		if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
-			long lb = seq.get(2).integerValue();
-			long ub = seq.get(3).integerValue();
+			BigInteger lb = seq.get(2).integerValue();
+			BigInteger ub = seq.get(3).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(ub)};
 			domain = Expression.create(Expression.create(exps));
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
-			long lb = seq.get(2).integerValue();
+			BigInteger lb = seq.get(2).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(lb)};
 			domain = Expression.create(Expression.create(exps));
@@ -113,7 +114,7 @@ public class Decomposer {
 		} else if (seq.matches("WWS")) {
 			name = seq.get(1).stringValue();
 			domainExp = (Sequence)seq.get(2);
-			SortedSet<Long> d = new TreeSet<Long>();
+			SortedSet<BigInteger> d = new TreeSet<BigInteger>();
 			Sequence x = (Sequence)seq.get(2);
 			for (int i = 0; i < x.length(); i++) {
 				if (x.get(i).isInteger()) {
@@ -121,9 +122,9 @@ public class Decomposer {
 				} else if (x.get(i).isSequence()) {
 					Sequence seq1 = (Sequence)x.get(i);
 					if (seq1.matches("II")) {
-						long value0 = ((Sequence)x.get(i)).get(0).integerValue();
-						long value1 = ((Sequence)x.get(i)).get(1).integerValue();
-						for (long value = value0; value <= value1; value++) {
+						BigInteger value0 = ((Sequence)x.get(i)).get(0).integerValue();
+						BigInteger value1 = ((Sequence)x.get(i)).get(1).integerValue();
+						for (BigInteger value = value0; value.compareTo(value1) <= 0; value = value.add(BigInteger.ONE)) {
 							d.add(value);
 						}
 					} else {
@@ -136,15 +137,15 @@ public class Decomposer {
 			domain = new IntegerDomain(d);
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
-			long lb = seq.get(2).integerValue();
-			long ub = seq.get(3).integerValue();
+			BigInteger lb = seq.get(2).integerValue();
+			BigInteger ub = seq.get(3).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(ub)};
 			domainExp = Expression.create(Expression.create(exps));
 			domain = new IntegerDomain(lb, ub);
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
-			long lb = seq.get(2).integerValue();
+			BigInteger lb = seq.get(2).integerValue();
 			Expression[] exps = {Expression.create(lb),
 													 Expression.create(lb)};
 			domainExp = Expression.create(Expression.create(exps));
@@ -276,7 +277,7 @@ public class Decomposer {
 	}
 
 	private LinearExpression decomposeADD(Sequence seq) throws SugarException {
-		LinearExpression e = new LinearExpression(0);
+		LinearExpression e = new LinearExpression(BigInteger.ZERO);
 		for (int i = 1; i < seq.length(); i++) {
 			LinearExpression ei = decomposeFormula(seq.get(i));
 			e.add(ei);
@@ -290,7 +291,7 @@ public class Decomposer {
 			syntaxError(seq);
 		} else if (seq.length() == 2) {
 			e = decomposeFormula(seq.get(1));
-			e.multiply(-1);
+			e.multiply(BigInteger.ONE.negate());
 		} else {
 			e = decomposeFormula(seq.get(1));
 			for (int i = 2; i < seq.length(); i++) {
@@ -306,10 +307,10 @@ public class Decomposer {
 		Expression x1 = seq.get(1);
 		LinearExpression e1 = decomposeFormula(x1);
 		IntegerDomain d1 = e1.getDomain(expDomainMap);
-		if (d1.getLowerBound() >= 0) {
+		if (d1.getLowerBound().compareTo(BigInteger.ZERO) >= 0) {
 			return e1;
-		} else if (d1.getUpperBound() <= 0) {
-			e1.multiply(-1);
+		} else if (d1.getUpperBound().compareTo(BigInteger.ZERO) <= 0) {
+			e1.multiply(BigInteger.ONE.negate());
 			return e1;
 		}
 		IntegerDomain d = d1.abs();
@@ -332,13 +333,13 @@ public class Decomposer {
 		final LinearExpression e2 = decomposeFormula(x2);
 		final IntegerDomain d1 = e1.getDomain(expDomainMap);
 		final IntegerDomain d2 = e2.getDomain(expDomainMap);
-		if (d1.size() == 1) {
+		if (d1.size().compareTo(BigInteger.ONE) == 0) {
 			e2.multiply(d1.getLowerBound());
 			return e2;
-		} else if (d2.size() == 1) {
+		} else if (d2.size().compareTo(BigInteger.ONE) == 0) {
 			e1.multiply(d2.getLowerBound());
 			return e1;
-		} else if (d1.size() <= d2.size()) {
+		} else if (d1.size().compareTo(d2.size()) <= 0) {
 			Atom a1 = null;
 			if (x1.isAtom()) {
 				a1 = (Atom)x1;
@@ -394,16 +395,16 @@ public class Decomposer {
 		Atom q = newIntegerVariable(qd, seq);
 		Atom r = newIntegerVariable(rd, x1.mod(x2));
 		Expression px = x2.mul(q);
-		if (d2.size() == 1) {
-			long value2 = d2.getLowerBound();
-			if (value2 == 1) {
+		if (d2.size().compareTo(BigInteger.ONE) == 0) {
+			BigInteger value2 = d2.getLowerBound();
+			if (value2.compareTo(BigInteger.ONE) == 0) {
 				return e1;
-			} else if (value2 == -1) {
-				e1.multiply(-1);
+			} else if (value2.compareTo(BigInteger.ONE.negate()) == 0) {
+				e1.multiply(BigInteger.ONE.negate());
 				return e1;
 			}
 			// TODO
-			if (value2 <= 0) {
+			if (value2.compareTo(BigInteger.ZERO) <= 0) {
 				throw new SugarException("Unsupported " + seq);
 			}
 			Expression eq =
@@ -431,10 +432,10 @@ public class Decomposer {
 		Atom q = newIntegerVariable(qd, seq);
 		Atom r = newIntegerVariable(rd, x1.mod(x2));
 		Expression px = x2.mul(q);
-		if (d2.size() == 1) {
-			long value2 = d2.getLowerBound();
+		if (d2.size().compareTo(BigInteger.ONE) == 0) {
+			BigInteger value2 = d2.getLowerBound();
 			// TODO
-			if (value2 <= 0) {
+			if (value2.compareTo(BigInteger.ZERO) <= 0) {
 				throw new SugarException("Unsupported " + seq);
 			}
 			Expression eq =
@@ -462,9 +463,9 @@ public class Decomposer {
 		LinearExpression e2 = decomposeFormula(x2);
 		IntegerDomain d1 = e1.getDomain(expDomainMap);
 		IntegerDomain d2 = e2.getDomain(expDomainMap);
-		if (d1.getUpperBound() <= d2.getLowerBound()) {
+		if (d1.getUpperBound().compareTo(d2.getLowerBound()) <= 0) {
 			return e1;
-		} else if (d2.getUpperBound() <= d1.getLowerBound()) {
+		} else if (d2.getUpperBound().compareTo(d1.getLowerBound()) <= 0) {
 			return e2;
 		}
 		IntegerDomain d = d1.min(d2);
@@ -487,9 +488,9 @@ public class Decomposer {
 		LinearExpression e2 = decomposeFormula(x2);
 		IntegerDomain d1 = e1.getDomain(expDomainMap);
 		IntegerDomain d2 = e2.getDomain(expDomainMap);
-		if (d1.getUpperBound() <= d2.getLowerBound()) {
+		if (d1.getUpperBound().compareTo(d2.getLowerBound()) <= 0) {
 			return e2;
-		} else if (d2.getUpperBound() <= d1.getLowerBound()) {
+		} else if (d2.getUpperBound().compareTo(d1.getLowerBound()) <= 0) {
 			return e1;
 		}
 		IntegerDomain d = d1.max(d2);
@@ -571,27 +572,27 @@ public class Decomposer {
 		List<Expression> exps = new ArrayList<Expression>();
 		IntegerDomain d = e.getDomain(expDomainMap);
 		if (op.equals(Expression.LE)) {
-			if (d.getUpperBound() <= 0) {
+			if (d.getUpperBound().compareTo(BigInteger.ZERO) <= 0) {
 				return exps;
 			}
-			if (d.getLowerBound() > 0) {
+			if (d.getLowerBound().compareTo(BigInteger.ZERO) > 0) {
 				exps.add(Expression.create(Expression.OR));
 				return exps;
 			}
-			exps.add(Expression.create(Expression.OR, e.le(0)));
+			exps.add(Expression.create(Expression.OR, e.le(BigInteger.ZERO)));
 			return exps;
 		}else if (op.equals(Expression.EQ)) {
-			if (!d.contains(0)) {
+			if (!d.contains(BigInteger.ZERO)) {
 				exps.add(Expression.create(Expression.OR));
 				return exps;
 			}
-			exps.add(Expression.create(Expression.OR, e.eq(0)));
+			exps.add(Expression.create(Expression.OR, e.eq(BigInteger.ZERO)));
 			return exps;
 		}else if (op.equals(Expression.NE)) {
-			if (!d.contains(0)) {
+			if (!d.contains(BigInteger.ZERO)) {
 				return exps;
 			}
-			exps.add(Expression.create(Expression.OR, e.ne(0)));
+			exps.add(Expression.create(Expression.OR, e.ne(BigInteger.ZERO)));
 			return exps;
 		}
 		throw new SugarException("!!!");
@@ -669,7 +670,7 @@ public class Decomposer {
 		while (true) {
 			if (x.isAtom()) {
 				if (x.isInteger()) {
-					if (x.integerValue() > 0) {
+					if (x.integerValue().compareTo(BigInteger.ZERO) > 0) {
 						x = Expression.TRUE;
 					} else {
 						x = Expression.FALSE;
@@ -843,7 +844,7 @@ public class Decomposer {
 						}
 					}
 					exps = decomposeComparison(seq.get(1).sub(seq.get(2))
-																		 .add(Expression.create(1)),
+																		 .add(Expression.create(BigInteger.ONE)),
 																		 Expression.LE);
 					break;
 				} else if ((seq.isSequence(Expression.GE) && ! negative)
@@ -924,7 +925,7 @@ public class Decomposer {
 						}
 					}
 					exps = decomposeComparison(seq.get(2).sub(seq.get(1))
-																		 .add(Expression.create(1)),
+																		 .add(Expression.create(BigInteger.ONE)),
 																		 Expression.LE);
 					break;
 				} else if (seq.isSequence(Expression.ALLDIFFERENT) && ! negative) {

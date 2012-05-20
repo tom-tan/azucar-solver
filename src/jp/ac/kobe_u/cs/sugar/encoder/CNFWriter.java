@@ -26,19 +26,19 @@ public class CNFWriter {
 
 	protected ByteBuffer satByteBuffer;
 
-	private int satVariablesCount = 0;
+	private BigInteger satVariablesCount = BigInteger.ZERO;
 
-	private int satClausesCount = 0;
+	private BigInteger satClausesCount = BigInteger.ZERO;
 
-	private long satFileSize = 0;
+	private BigInteger satFileSize = BigInteger.ZERO;
 
 	private final String satFileName;
 
 	public CNFWriter(String satFileName, boolean incremental) throws IOException {
 		this.satFileName = satFileName;
-		satFileSize = 0;
-		satVariablesCount = 0;
-		satClausesCount = 0;
+		satFileSize = BigInteger.ZERO;
+		satVariablesCount = BigInteger.ZERO;
+		satClausesCount = BigInteger.ZERO;
 		this.incremental = incremental;
 		if (USE_NEWIO) {
 			satFileChannel = (new FileOutputStream(satFileName)).getChannel();
@@ -48,16 +48,16 @@ public class CNFWriter {
 			satStringBuffer = new StringBuilder(SAT_BUFFER_SIZE);
 			satByteArray = new byte[SAT_BUFFER_SIZE];
 		}
-		write(getHeader(0, 0));
+		write(getHeader(BigInteger.ZERO, BigInteger.ZERO));
 	}
 
-	public String getHeader(int numOfVariables, int numOfClauses) throws UnsupportedEncodingException {
+	public String getHeader(BigInteger numOfVariables, BigInteger numOfClauses) throws UnsupportedEncodingException {
 		int n = 64;
 		StringBuilder s = new StringBuilder();
 		s.append("p cnf ");
-		s.append(Integer.toString(numOfVariables));
+		s.append(numOfVariables.toString());
 		s.append(" ");
-		s.append(Integer.toString(numOfClauses));
+		s.append(numOfClauses.toString());
 		while (s.length() < n - 1) {
 			s.append(" ");
 		}
@@ -95,7 +95,7 @@ public class CNFWriter {
 			}
 			satStringBuffer.append(s);
 		}
-		satFileSize += s.length();
+		satFileSize = satFileSize.add(new BigInteger(Integer.toString(s.length())));
 	}
 
 	public void writeComment(String comment) throws IOException {
@@ -116,7 +116,7 @@ public class CNFWriter {
 			}
 		}
 		write("0\n");
-		satClausesCount++;
+		satClausesCount = satClausesCount.add(BigInteger.ONE);
 	}
 
 	public void writeClause(List<BigInteger> clause0) throws IOException {
@@ -143,24 +143,24 @@ public class CNFWriter {
 		if (true) { //csp.getObjectiveVariable() == null || incremental
 			satFile1.write(getHeader(satVariablesCount, satClausesCount).getBytes());
 		} else {
-			satFile1.write(getHeader(satVariablesCount, satClausesCount+1).getBytes());
+			satFile1.write(getHeader(satVariablesCount, satClausesCount.add(BigInteger.ONE)).getBytes());
 		}
 		satFile1.close();
 	}
 
-	public void addSatVariables(long nvars) {
-		satVariablesCount += nvars;
+	public void addSatVariables(BigInteger nvars) {
+		satVariablesCount = satVariablesCount.add(nvars);
 	}
 
-	public int getSatVariablesCount() {
+	public BigInteger getSatVariablesCount() {
 		return satVariablesCount;
 	}
 
-	public int getSatClausesCount() {
+	public BigInteger getSatClausesCount() {
 		return satClausesCount;
 	}
 
-	public long getSatFileSize() {
+	public BigInteger getSatFileSize() {
 		return satFileSize;
 	}
 }

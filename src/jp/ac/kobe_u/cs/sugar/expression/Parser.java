@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StreamTokenizer;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,16 +59,15 @@ public class Parser {
 		st.wordChars('_', '_');
 		st.wordChars('0', '9');
 		char[] chars = {
-      '+', '-', '*', '/', '%',
+			'+', '-', '*', '/', '%',
 				'=', '<', '>', '!', '&', '|' };
 		for (char c : chars) {
 			st.wordChars(c, c);
 		}
-    if(permitInternal) {
-      st.wordChars('$', '$');
-    }
+		if(permitInternal) {
+			st.wordChars('$', '$');
+		}
 		st.wordChars(0x000080, 0x10FFFF);
-		st.parseNumbers();
 		st.eolIsSignificant(false);
 	}
 
@@ -86,15 +86,15 @@ public class Parser {
 			switch (st.ttype) {
 			case StreamTokenizer.TT_WORD:
 				String s = st.sval;
-				x = conv.get(s);
-				if (x == null) {
-					x = Expression.create(s);
+				if (s.matches("-??[0-9]+")) {
+					final BigInteger value = new BigInteger(s);
+					x = Expression.create(value);
+				} else {
+					x = conv.get(s);
+					if (x == null) {
+						x = Expression.create(s);
+					}
 				}
-				expressions.add(x);
-				break;
-			case StreamTokenizer.TT_NUMBER:
-				long value = (long)st.nval;
-				x = Expression.create(value);
 				expressions.add(x);
 				break;
 			case '-':

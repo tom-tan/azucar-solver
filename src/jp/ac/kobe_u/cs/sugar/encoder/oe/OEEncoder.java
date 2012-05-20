@@ -1,6 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.encoder.oe;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -43,7 +44,7 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public long getCode(LinearLiteral lit) throws SugarException {
+	public BigInteger getCode(LinearLiteral lit) throws SugarException {
 		if (! isSimple(lit)) {
 			throw new SugarException("Internal error " + lit.toString());
 		}
@@ -52,37 +53,38 @@ public class OEEncoder extends Encoder {
 			throw new SugarException("Internal error " + lit.toString());
 		}
 		final LinearSum ls = lit.getLinearExpression();
-		final long b = ls.getB();
-		long code;
+		final BigInteger b = ls.getB();
+		BigInteger code;
 		if (ls.size() == 0) {
-			code = (b <= 0) ? TRUE_CODE : FALSE_CODE;
+			code = (b.compareTo(BigInteger.ZERO) <= 0) ? TRUE_CODE : FALSE_CODE;
 		} else {
 			final IntegerVariable v = ls.getCoef().firstKey();
-			final long a = ls.getA(v);
-			code = getCodeLE(v, a, -b);
+			final BigInteger a = ls.getA(v);
+			code = getCodeLE(v, a, b.negate());
 		}
 		return code;
 	}
 
-	private long getCodeLE(IntegerVariable var, long value) {
+	private BigInteger getCodeLE(IntegerVariable var, BigInteger value) {
 		final IntegerDomain domain = var.getDomain();
-		if (value < domain.getLowerBound()) {
+		if (value.compareTo(domain.getLowerBound()) < 0) {
 			return FALSE_CODE;
-		} else if (value >= domain.getUpperBound()) {
+		} else if (value.compareTo(domain.getUpperBound()) >= 0) {
 			return TRUE_CODE;
 		}
-		return var.getCode() + sizeLE(domain, value) - 1;
+		return var.getCode().add(sizeLE(domain, value)).subtract(BigInteger.ONE);
 	}
 
-	private long sizeLE(IntegerDomain d, long value) {
-		if (value < d.getLowerBound())
-			return 0;
-		if (value >= d.getUpperBound())
+	private BigInteger sizeLE(IntegerDomain d, BigInteger value) {
+		if (value.compareTo(d.getLowerBound()) < 0)
+			return BigInteger.ZERO;
+		if (value.compareTo(d.getUpperBound()) >= 0)
 			return d.size();
 		if (d.isContiguous()) {
-			return value - d.getLowerBound() + 1;
+			return value.subtract(d.getLowerBound()).add(BigInteger.ONE);
 		} else {
-			return d.headSet(value + 1).size();
+			// ここがまずい．オーバーフローの可能性あり
+			return new BigInteger(Integer.toString(d.headSet(value.add(BigInteger.ONE)).size()));
 		}
 	}
 
@@ -90,9 +92,9 @@ public class OEEncoder extends Encoder {
 	protected void encode(IntegerVariable v) throws SugarException, IOException {
 		writer.writeComment(v.toString());
 		final IntegerDomain domain = v.getDomain();
-		final long[] clause = new long[2];
-		long a0 = domain.getLowerBound();
-		for (long a = a0 + 1; a <= domain.getUpperBound(); a++) {
+		final BigInteger[] clause = new BigInteger[2];
+		BigInteger a0 = domain.getLowerBound();
+		for (BigInteger a = a0.add(BigInteger.ONE); a.compareTo(domain.getUpperBound()) <= 0; a = a.add(BigInteger.ONE)) {
 			if (domain.contains(a)) {
 				clause[0] = negateCode(getCodeLE(v, a0));
 				clause[1] = getCodeLE(v, a);
@@ -109,71 +111,71 @@ public class OEEncoder extends Encoder {
 	 * <--> v1>=c1 -> v2>=c2 -> a3*v3+b+a1*c1+a2*c2<= 0 (when a1>0, a2>0)
 	 * 
 	 */
-	private void encode(LinearSum ls, IntegerVariable[] vs, int i, long s, long[] clause)
+	private void encode(LinearSum ls, IntegerVariable[] vs, int i, BigInteger s, BigInteger[] clause)
 		throws IOException, SugarException {
 		if (i >= vs.length - 1) {
-			final long a = ls.getA(vs[i]);
+			final BigInteger a = ls.getA(vs[i]);
 			// encoder.writeComment(a + "*" + vs[i].getName() + " <= " + (-s));
-			clause[i] = getCodeLE(vs[i], a, -s);
+			clause[i] = getCodeLE(vs[i], a, s.negate());
 			writer.writeClause(clause);
 		} else {
-			long lb0 = s;
-			long ub0 = s;
+			BigInteger lb0 = s;
+			BigInteger ub0 = s;
 			for (int j = i + 1; j < vs.length; j++) {
-				long a = ls.getA(vs[j]); 
-				if (a > 0) {
-					lb0 += a * vs[j].getDomain().getLowerBound();
-					ub0 += a * vs[j].getDomain().getUpperBound();
+				BigInteger a = ls.getA(vs[j]);
+				if (a.compareTo(BigInteger.ZERO) > 0) {
+					lb0 = lb0.add(a.multiply(vs[j].getDomain().getLowerBound()));
+					ub0 = ub0.add(a.multiply(vs[j].getDomain().getUpperBound()));
 				} else {
-					lb0 += a * vs[j].getDomain().getUpperBound();
-					ub0 += a * vs[j].getDomain().getLowerBound();
+					lb0 = lb0.add(a.multiply(vs[j].getDomain().getUpperBound()));
+					ub0 = ub0.add(a.multiply(vs[j].getDomain().getLowerBound()));
 				}
 			}
-			final long a = ls.getA(vs[i]);
+			final BigInteger a = ls.getA(vs[i]);
 			final IntegerDomain domain = vs[i].getDomain();
-			long lb = domain.getLowerBound();
-			long ub = domain.getUpperBound();
-			if (a >= 0) {
+			BigInteger lb = domain.getLowerBound();
+			BigInteger ub = domain.getUpperBound();
+			if (a.compareTo(BigInteger.ZERO) >= 0) {
 				// ub = Math.min(ub, (int)Math.floor(-(double)lb0 / a));
-				if (-lb0 >= 0) {
-					ub = Math.min(ub, -lb0/a);
+				if (lb0.compareTo(BigInteger.ZERO) <= 0) {
+					ub = ub.min(lb0.negate().divide(a));
 				} else {
-					ub = Math.min(ub, (-lb0-a+1)/a);
+					ub = ub.min(lb0.negate().subtract(a).add(BigInteger.ONE).divide(a));
 				}
 				// XXX
-				final Iterator<Long> iter = domain.values(lb, ub);
+				final Iterator<BigInteger> iter = domain.values(lb, ub);
 				while (iter.hasNext()) {
-					final long c = iter.next();
+					final BigInteger c = iter.next();
 					// vs[i]>=c -> ...
 					// encoder.writeComment(vs[i].getName() + " <= " + (c-1));
-					clause[i] = getCodeLE(vs[i], c - 1);
-					encode(ls, vs, i+1, s+a*c, clause);
+					clause[i] = getCodeLE(vs[i], c.subtract(BigInteger.ONE));
+					encode(ls, vs, i+1, s.add(a.multiply(c)), clause);
 				}
 				clause[i] = getCodeLE(vs[i], ub);
-				encode(ls, vs, i+1, s+a*(ub+1), clause);
+				encode(ls, vs, i+1, s.add(a.multiply(ub.add(BigInteger.ONE))), clause);
 			} else {
 				// lb = Math.max(lb, (int)Math.ceil(-(double)lb0/a));
-				if (-lb0 >= 0) {
-					lb = Math.max(lb, -lb0/a);
+				if (lb0.compareTo(BigInteger.ZERO) <= 0) {
+					lb = lb.max(lb0.negate().divide(a));
 				} else {
-					lb = Math.max(lb, (-lb0+a+1)/a);
+					lb = lb.max(lb0.negate().add(a).add(BigInteger.ONE).divide(a));
 				}
 				// XXX
-				clause[i] = negateCode(getCodeLE(vs[i], lb - 1));
-				encode(ls, vs, i+1, s+a*(lb-1), clause);
-				Iterator<Long> iter = domain.values(lb, ub);
+				clause[i] = negateCode(getCodeLE(vs[i], lb.subtract(BigInteger.ONE)));
+				encode(ls, vs, i+1, s.add(a.multiply(lb.subtract(BigInteger.ONE))), clause);
+				Iterator<BigInteger> iter = domain.values(lb, ub);
 				while (iter.hasNext()) {
-					final long c = iter.next();
+					final BigInteger c = iter.next();
 					// vs[i]<=c -> ...
 					clause[i] = negateCode(getCodeLE(vs[i], c));
-					encode(ls, vs, i+1, s+a*c, clause);
+					encode(ls, vs, i+1, s.add(a.multiply(c)), clause);
 				}
 			}
 		}
 	}
 
 	@Override
-	protected void encode(LinearLiteral lit, long[] clause) throws SugarException, IOException {
+	protected void encode(LinearLiteral lit, BigInteger[] clause) throws SugarException, IOException {
 		if (lit.getOperator() == Operator.EQ
 		    || lit.getOperator() == Operator.NE) {
 			throw new SugarException("Internal error " + lit.toString());
@@ -193,24 +195,24 @@ public class OEEncoder extends Encoder {
 	}
 
 
-	private long getCodeLE(IntegerVariable v, long a, long b) {
-		long code;
-		if (a >= 0) {
+	private BigInteger getCodeLE(IntegerVariable v, BigInteger a, BigInteger b) {
+		BigInteger code;
+		if (a.compareTo(BigInteger.ZERO) >= 0) {
 //			int c = (int) Math.floor((double) b / a);
-			long c;
-			if (b >= 0) {
-				c = b/a;
+			BigInteger c;
+			if (b.compareTo(BigInteger.ZERO) >= 0) {
+				c = b.divide(a);
 			} else {
-				c = (b-a+1)/a;
+				c = b.subtract(a).add(BigInteger.ONE).divide(a);
 			}
 			code = getCodeLE(v, c);
 		} else {
 //			int c = (int) Math.ceil((double) b / a) - 1;
-			long c;
-			if (b >= 0) {
-				c = b/a - 1;
+			BigInteger c;
+			if (b.compareTo(BigInteger.ZERO) >= 0) {
+				c = b.divide(a).subtract(BigInteger.ONE);
 			} else {
-				c = (b+a+1)/a - 1;
+				c = b.add(a).add(BigInteger.ONE).divide(a.subtract(BigInteger.ONE));
 			}
 			code = negateCode(getCodeLE(v, c));
 		}
@@ -237,18 +239,18 @@ public class OEEncoder extends Encoder {
 	private void split() {
 		final String AUX_PREFIX = "RS";
 		BooleanVariable.setPrefix(AUX_PREFIX);
-		BooleanVariable.setIndex(0);
+		BooleanVariable.setIndex(BigInteger.ZERO);
 		IntegerVariable.setPrefix(AUX_PREFIX);
-		IntegerVariable.setIndex(0);
+		IntegerVariable.setIndex(BigInteger.ZERO);
 		// TODO
 	}
 
 	private void toLinearLe() throws SugarException {
 		final String AUX_PREFIX = "RL";
 		BooleanVariable.setPrefix(AUX_PREFIX);
-		BooleanVariable.setIndex(0);
+		BooleanVariable.setIndex(BigInteger.ZERO);
 		IntegerVariable.setPrefix(AUX_PREFIX);
-		IntegerVariable.setIndex(0);
+		IntegerVariable.setIndex(BigInteger.ZERO);
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		final int size = csp.getClauses().size();
@@ -273,7 +275,7 @@ public class OEEncoder extends Encoder {
 					newClauses.add(c1);
 					final Clause c2 = new Clause(bls);
 					final LinearSum ls = new LinearSum(ll.getLinearExpression());
-					ls.multiply(-1);
+					ls.multiply(BigInteger.ONE.negate());
 					c2.add(new LinearLiteral(ls, Operator.LE));
 					newClauses.add(c2);
 					break;
@@ -282,12 +284,12 @@ public class OEEncoder extends Encoder {
 					final Clause c1 = new Clause(bls);
 
 					final LinearSum ls1 = new LinearSum(ll.getLinearExpression());
-					ls1.setB(ls1.getB()+1);
+					ls1.setB(ls1.getB().add(BigInteger.ONE));
 					c1.add(new LinearLiteral(ls1, Operator.LE));
 
 					final LinearSum ls2 = new LinearSum(ll.getLinearExpression());
-					ls2.multiply(-1);
-					ls2.setB(ls2.getB()+1);
+					ls2.multiply(BigInteger.ONE.negate());
+					ls2.setB(ls2.getB().add(BigInteger.ONE));
 					c1.add(new LinearLiteral(ls2, Operator.LE));
 
 					newClauses.addAll(simplify(c1));
@@ -301,7 +303,7 @@ public class OEEncoder extends Encoder {
 	}
 
 	@Override
-	public long getSatVariablesSize(IntegerVariable v) {
-		return v.getDomain().size()-1;
+	public BigInteger getSatVariablesSize(IntegerVariable v) {
+		return v.getDomain().size().subtract(BigInteger.ONE);
 	}
 }

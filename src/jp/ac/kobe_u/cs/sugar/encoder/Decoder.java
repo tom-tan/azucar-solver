@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,10 +21,10 @@ public abstract class Decoder {
 		this.csp = csp;
 	}
 
-	public abstract void decode(IntegerVariable v, HashMap<Long, Boolean> satValues);
+	public abstract void decode(IntegerVariable v, HashMap<BigInteger, Boolean> satValues);
 	public abstract void decodeBigInteger(IntegerVariable v) throws SugarException;
 
-	protected void decode(BooleanVariable v, HashMap<Long, Boolean> satValues) {
+	protected void decode(BooleanVariable v, HashMap<BigInteger, Boolean> satValues) {
 		v.setValue(satValues.get(v.getCode()));
 	}
 
@@ -32,7 +33,22 @@ public abstract class Decoder {
 		boolean sat = false;
 		final BufferedReader rd = new BufferedReader(new FileReader(outFileName));
 		final StreamTokenizer st = new StreamTokenizer(rd);
-		st.eolIsSignificant(true);
+		st.resetSyntax();
+		st.whitespaceChars(0x0000, 0x0020);
+		st.wordChars('A', 'Z');
+		st.wordChars('a', 'z');
+		st.wordChars('_', '_');
+		st.wordChars('0', '9');
+		char[] chars = {
+			'+', '-', '*', '/', '%',
+				'=', '<', '>', '!', '&', '|' };
+		for (char c : chars) {
+			st.wordChars(c, c);
+		}
+		st.wordChars('$', '$');
+		st.wordChars(0x000080, 0x10FFFF);
+		st.eolIsSignificant(false);
+
 		while (result == null) {
 			st.nextToken();
 			if (st.ttype == StreamTokenizer.TT_WORD) {
@@ -52,7 +68,7 @@ public abstract class Decoder {
 		}
 		if (result.startsWith("SAT")) {
 			sat = true;
-			final HashMap<Long, Boolean> satValues = new HashMap<Long, Boolean>();
+			final HashMap<BigInteger, Boolean> satValues = new HashMap<BigInteger, Boolean>();
 			while (true) {
 				st.nextToken();
 				if (st.ttype == StreamTokenizer.TT_EOF)
@@ -66,15 +82,16 @@ public abstract class Decoder {
 						do {
 							st.nextToken();
 						} while (st.ttype != StreamTokenizer.TT_EOL);
-					} else {
-						throw new SugarException("Unknown output " + st.sval);
+					} else if (st.sval.matches("-??[0-9]+")) {
+						final BigInteger value = new BigInteger(st.sval);
+						final BigInteger i = value.abs();
+						if (i.compareTo(BigInteger.ZERO) > 0) {
+							satValues.put(i, value.compareTo(BigInteger.ZERO) > 0);
+						}
+						break;
 					}
-					break;
-				case StreamTokenizer.TT_NUMBER:
-					final long value = (long)st.nval;
-					final long i = Math.abs(value);
-					if (i > 0) {
-						satValues.put(i, value > 0);
+					else {
+						throw new SugarException("Unknown output " + st.sval);
 					}
 					break;
 				default:

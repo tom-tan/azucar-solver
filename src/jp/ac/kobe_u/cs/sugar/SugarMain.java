@@ -79,7 +79,7 @@ public class SugarMain {
 				Expression.INT_DEFINITION,
 				cost,
 				Expression.ZERO,
-				Expression.create(n)));
+				Expression.create(new BigInteger(Integer.toString(n)))));
 		expressions.add(cost.ge(Expression.create(sum)));
 		expressions.add(Expression.create(
 				Expression.OBJECTIVE_DEFINITION,
@@ -342,7 +342,7 @@ public class SugarMain {
 							Converter.SPLITS = Integer.parseInt(opt.substring(n));
 						} else if (opt.matches("domain=(\\d+)")) {
 							final int n = "domain=".length();
-							IntegerDomain.MAX_SET_SIZE = Integer.parseInt(opt.substring(n));
+							IntegerDomain.MAX_SET_SIZE = new BigInteger(opt.substring(n));
 						} else {
 							throw new SugarException("Unknown option " + opt);
 						}

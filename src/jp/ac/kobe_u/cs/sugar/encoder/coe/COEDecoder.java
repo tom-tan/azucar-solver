@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
+import java.math.BigInteger;
 import java.util.BitSet;
 
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
@@ -20,12 +21,12 @@ public class COEDecoder extends OEDecoder {
 	public void decodeBigInteger(IntegerVariable v) {
 		assert v.getDigits().length > 1;
 		final int b = bases[0];
-		long dbase = 1;
-		long value = 0;
+		BigInteger dbase = BigInteger.ONE;
+		BigInteger value = BigInteger.ZERO;
 		for (IntegerVariable digit: v.getDigits()) {
-			value += dbase*digit.getValue();
-			dbase *= b;
+			value = value.add(dbase.multiply(digit.getValue()));
+			dbase = dbase.multiply(new BigInteger(Integer.toString(b)));
 		}
-		v.setValue(value+v.getOffset());
+		v.setValue(value.add(v.getOffset()));
 	}
 }

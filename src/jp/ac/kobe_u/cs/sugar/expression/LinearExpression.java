@@ -1,6 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.expression;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -17,27 +18,27 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 
 public class LinearExpression extends Expression {
-	private long b;
-	private SortedMap<Atom,Long> coef;
+	private BigInteger b;
+	private SortedMap<Atom,BigInteger> coef;
 	private IntegerDomain domain = null;
 
-	public LinearExpression(long b) {
-		coef = new TreeMap<Atom,Long>();
+	public LinearExpression(BigInteger b) {
+		coef = new TreeMap<Atom,BigInteger>();
 		this.b = b;
 	}
 
-	public LinearExpression(long a0, Atom v0, long b) {
+	public LinearExpression(BigInteger a0, Atom v0, BigInteger b) {
 		this(b);
 		coef.put(v0, a0);
 	}
 
 	public LinearExpression(Atom v0) {
-		this(1, v0, 0);
+		this(BigInteger.ONE, v0, BigInteger.ZERO);
 	}
 
 	public LinearExpression(LinearExpression e) {
 		b = e.b;
-		coef = new TreeMap<Atom,Long>(e.coef);
+		coef = new TreeMap<Atom,BigInteger>(e.coef);
 		domain = null;
 	}
 
@@ -59,15 +60,15 @@ public class LinearExpression extends Expression {
 		return coef.size();
 	}
 
-	public long getB() {
+	public BigInteger getB() {
 		return b;
 	}
 
-	public void setB(long b) {
+	public void setB(BigInteger b) {
 		this.b = b;
 	}
 
-	public SortedMap<Atom,Long> getCoef() {
+	public SortedMap<Atom,BigInteger> getCoef() {
 		return coef;
 	}
 
@@ -76,19 +77,19 @@ public class LinearExpression extends Expression {
 	}
 
 	public boolean isIntegerVariable() {
-		return b == 0 && size() == 1 && getA(coef.firstKey()) == 1;
+		return b.compareTo(BigInteger.ZERO) == 0 && size() == 1 && getA(coef.firstKey()).compareTo(BigInteger.ONE) == 0;
 	}
 
-	public Long getA(Atom v) {
-		Long a = coef.get(v);
+	public BigInteger getA(Atom v) {
+		BigInteger a = coef.get(v);
 		if (a == null) {
-			a = 0L;
+			a = BigInteger.ZERO;
 		}
 		return a;
 	}
 
-	public void setA(long a, Atom v) {
-		if (a == 0) {
+	public void setA(BigInteger a, Atom v) {
+		if (a.compareTo(BigInteger.ZERO) == 0) {
 			coef.remove(v);
 		} else {
 			coef.put(v, a);
@@ -101,9 +102,9 @@ public class LinearExpression extends Expression {
 	 * @param linearSum the linear expression to be added.
 	 */
 	public void add(LinearExpression linearExpression) {
-		b += linearExpression.b;
+		b = b.add(linearExpression.b);
 		for (Atom v : linearExpression.coef.keySet()) {
-			long a = getA(v) + linearExpression.getA(v);
+			BigInteger a = getA(v).add(linearExpression.getA(v));
 			setA(a, v);
 		}
 		domain = null;
@@ -114,9 +115,9 @@ public class LinearExpression extends Expression {
 	 * @param linearSum the linear expression to be subtracted.
 	 */
 	public void subtract(LinearExpression linearExpression) {
-		b -= linearExpression.b;
+		b = b.subtract(linearExpression.b);
 		for (Atom v : linearExpression.coef.keySet()) {
-			long a = getA(v) - linearExpression.getA(v);
+			BigInteger a = getA(v).subtract(linearExpression.getA(v));
 			setA(a, v);
 		}
 		domain = null;
@@ -126,19 +127,19 @@ public class LinearExpression extends Expression {
 	 * Multiplies the given constant.
 	 * @param c the constant to be multiplied by
 	 */
-	public void multiply(long c) {
-		b *= c;
+	public void multiply(BigInteger c) {
+		b = b.multiply(c);
 		for (Atom v : coef.keySet()) {
-			long a = c * getA(v);
+			BigInteger a = c.multiply(getA(v));
 			setA(a, v);
 		}
 		domain = null;
 	}
 
-	public void divide(long c) {
-		b /= c;
+	public void divide(BigInteger c) {
+		b = b.divide(c);
 		for (Atom v : coef.keySet()) {
-			long a = getA(v) / c;
+			BigInteger a = getA(v).divide(c);
 			setA(a, v);
 		}
 		domain = null;
@@ -148,7 +149,7 @@ public class LinearExpression extends Expression {
 		if (domain == null) {
 			domain = new IntegerDomain(b, b);
 			for (Atom v : coef.keySet()) {
-				long a = getA(v);
+				BigInteger a = getA(v);
 				domain = domain.add(m.get(v.toString()).mul(a));
 			}
 		}
@@ -165,7 +166,7 @@ public class LinearExpression extends Expression {
 			return false;
 		if (this == linearExpression)
 			return true;
-		return b == linearExpression.b && coef.equals(linearExpression.coef);
+		return b.compareTo(linearExpression.b) == 0 && coef.equals(linearExpression.coef);
 	}
 	
 	/**
@@ -211,7 +212,7 @@ public class LinearExpression extends Expression {
 			if (ca != 0)
 				return ca;
 		}
-		return ((Long)b).compareTo(another.b);
+		return b.compareTo(another.b);
 	}
 
 	/**
@@ -223,7 +224,7 @@ public class LinearExpression extends Expression {
 		final int PRIME = 31;
 		int result = 1;
 		result = PRIME * result + ((coef == null) ? 0 : coef.hashCode());
-		result = PRIME * result + (int)b;
+		result = PRIME * result + b.intValue();
 		return result;
 	}
 
@@ -232,9 +233,9 @@ public class LinearExpression extends Expression {
 		StringBuilder sb = new StringBuilder();
     sb.append("(add ");
 		for (Atom v : coef.keySet()) {
-			long c = getA(v);
-			if (c == 0) {
-			}else if(c == 1) {
+			BigInteger c = getA(v);
+			if (c.compareTo(BigInteger.ZERO) == 0) {
+			}else if(c.compareTo(BigInteger.ONE) == 0) {
         sb.append(v.toString());
       }else{
         sb.append("(mul ");

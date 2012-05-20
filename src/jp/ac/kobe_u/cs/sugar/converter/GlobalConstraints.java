@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.converter;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -35,20 +36,20 @@ public class GlobalConstraints {
 		}
 		Expression x = Expression.create(xs);
 		if (Decomposer.OPT_PIGEON) {
-			long lb = Integer.MAX_VALUE;
-			long ub = Integer.MIN_VALUE;
+			BigInteger lb = null;
+			BigInteger ub = null;
 			for (int i = 0; i < n; i++) {
 				IntegerDomain d = decomposer.decomposeFormula(seq.get(i+di)).getDomain(map);
-				lb = Math.min(lb, d.getLowerBound());
-				ub = Math.max(ub, d.getUpperBound());
+				lb = (lb == null) ? d.getLowerBound() : lb.min(d.getLowerBound());
+				ub = (ub == null) ? d.getUpperBound() : ub.max(d.getUpperBound());
 			}
 			List<Expression> xs1 = new ArrayList<Expression>();
 			xs1.add(Expression.AND);
 			List<Expression> xs2 = new ArrayList<Expression>();
 			xs2.add(Expression.AND);
 			for (int i = 0; i < n; i++) {
-				xs1.add(seq.get(i+di).lt(Expression.create(lb + n - 1)));
-				xs2.add(seq.get(i+di).gt(Expression.create(ub - n + 1)));
+				xs1.add(seq.get(i+di).lt(Expression.create(lb.add(new BigInteger(Integer.toString(n-1))))));
+				xs2.add(seq.get(i+di).gt(Expression.create(ub.add(new BigInteger(Integer.toString(-n+1))))));
 			}
 			x = x.and(Expression.create(xs1).not())
 			.and(Expression.create(xs2).not());
@@ -97,8 +98,8 @@ public class GlobalConstraints {
 		Expression[] t1 = new Expression[n];
 		List<Expression> xs = new ArrayList<Expression>();
 		xs.add(Expression.AND);
-		long lb = Long.MAX_VALUE;
-		long ub = Long.MIN_VALUE;
+		BigInteger lb = null;
+		BigInteger ub = null;
 		for (int i = 0; i < n; i++) {
 			if (! seq1.get(i).isSequence(3)) {
 				decomposer.syntaxError(seq);
@@ -123,10 +124,10 @@ public class GlobalConstraints {
 			}
 			IntegerDomain d1 = decomposer.decomposeFormula(t0[i]).getDomain(map);
 			IntegerDomain d2 = decomposer.decomposeFormula(t1[i]).getDomain(map);
-			lb = Math.min(lb, d1.getLowerBound());
-			ub = Math.max(ub, d2.getUpperBound() - 1);
+			lb = (lb == null) ? d1.getLowerBound() : lb.min(d1.getLowerBound());
+			ub = (ub == null) ? d2.getUpperBound().subtract(BigInteger.ONE) : ub.max(d2.getUpperBound().subtract(BigInteger.ONE));
 		}
-		for (long value = lb; value <= ub; value++) {
+		for (BigInteger value = lb; value.compareTo(ub) <= 0; value = value.add(BigInteger.ONE)) {
 			Expression t = Expression.create(value);
 			List<Expression> sum = new ArrayList<Expression>();
 			sum.add(Expression.ADD);
@@ -158,9 +159,9 @@ public class GlobalConstraints {
 		List<Expression> xs = new ArrayList<Expression>();
 		xs.add(Expression.AND);
 		xs.add(x1.gt(Expression.ZERO));
-		xs.add(x1.le(Expression.create(n)));
+		xs.add(x1.le(Expression.create(new BigInteger(Integer.toString(n)))));
 		for (int i = 0; i < n; i++) {
-			xs.add((x1.eq(Expression.create(i+1))).imp(x3.eq(seq2.get(i))));
+			xs.add((x1.eq(Expression.create(new BigInteger(Integer.toString(i+1))))).imp(x3.eq(seq2.get(i))));
 		}
 		Expression x = Expression.create(xs);
 		return x;
@@ -191,7 +192,7 @@ public class GlobalConstraints {
 				Expression duration2 = task2.get(1);
 				Expression x1 = origin1.add(duration1).le(origin2);
 				Expression x2 = origin2.add(duration2).le(origin1);
-				xs.add(duration1.eq(0).or(duration2.eq(0)).or(x1).or(x2));
+				xs.add(duration1.eq(BigInteger.ZERO).or(duration2.eq(BigInteger.ZERO)).or(x1).or(x2));
 			}
 		}
 		Expression x = Expression.create(xs);
@@ -257,7 +258,7 @@ public class GlobalConstraints {
 		int n = seq2.length();
 		Expression x;
 		if (n == 0) {
-			x = x1.eq(0);
+			x = x1.eq(BigInteger.ZERO);
 		} else {
 			List<Expression> xs = new ArrayList<Expression>();
 			xs.add(Expression.ADD);
@@ -274,7 +275,7 @@ public class GlobalConstraints {
 				}
 			}
 			Expression sum = Expression.create(xs);
-			x = (x1.ge(1)).and(x1.le(n)).and(x1.eq(sum));
+			x = (x1.ge(BigInteger.ONE)).and(x1.le(new BigInteger(Integer.toString(n)))).and(x1.eq(sum));
 		}
 		return x;
 	}
@@ -323,7 +324,7 @@ public class GlobalConstraints {
 			xs.add(Expression.count(val, vars, Expression.EQ, count));
 			sum.add(count);
 		}
-		xs.add(Expression.create(sum).le(vars.length()));
+		xs.add(Expression.create(sum).le(new BigInteger(Integer.toString(vars.length()))));
 		Expression x = Expression.create(xs);
 		return x;
 	}

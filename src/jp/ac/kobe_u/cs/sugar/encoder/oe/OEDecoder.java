@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.encoder.oe;
 
+import java.math.BigInteger;
 import java.util.HashMap;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
@@ -14,23 +15,23 @@ public class OEDecoder extends Decoder {
 	}
 
 	@Override
-	public void decode(IntegerVariable v, HashMap<Long, Boolean> satValues) {
+	public void decode(IntegerVariable v, HashMap<BigInteger, Boolean> satValues) {
 		assert v.getDigits().length <= 1;
 		final IntegerDomain domain = v.getDomain();
-		final long lb = domain.getLowerBound();
-		final long ub = domain.getUpperBound();
-		long code = v.getCode();
+		final BigInteger lb = domain.getLowerBound();
+		final BigInteger ub = domain.getUpperBound();
+		BigInteger code = v.getCode();
 		v.setValue(ub);
-		for (long c = lb; c < ub; c++) {
+		for (BigInteger c = lb; c.compareTo(ub) < 0; c = c.add(BigInteger.ONE)) {
 			if (domain.contains(c)) {
 				if (satValues.get(code)) {
 					v.setValue(c);
 					break;
 				}
-				code++;
+				code = code.add(BigInteger.ONE);
 			}
 		}
-		v.setValue(v.getValue()+v.getOffset());
+		v.setValue(v.getValue().add(v.getOffset()));
 	}
 
 	@Override

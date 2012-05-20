@@ -167,9 +167,9 @@ public abstract class Encoder {
 
 	protected void adjust() throws SugarException {
 		BooleanVariable.setPrefix("A");
-		BooleanVariable.setIndex(0);
+		BooleanVariable.setIndex(BigInteger.ZERO);
 		IntegerVariable.setPrefix("A");
-		IntegerVariable.setIndex(0);
+		IntegerVariable.setIndex(BigInteger.ZERO);
 		Logger.fine("Adjust the lower bound of integer variables to 0");
 		for (IntegerVariable v: csp.getIntegerVariables()) {
 			csp.getClauses().addAll(adjust(v, true));
@@ -193,7 +193,7 @@ public abstract class Encoder {
 						final LinearSum ls = ll.getLinearExpression();
 						for (Entry<IntegerVariable, BigInteger> es :
 									 ls.getCoef().entrySet()) {
-							ls.setB(ls.getB().add(es.getKey().getOffset().mul(es.getValue())));
+							ls.setB(ls.getB().add(es.getKey().getOffset().multiply(es.getValue())));
 						}
 						newCls.add(new LinearLiteral(ls, ll.getOperator()));
 					} else {
@@ -204,7 +204,8 @@ public abstract class Encoder {
 						final BigInteger zoffset = z.getOffset();
 						final BigInteger xoffset = x.getOffset();
 						final BigInteger yoffset = y.getOffset();
-						if (zoffset.compareTo(0) == 0 && xoffset.compareTo(0) == 0 && yoffset.compareTo(0) == 0) {
+						if (zoffset.compareTo(BigInteger.ZERO) == 0 && xoffset.compareTo(BigInteger.ZERO) == 0
+                && yoffset.compareTo(BigInteger.ZERO) == 0) {
 							newCls.add(lit);
 						} else {
 							/*
@@ -215,7 +216,7 @@ public abstract class Encoder {
 							*/
 							final IntegerDomain xdom = x.getDomain();
 							final IntegerDomain ydom = y.getDomain();
-							final LinearSum ls = new LinearSum(xoffset.mul(yoffset).subtract(zoffset));
+							final LinearSum ls = new LinearSum(xoffset.multiply(yoffset).subtract(zoffset));
 							ls.setA(BigInteger.ONE.negate(), z);
 							final IntegerVariable p = new IntegerVariable(new IntegerDomain(BigInteger.ZERO, xdom.mul(ydom).getUpperBound()));
 							csp.add(p);
@@ -268,7 +269,7 @@ public abstract class Encoder {
 
 	protected void simplify() throws SugarException {
 		BooleanVariable.setPrefix("S");
-		BooleanVariable.setIndex(0);
+		BooleanVariable.setIndex(BigInteger.ZERO);
 		Logger.fine("Simplifing CSP by introducing new Boolean variables");
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		final int size = csp.getClauses().size();
@@ -290,13 +291,13 @@ public abstract class Encoder {
 		writer = new CNFWriter(satFileName, incremental);
 
 		for (IntegerVariable v : csp.getIntegerVariables()) {
-			v.setCode(writer.getSatVariablesCount() + 1);
+			v.setCode(writer.getSatVariablesCount().add(BigInteger.ONE));
 			final BigInteger size = getSatVariablesSize(v);
 			writer.addSatVariables(size);
 		}
 		for (BooleanVariable v : csp.getBooleanVariables()) {
-			v.setCode(writer.getSatVariablesCount() + 1);
-			final int size = getSatVariablesSize(v);
+			v.setCode(writer.getSatVariablesCount().add(BigInteger.ONE));
+			final BigInteger size = getSatVariablesSize(v);
 			writer.addSatVariables(size);
 		}
 
@@ -317,13 +318,13 @@ public abstract class Encoder {
 		n = csp.getClauses().size();
 		percent = 10;
 		for (Clause c : csp.getClauses()) {
-			final int satClausesCount0 = writer.getSatClausesCount();
+			final BigInteger satClausesCount0 = writer.getSatClausesCount();
 			if (! c.isValid()) {
 				encode(c);
 			}
 			count++;
 			if (SugarMain.debug >= 1) {
-				final int k = writer.getSatClausesCount() - satClausesCount0;
+				final BigInteger k = writer.getSatClausesCount().subtract(satClausesCount0);
 				Logger.fine(k + " SAT clauses for " + c);
 			}
 			if ((100*count)/n >= percent) {

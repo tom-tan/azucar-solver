@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -39,7 +40,7 @@ public class OpAdd extends RCSPLiteral {
 		}
 	}
 
-	public OpAdd(Operator op, IntegerVariable z, long x, IntegerVariable y) {
+	public OpAdd(Operator op, IntegerVariable z, BigInteger x, IntegerVariable y) {
 		this(op, new IntegerHolder(z), new IntegerHolder(x),
 				 new IntegerHolder(y));
 	}
@@ -70,14 +71,14 @@ public class OpAdd extends RCSPLiteral {
 
 		final IntegerVariable[] c = new IntegerVariable[m];
 		for (int i=1; i<m; i++) {
-			c[i] = new IntegerVariable(new IntegerDomain(0, 1));
+			c[i] = new IntegerVariable(new IntegerDomain(BigInteger.ZERO, BigInteger.ONE));
 			c[i].setComment(i + "-th carry for " + toString());
 			csp.add(c[i]);
 		}
 
 		final LLExpression[] lhs = new LLExpression[m];
 		for (int i=0; i<m-1; i++) {
-			lhs[i] = z.nth(i).add(lle(c[i+1]).mul(b));
+			lhs[i] = z.nth(i).add(lle(c[i+1]).mul(new BigInteger(Integer.toString(b))));
 		}
 		lhs[m-1] = z.nth(m-1);
 
@@ -108,26 +109,26 @@ public class OpAdd extends RCSPLiteral {
 			// (when 1 <= i < m-1)
 			for (int i=1; i<m-1; i++) {
 				final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
-				cls.add(lhs[i].le(rhs[i].sub(1)));
+				cls.add(lhs[i].le(rhs[i].sub(BigInteger.ONE)));
 				cls.add(new BooleanLiteral(s[i], false));
 				ret.add(cls);
 			}
 			// (z(i) <= x(i)+y(i)+c(i)-1) or s(i) (when i == m-1)
 			if (m > 1) {
-				final Clause cls = new Clause(lhs[m-1].le(rhs[m-1].sub(1)));
+				final Clause cls = new Clause(lhs[m-1].le(rhs[m-1].sub(BigInteger.ONE)));
 				cls.add(new BooleanLiteral(s[m-1], false));
 				ret.add(cls);
 			}
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
-				final Clause ltor = new Clause(lle(c[i+1]).le(0));
-				ltor.add(rhs[i].ge(b));
+				final Clause ltor = new Clause(lle(c[i+1]).le(BigInteger.ZERO));
+				ltor.add(rhs[i].ge(new BigInteger(Integer.toString(b))));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
-				final Clause rtol = new Clause(lle(c[i+1]).ge(1));
-				rtol.add(rhs[i].le(b-1));
+				final Clause rtol = new Clause(lle(c[i+1]).ge(BigInteger.ONE));
+				rtol.add(rhs[i].le(new BigInteger(Integer.toString(b-1))));
 				ret.add(rtol);
 			}
 			break;
@@ -153,26 +154,26 @@ public class OpAdd extends RCSPLiteral {
 			// (when 1 <= i < m-1)
 			for (int i=1; i<m-1; i++) {
 				final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
-				cls.add(lhs[i].sub(1).ge(rhs[i]));
+				cls.add(lhs[i].sub(BigInteger.ONE).ge(rhs[i]));
 				cls.add(new BooleanLiteral(s[i], false));
 				ret.add(cls);
 			}
 			// (z(i)-1 >= x(i)+y(i)+c(i)) or s(i) (when i == m-1)
 			if (m > 1) {
-				final Clause cls = new Clause(lhs[m-1].sub(1).ge(rhs[m-1]));
+				final Clause cls = new Clause(lhs[m-1].sub(BigInteger.ONE).ge(rhs[m-1]));
 				cls.add(new BooleanLiteral(s[m-1], false));
 				ret.add(cls);
 			}
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
-				final Clause ltor = new Clause(lle(c[i+1]).le(0));
-				ltor.add(rhs[i].ge(b));
+				final Clause ltor = new Clause(lle(c[i+1]).le(BigInteger.ZERO));
+				ltor.add(rhs[i].ge(new BigInteger(Integer.toString(b))));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
-				final Clause rtol = new Clause(lle(c[i+1]).ge(1));
-				rtol.add(rhs[i].le(b-1));
+				final Clause rtol = new Clause(lle(c[i+1]).ge(BigInteger.ONE));
+				rtol.add(rhs[i].le(new BigInteger(Integer.toString(b-1))));
 				ret.add(rtol);
 			}
 			break;
@@ -188,20 +189,20 @@ public class OpAdd extends RCSPLiteral {
 		case NE:{
 			final Clause cls = new Clause();
 			for (int i=0; i<m; i++) {
-				cls.add(lhs[i].le(rhs[i].sub(1)));
-				cls.add(lhs[i].sub(1).ge(rhs[i]));
+				cls.add(lhs[i].le(rhs[i].sub(BigInteger.ONE)));
+				cls.add(lhs[i].sub(BigInteger.ONE).ge(rhs[i]));
 			}
 			ret.addAll(encoder.simplify(cls));
 
 			for (int i=0; i<m-1; i++) {
 				// c(i+1) <= 0 or x(i)+y(i)+c(i) >= B
-				final Clause ltor = new Clause(lle(c[i+1]).le(0));
-				ltor.add(rhs[i].ge(b));
+				final Clause ltor = new Clause(lle(c[i+1]).le(BigInteger.ZERO));
+				ltor.add(rhs[i].ge(new BigInteger(Integer.toString(b))));
 				ret.add(ltor);
 
 				// c(i+1) >= 1 or x(i)+y(i)+c(i) <= B-1
-				final Clause rtol = new Clause(lle(c[i+1]).ge(1));
-				rtol.add(rhs[i].le(b-1));
+				final Clause rtol = new Clause(lle(c[i+1]).ge(BigInteger.ONE));
+				rtol.add(rhs[i].le(new BigInteger(Integer.toString(b-1))));
 				ret.add(rtol);
 			}
 			break;
@@ -217,9 +218,8 @@ public class OpAdd extends RCSPLiteral {
 	}
 
 	@Override
-	public long getUpperBound() {
-		return Math.max(Math.max(z.getUpperBound(), x.getUpperBound()),
-										y.getUpperBound());
+	public BigInteger getUpperBound() {
+		return z.getUpperBound().max(x.getUpperBound()).max(y.getUpperBound());
 	}
 
 	public boolean isValid() throws SugarException {
@@ -228,12 +228,13 @@ public class OpAdd extends RCSPLiteral {
 		final IntegerDomain yd = y.getDomain();
 		switch(op) {
 		case EQ:
-			return zd.size() == 1 && xd.size() == 1 && yd.size() == 1 &&
-				zd.getUpperBound() == xd.getUpperBound() + yd.getUpperBound();
+			return zd.size().compareTo(BigInteger.ONE) == 0 && xd.size().compareTo(BigInteger.ONE) == 0
+        && yd.size().compareTo(BigInteger.ONE) == 0 &&
+				zd.getUpperBound().compareTo(xd.getUpperBound().add(yd.getUpperBound())) == 0;
 		case LE:
-			return zd.getUpperBound() <= xd.getLowerBound() + yd.getLowerBound();
+			return zd.getUpperBound().compareTo(xd.getLowerBound().add(yd.getLowerBound())) <= 0;
 		case GE:
-			return zd.getLowerBound() >= xd.getUpperBound() + yd.getUpperBound();
+			return zd.getLowerBound().compareTo(xd.getUpperBound().add(yd.getUpperBound())) >= 0;
 		case NE:
 			return zd.cap(xd.add(yd)).isEmpty();
 		}
