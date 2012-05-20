@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.converter;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,7 @@ public class Relation {
 	public int arity;
 	public boolean conflicts;
 	private HashSet<Tuple> tupleSet;
-	private static final long UNDEF = Long.MIN_VALUE;
+	private static final BigInteger UNDEF = null;
 	private LinearExpression[] les;
 	private Map<String,IntegerDomain> domMap;
 
@@ -37,22 +38,22 @@ public class Relation {
 			throw new SugarException("Syntax error " + body);
 		}
 		int n = body.length() - 1;
-		long[][] tuples = new long[n][];
+		BigInteger[][] tuples = new BigInteger[n][];
 		for (int i = 1; i <= n; i++) {
 			if (! body.get(i).isSequence()) {
 				throw new SugarException("Syntax error " + body);
 			}
 			Sequence seq = (Sequence)body.get(i);
-			long[] tuple = new long[arity];
+			BigInteger[] tuple = new BigInteger[arity];
 			for (int j = 0; j < arity; j++) {
 				tuple[j] = seq.get(j).integerValue();
 			}
 			tuples[i-1] = tuple;
 		}
 		tupleSet = new HashSet<Tuple>();
-		for (long[] tuple : tuples) {
+		for (BigInteger[] tuple : tuples) {
 			tupleSet.add(new Tuple(tuple.clone()));
-			long[] tuple0 = tuple.clone();
+			BigInteger[] tuple0 = tuple.clone();
 			for (int i = tuple.length - 1; i >= 1; i--) {
 				tuple0[i] = UNDEF;
 				tupleSet.add(new Tuple(tuple0.clone()));
@@ -61,9 +62,9 @@ public class Relation {
 	}
 
 	private class Tuple {
-		public long[] values;
+		public BigInteger[] values;
 
-		public Tuple(long[] values) {
+		public Tuple(BigInteger[] values) {
 			this.values = values;
 		}
 
@@ -97,10 +98,10 @@ public class Relation {
 	}
 
 	private class Brick {
-		public long[] lb;
-		public long[] ub;
+		public BigInteger[] lb;
+		public BigInteger[] ub;
 
-		public Brick(long[] lb, long[] ub) {
+		public Brick(BigInteger[] lb, BigInteger[] ub) {
 			this.lb = lb;
 			this.ub = ub;
 		}
@@ -121,7 +122,7 @@ public class Relation {
 		int n = brick1.lb.length;
 		for (int j = 0; j < n; j++) {
 			if (j != i) {
-				if (! (brick2.lb[j] <= brick1.lb[j] && brick1.ub[j] <= brick2.ub[j])) {
+				if (! (brick2.lb[j].compareTo(brick1.lb[j]) <= 0 && brick1.ub[j].compareTo(brick2.ub[j]) <= 0)) {
 					return false;
 				}
 			}
@@ -130,12 +131,12 @@ public class Relation {
 	}
 
 	private List<Brick> combineBricks2(List<Brick> bricks1, List<Brick> bricks2,
-			int i, long value1, long value2) {
+			int i, BigInteger value1, BigInteger value2) {
 		List<Brick> bricks = new ArrayList<Brick>();
 		int j = 0;
 		while (j < bricks1.size()) {
 			Brick brick = bricks1.get(j);
-			if (brick.ub[i] == value1) {
+			if (brick.ub[i].compareTo(value1) == 0) {
 				j++;
 			} else {
 				bricks.add(brick);
@@ -145,7 +146,7 @@ public class Relation {
 		j = 0;
 		while (j < bricks2.size()) {
 			Brick brick = bricks2.get(j);
-			if (brick.lb[i] == value2) {
+			if (brick.lb[i].compareTo(value2) == 0) {
 				j++;
 			} else {
 				bricks.add(brick);
@@ -157,7 +158,7 @@ public class Relation {
 			while (j2 < bricks2.size()) {
 				Brick brick2 = bricks2.get(j2);
 				if (contactInside(brick1, brick2, i)) {
-					long[] ub = brick1.ub.clone();
+					BigInteger[] ub = brick1.ub.clone();
 					ub[i] = brick2.ub[i];
 					brick1.ub = ub;
 					if (! contactInside(brick2, brick1, i)) {
@@ -166,7 +167,7 @@ public class Relation {
 					bricks2.remove(j2);
 					break;
 				} else if (contactInside(brick2, brick1, i)) {
-					long[] lb = brick2.lb.clone();
+					BigInteger[] lb = brick2.lb.clone();
 					lb[i] = brick1.lb[i];
 					brick2.lb = lb;
 					bricks.add(brick2);
@@ -182,18 +183,18 @@ public class Relation {
 		return bricks;
 	}
 
-	private List<Brick> combineBricks(int i, List<Long> values, Tuple tuple) throws SugarException {
+	private List<Brick> combineBricks(int i, List<BigInteger> values, Tuple tuple) throws SugarException {
 		List<Brick> bricks = null;
 		if (i == les.length - 1) {
 			bricks = new ArrayList<Brick>();
-			Iterator<Long> iter = les[i].getDomain(domMap).values();
-			long lb[] = null;
-			long ub[] = null;
+			Iterator<BigInteger> iter = les[i].getDomain(domMap).values();
+			BigInteger lb[] = null;
+			BigInteger ub[] = null;
 			while (iter.hasNext()) {
-				long value = iter.next();
+				BigInteger value = iter.next();
 				tuple.values[i] = value;
 				if (conflicts(tuple)) {
-					long[] point = tuple.values.clone();
+					BigInteger[] point = tuple.values.clone();
 					if (lb == null) {
 						lb = ub = point;
 					} else {
@@ -211,10 +212,10 @@ public class Relation {
 			}
 		} else {
 			if (values == null) {
-				values = new ArrayList<Long>();
-				Iterator<Long> iter = les[i].getDomain(domMap).values();
+				values = new ArrayList<BigInteger>();
+				Iterator<BigInteger> iter = les[i].getDomain(domMap).values();
 				while (iter.hasNext()) {
-					long value = iter.next();
+					BigInteger value = iter.next();
 					values.add(value);
 				}
 			}
@@ -235,8 +236,8 @@ public class Relation {
 						bricks = combineBricks(i + 1, null, tuple);
 					} else {
 						bricks = new ArrayList<Brick>();
-						long[] lb = tuple.values.clone();
-						long[] ub = tuple.values.clone();
+						BigInteger[] lb = tuple.values.clone();
+						BigInteger[] ub = tuple.values.clone();
 						for (int j = i + 1; j < les.length; j++) {
 							lb[j] = les[j].getDomain(domMap).getLowerBound();
 							ub[j] = les[j].getDomain(domMap).getUpperBound();
@@ -248,8 +249,8 @@ public class Relation {
 				int m = size / 2;
 				List<Brick> bricks1 = combineBricks(i, values.subList(0, m), tuple);
 				List<Brick> bricks2 = combineBricks(i, values.subList(m, size), tuple);
-				long value1 = values.get(m - 1);
-				long value2 = values.get(m);
+				BigInteger value1 = values.get(m - 1);
+				BigInteger value2 = values.get(m);
 				bricks = combineBricks2(bricks1, bricks2, i, value1, value2);
 			}
 		}
@@ -262,7 +263,7 @@ public class Relation {
 	}
 
 	private List<Brick> getConflictBricks() throws SugarException {
-		Tuple tuple = new Tuple(new long[les.length]);
+		Tuple tuple = new Tuple(new BigInteger[les.length]);
 		List<Brick> bricks = combineBricks(0, null, tuple);
 		return bricks;
 	}
@@ -276,7 +277,7 @@ public class Relation {
 			List<Expression> pt = new ArrayList<Expression>();
 			for (int i = 0; i < arity; i++) {
 				LinearExpression le = les[i];
-				if (brick.lb[i] == brick.ub[i]) {
+				if (brick.lb[i].compareTo(brick.ub[i]) == 0) {
 					pt.add(le.toSeqExpression().ne(brick.lb[i]));
 				} else {
 					pt.add(le.toSeqExpression().lt(brick.lb[i]));

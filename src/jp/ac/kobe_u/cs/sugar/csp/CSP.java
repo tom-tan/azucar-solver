@@ -2,6 +2,7 @@ package jp.ac.kobe_u.cs.sugar.csp;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -258,9 +259,9 @@ public class CSP {
 	}
 
 	public String summary() {
-		long size = 0;
+		BigInteger size = BigInteger.ZERO;
 		for (IntegerVariable v : integerVariables) {
-			size = Math.max(size, v.getDomain().size());
+			size = size.max(v.getDomain().size());
 		}
 		return 
 		getIntegerVariables().size() + " integers, " +

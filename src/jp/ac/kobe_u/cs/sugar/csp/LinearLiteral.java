@@ -1,7 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
 import java.util.Set;
-
+import java.math.BigInteger;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.expression.Expression;
 import jp.ac.kobe_u.cs.sugar.expression.Atom;
@@ -25,8 +25,8 @@ public class LinearLiteral extends ArithmeticLiteral {
 		assert op.equals(Expression.LE)
 			|| op.equals(Expression.EQ)
 			|| op.equals(Expression.NE);
-		long factor = linearSum.factor();
-		if (factor > 1) {
+		BigInteger factor = linearSum.factor();
+		if (factor.compareTo(BigInteger.ONE) > 0) {
 			linearSum.divide(factor);
 		}
 		this.linearSum = linearSum;
@@ -36,8 +36,8 @@ public class LinearLiteral extends ArithmeticLiteral {
 	}
 
 	public LinearLiteral(LinearSum linearSum, Operator op) {
-		long factor = linearSum.factor();
-		if (factor > 1) {
+		BigInteger factor = linearSum.factor();
+		if (factor.compareTo(BigInteger.ONE) > 0) {
 			linearSum.divide(factor);
 		}
 		this.linearSum = linearSum;
@@ -52,64 +52,64 @@ public class LinearLiteral extends ArithmeticLiteral {
 	/*
 	 * Returns (long)Math.ceil((double)b/a)
 	 */
-	static private long divceil(long b, long a) {
-		if ((a >= 0 && b >= 0) ||
-				(a < 0  && b <  0)) {
-			return b/a;
-		} else if (a < 0) {
-			return (-b+a+1)/-a;
+	static private BigInteger divceil(BigInteger b, BigInteger a) {
+		if ((a.compareTo(BigInteger.ZERO) >= 0 && b.compareTo(BigInteger.ZERO) >= 0) ||
+				(a.compareTo(BigInteger.ZERO) < 0  && b.compareTo(BigInteger.ZERO) <  0)) {
+			return b.divide(a);
+		} else if (a.compareTo(BigInteger.ZERO) < 0) {
+			return b.negate().add(a).add(BigInteger.ONE).divide(a.negate());
 		} else {
-			return (b-a+1)/a;
+			return b.subtract(a).add(BigInteger.ONE).divide(a);
 		}
 	}
 
 	/*
 	 * Returns (long)Math.floor((double)b/a)
 	 */
-	static private long divfloor(long b, long a) {
-		if (a >= 0 && b >= 0) {
-			return b/a;
-		} else if (a < 0 && b < 0) {
-			return -b/-a;
-		} else if (a >= 0 && b < 0) {
-			return (b-a+1)/a;
+	static private BigInteger divfloor(BigInteger b, BigInteger a) {
+		if (a.compareTo(BigInteger.ZERO) >= 0 && b.compareTo(BigInteger.ZERO) >= 0) {
+			return b.divide(a);
+		} else if (a.compareTo(BigInteger.ZERO) < 0 && b.compareTo(BigInteger.ZERO) < 0) {
+			return b.negate().divide(a.negate());
+		} else if (a.compareTo(BigInteger.ZERO) >= 0 && b.compareTo(BigInteger.ZERO) < 0) {
+			return b.subtract(a).add(BigInteger.ONE).divide(a);
 		} else {
-			return (-b+a+1)/-a;
+			return b.negate().add(a).add(BigInteger.ONE).divide(a.negate());
 		}
 	}
 
 	@Override
-	public long[] getBound(IntegerVariable v) throws SugarException {
-		final long a = linearSum.getA(v);
+	public BigInteger[] getBound(IntegerVariable v) throws SugarException {
+		final BigInteger a = linearSum.getA(v);
 		final IntegerDomain d = linearSum.getDomainExcept(v);
-		final long olb = d.getLowerBound();
-		final long oub = d.getUpperBound();
-		long lb = v.getDomain().getLowerBound();
-		long ub = v.getDomain().getUpperBound();
+		final BigInteger olb = d.getLowerBound();
+		final BigInteger oub = d.getUpperBound();
+		BigInteger lb = v.getDomain().getLowerBound();
+		BigInteger ub = v.getDomain().getUpperBound();
 		switch(op) {
 		case LE:
-			if (a > 0) {
-				ub = divfloor(-olb, a);
-			} else if (a < 0) {
-				lb = divceil(-olb, a);
+			if (a.compareTo(BigInteger.ZERO) > 0) {
+				ub = divfloor(olb.negate(), a);
+			} else if (a.compareTo(BigInteger.ZERO) < 0) {
+				lb = divceil(olb.negate(), a);
 			}
 			break;
 		case GE:
 			throw new SugarException("This code is never called.");
 		case EQ:
-			if (a > 0) {
-				lb = divceil(-oub, a);
-				ub = divfloor(-olb, a);
-			} else if (a < 0) {
-				lb = divceil(-olb, a);
-				ub = divfloor(-oub, a);
+			if (a.compareTo(BigInteger.ZERO) > 0) {
+				lb = divceil(oub.negate(), a);
+				ub = divfloor(olb.negate(), a);
+			} else if (a.compareTo(BigInteger.ZERO) < 0) {
+				lb = divceil(olb.negate(), a);
+				ub = divfloor(oub.negate(), a);
 			}
 			break;
 		case NE: return null;
 		}
-		if (lb > ub)
+		if (lb.compareTo(ub) > 0)
 			return null;
-		return new long[] { lb, ub };
+		return new BigInteger[] { lb, ub };
 	}
 
 	/**
@@ -129,11 +129,11 @@ public class LinearLiteral extends ArithmeticLiteral {
 		final IntegerDomain d = linearSum.getDomain();
 		switch(op) {
 		case LE:
-			return d.getUpperBound() <= 0;
+			return d.getUpperBound().compareTo(BigInteger.ZERO) <= 0;
 		case EQ:
-			return d.contains(0) && d.size() == 1;
+			return d.contains(BigInteger.ZERO) && d.size().compareTo(BigInteger.ONE) == 0;
 		case NE:
-			return !d.contains(0);
+			return !d.contains(BigInteger.ZERO);
 		default:
 			assert false;
 			throw new SugarException("This code is never called.");
@@ -144,12 +144,12 @@ public class LinearLiteral extends ArithmeticLiteral {
 	public boolean isUnsatisfiable() throws SugarException {
 		switch(op) {
 		case LE:
-			return linearSum.getDomain().getLowerBound() > 0;
+			return linearSum.getDomain().getLowerBound().compareTo(BigInteger.ZERO) > 0;
 		case EQ:
-			return !linearSum.getDomain().contains(0);
+			return !linearSum.getDomain().contains(BigInteger.ZERO);
 		case NE:
-			return linearSum.getDomain().contains(0)
-			  && linearSum.getDomain().size() == 1;
+			return linearSum.getDomain().contains(BigInteger.ZERO)
+			  && linearSum.getDomain().size().compareTo(BigInteger.ONE) == 0;
 		default: throw new SugarException("!!!");
 		}
 	}

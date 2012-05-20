@@ -1,6 +1,7 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +52,7 @@ public class COEEncoder extends OEEncoder {
 			if (l.getOperator() == Operator.EQ)
 				return false;
 			return l.getVariables().size() == 1
-				&& l.getUpperBound() < bases[0];
+				&& l.getUpperBound().compareTo(new BigInteger(Integer.toString(bases[0]))) < 0;
 		} else if (lit instanceof EqMul) {
 			return false;
 		} else if (lit instanceof OpAdd) {
@@ -78,19 +79,20 @@ public class COEEncoder extends OEEncoder {
 		// System.out.println("======== CSP =========\n"+csp);
 		toRCSP();
 		// System.out.println("======== CSP =========\n"+csp);
-		long ub = -1;
+		BigInteger ub = BigInteger.ONE.negate();
 		for (Clause c : csp.getClauses()) {
 			for (ArithmeticLiteral l : c.getArithmeticLiterals()) {
-				ub = Math.max(ub, ((RCSPLiteral)l).getUpperBound());
+				ub = ub.max(((RCSPLiteral)l).getUpperBound());
 			}
 		}
 		if (bases == null) {
 			bases = new int[1];
-			bases[0] = (int)Math.ceil(Math.pow((ub+1), 1.0/ndigits));
+			bases[0] = (int)Math.ceil(Math.pow(ub.add(BigInteger.ONE).doubleValue(),
+                                         1.0/ndigits));
 		} else {
-			ndigits = (int)Math.ceil(Math.log(ub+1)/Math.log(bases[0]));
+			ndigits = ub.toString(bases[0]).length();
 		}
-		Logger.fine("Compact Order Encoding: maximum domain size = "+(ub+1)+", Base = " + bases[0] +
+		Logger.fine("Compact Order Encoding: maximum domain size = "+ub.add(BigInteger.ONE)+", Base = " + bases[0] +
 								", #Digits = " + ndigits);
 		csp.setBases(bases);
 		Logger.fine("EqMul (z=xy)  : " +EqMul.nOccur);
@@ -113,9 +115,9 @@ public class COEEncoder extends OEEncoder {
 	private void toTernary() throws SugarException {
 		final String AUX_PREFIX = "RT";
 		BooleanVariable.setPrefix(AUX_PREFIX);
-		BooleanVariable.setIndex(0);
+		BooleanVariable.setIndex(BigInteger.ZERO);
 		IntegerVariable.setPrefix(AUX_PREFIX);
-		IntegerVariable.setIndex(0);
+		IntegerVariable.setIndex(BigInteger.ZERO);
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		final int size = csp.getClauses().size();
@@ -150,9 +152,9 @@ public class COEEncoder extends OEEncoder {
 	private void toRCSP() throws SugarException{
 		final String AUX_PREFIX = "RR";
 		BooleanVariable.setPrefix(AUX_PREFIX);
-		BooleanVariable.setIndex(0);
+		BooleanVariable.setIndex(BigInteger.ZERO);
 		IntegerVariable.setPrefix(AUX_PREFIX);
-		IntegerVariable.setIndex(0);
+		IntegerVariable.setIndex(BigInteger.ZERO);
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		final int size = csp.getClauses().size();
@@ -175,18 +177,18 @@ public class COEEncoder extends OEEncoder {
 						final LinearLiteral ll = (LinearLiteral)al;
 						final LinearSum ls = ll.getLinearExpression();
 						if (ll.getOperator() == Operator.EQ
-								&& ls.size() == 2 && ls.getB() == 0) {
+								&& ls.size() == 2 && ls.getB().compareTo(BigInteger.ZERO) == 0) {
 							// Special case: ax-by == 0
 							final IntegerVariable v1 = ls.getCoef().firstKey();
 							final IntegerVariable v2 = ls.getCoef().lastKey();
-							final long c1 = ls.getA(v1);
-							final long c2 = ls.getA(v2);
-							if (c1*c2 < 0) {
-								IntegerVariable lhs = Math.abs(c1)<Math.abs(c2) ? v1 : v2;
-								final IntegerVariable rhs = Math.abs(c1)<Math.abs(c2) ? v2 : v1;
-								final long lc = Math.abs(ls.getA(lhs));
-								final long rc = Math.abs(ls.getA(rhs));
-								if (lc > 1) {
+							final BigInteger c1 = ls.getA(v1);
+							final BigInteger c2 = ls.getA(v2);
+							if (c1.multiply(c2).compareTo(BigInteger.ZERO) < 0) {
+								IntegerVariable lhs = c1.abs().compareTo(c2.abs())<0 ? v1 : v2;
+								final IntegerVariable rhs = c1.abs().compareTo(c2.abs())<0 ? v2 : v1;
+								final BigInteger lc = ls.getA(lhs).abs();
+								final BigInteger rc = ls.getA(rhs).abs();
+								if (lc.compareTo(BigInteger.ONE) > 0) {
 									// av == lc*lhs
 									final IntegerDomain dom = lhs.getDomain().mul(lc);
 									final IntegerVariable av = new IntegerVariable(dom);
@@ -195,58 +197,58 @@ public class COEEncoder extends OEEncoder {
 									newClauses.add(new Clause(lit));
 									lhs = av;
 								}
-								cls.add(rc == 1 ? new OpXY(Operator.EQ, lhs, rhs) :
+								cls.add(rc.compareTo(BigInteger.ONE) == 0 ? new OpXY(Operator.EQ, lhs, rhs) :
 												new EqMul(lhs, rc, rhs));
 								continue;
 							}
 						} else if (ll.getOperator() == Operator.EQ && ls.size() == 1) {
 							// Special case: ax-b = 0
 							final IntegerVariable x = ls.getCoef().firstKey();
-							long a = ls.getA(x);
-							long b = ls.getB();
-							if (a*b <= 0) {
-								a = Math.abs(a);
-								b = Math.abs(b);
-								cls.add(a == 1 ? new OpXY(Operator.EQ, x, b) :
+							BigInteger a = ls.getA(x);
+							BigInteger b = ls.getB();
+							if (a.multiply(b).compareTo(BigInteger.ZERO) <= 0) {
+								a = a.abs();
+								b = b.abs();
+								cls.add(a.compareTo(BigInteger.ONE) == 0 ? new OpXY(Operator.EQ, x, b) :
 												new EqMul(b, a, x));
 								continue;
 							}
 						}
 						LinearSum lhs, rhs;
-						if (ls.getB() > 0) {
+						if (ls.getB().compareTo(BigInteger.ZERO) > 0) {
 							lhs = new LinearSum(ls.getB());
-							rhs = new LinearSum(0);
+							rhs = new LinearSum(BigInteger.ZERO);
 						} else {
-							lhs = new LinearSum(0);
-							rhs = new LinearSum(-ls.getB());
+							lhs = new LinearSum(BigInteger.ZERO);
+							rhs = new LinearSum(ls.getB().negate());
 						}
-						for (Entry<IntegerVariable, Long> es :
+						for (Entry<IntegerVariable, BigInteger> es :
 									 ls.getCoef().entrySet()) {
-							long a = es.getValue();
+							BigInteger a = es.getValue();
 							final IntegerVariable v = es.getKey();
-							if (a == 1) {
-								lhs.setA(1, v);
+							if (a.compareTo(BigInteger.ONE) == 0) {
+								lhs.setA(BigInteger.ONE, v);
 								continue;
-							} else if (a == -1) {
-								rhs.setA(1, v);
+							} else if (a.compareTo(BigInteger.ONE.negate()) == 0) {
+								rhs.setA(BigInteger.ONE, v);
 								continue;
 							}
-							a = Math.abs(a);
-							assert v.getDomain().getLowerBound() == 0;
+							a = a.abs();
+							assert v.getDomain().getLowerBound().compareTo(BigInteger.ZERO) == 0;
 							final IntegerDomain dom = v.getDomain().mul(a);
 							final IntegerVariable av = new IntegerVariable(dom);
 							csp.add(av);
 							final Literal lit = new EqMul(av, a, v);
 							newClauses.add(new Clause(lit));
-							if (es.getValue() > 0) {
+							if (es.getValue().compareTo(BigInteger.ZERO) > 0) {
 								lhs.add(new LinearSum(av));
 							} else {
 								rhs.add(new LinearSum(av));
 							}
 						}
 
-						int lsize = lhs.size() + (lhs.getB() == 0 ? 0 : 1);
-						int rsize = rhs.size() + (rhs.getB() == 0 ? 0 : 1);
+						int lsize = lhs.size() + (lhs.getB().compareTo(BigInteger.ZERO) == 0 ? 0 : 1);
+						int rsize = rhs.size() + (rhs.getB().compareTo(BigInteger.ZERO) == 0 ? 0 : 1);
 						Operator op = ll.getOperator();
 						if (lsize > rsize) {
 							final LinearSum tmp = lhs;
@@ -267,10 +269,10 @@ public class COEEncoder extends OEEncoder {
 						if (rsize >= 3) {
 							rhs = simplifyForRCSP(rhs, newClauses, 2);
 						} else if (rsize == 2 && lsize == 2) {
-							if (rhs.getB() == 0) {
+							if (rhs.getB().compareTo(BigInteger.ZERO) == 0) {
 								rhs = simplifyForRCSP(rhs, newClauses, 1);
 							} else {
-								final IntegerDomain dom = new IntegerDomain(0, rhs.getDomain().getUpperBound());
+								final IntegerDomain dom = new IntegerDomain(BigInteger.ZERO, rhs.getDomain().getUpperBound());
 								final List<IntegerHolder> rh = getHolders(rhs);
 								final IntegerVariable ax = new IntegerVariable(dom);
 								csp.add(ax);
@@ -326,21 +328,21 @@ public class COEEncoder extends OEEncoder {
 	private void toCCSP() throws SugarException {
 		final String AUX_PREFIX = "RC";
 		BooleanVariable.setPrefix(AUX_PREFIX);
-		BooleanVariable.setIndex(0);
+		BooleanVariable.setIndex(BigInteger.ZERO);
 		IntegerVariable.setPrefix(AUX_PREFIX);
-		IntegerVariable.setIndex(0);
+		IntegerVariable.setIndex(BigInteger.ZERO);
 
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		List<IntegerVariable> newVars = new ArrayList<IntegerVariable>();
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			newVars.addAll(v.splitToDigits(csp));
-			final long lb = v.getDomain().getLowerBound();
-			final long ub = v.getDomain().getUpperBound();
+			final BigInteger lb = v.getDomain().getLowerBound();
+			final BigInteger ub = v.getDomain().getUpperBound();
 			final int m = v.getDigits().length;
-			if (m > 1 || ub <= Math.pow(bases[0], m)-1) {
+			if (m > 1 || ub.compareTo(new BigInteger(Integer.toString((int)(Math.pow(bases[0], m)-1)))) <= 0) {
 				newClauses.addAll((new OpXY(Operator.LE, v, ub)).toCCSP(csp, this));
 			}
-			if (m > 1 && lb != 0) {
+			if (m > 1 && lb.compareTo(BigInteger.ZERO) != 0) {
 				newClauses.addAll((new OpXY(Operator.GE, v, lb)).toCCSP(csp, this));
 			}
 		}
@@ -393,24 +395,24 @@ public class COEEncoder extends OEEncoder {
 		if (exp.size() <= 3) {
 			return exp;
 		}
-		final LinearSum lhs = new LinearSum(0);
-		final LinearSum rhs = new LinearSum(0);
+		final LinearSum lhs = new LinearSum(BigInteger.ZERO);
+		final LinearSum rhs = new LinearSum(BigInteger.ZERO);
 		for (IntegerVariable v: exp.getVariables()) {
-			long a = exp.getA(v);
-			if (a > 0) {
+			BigInteger a = exp.getA(v);
+			if (a.compareTo(BigInteger.ZERO) > 0) {
 				lhs.setA(a, v);
 			} else {
-				rhs.setA(-a, v);
+				rhs.setA(a.negate(), v);
 			}
 		}
-		final long b = exp.getB();
-		final int rest = (b == 0 ? 3 : 2);
+		final BigInteger b = exp.getB();
+		final int rest = (b.compareTo(BigInteger.ZERO) == 0 ? 3 : 2);
 		int lhs_len = 0, rhs_len = 0;
 		if (lhs.size() == 0) {
 			rhs_len = rest;
 		} else if (rhs.size() == 0) {
 			lhs_len = rest;
-		} else if (lhs.getDomain().size() < rhs.getDomain().size()) {
+		} else if (lhs.getDomain().size().compareTo(rhs.getDomain().size()) < 0) {
 			lhs_len = 1;
 			rhs_len = rest-1;
 		} else {
@@ -419,8 +421,8 @@ public class COEEncoder extends OEEncoder {
 		}
 		final LinearSum e = new LinearSum(b);
 		for (LinearSum ei: lhs.split(lhs_len)) {
-			final long factor = ei.factor();
-			if (factor > 1) {
+			final BigInteger factor = ei.factor();
+			if (factor.compareTo(BigInteger.ONE) > 0) {
 				ei.divide(factor);
 			}
 			ei = simplifyLinearExpression(ei, clss);
@@ -438,14 +440,14 @@ public class COEEncoder extends OEEncoder {
 				clss.add(cls);
 				ei = new LinearSum(v);
 			}
-			if (factor > 1) {
+			if (factor.compareTo(BigInteger.ONE) > 0) {
 				ei.multiply(factor);
 			}
 			e.add(ei);
 		}
 		for (LinearSum ei: rhs.split(rhs_len)) {
-			final long factor = ei.factor();
-			if (factor > 1) {
+			final BigInteger factor = ei.factor();
+			if (factor.compareTo(BigInteger.ONE) > 0) {
 				ei.divide(factor);
 			}
 			ei = simplifyLinearExpression(ei, clss);
@@ -463,10 +465,10 @@ public class COEEncoder extends OEEncoder {
 				clss.add(cls);
 				ei = new LinearSum(v);
 			}
-			if (factor > 1) {
+			if (factor.compareTo(BigInteger.ONE) > 0) {
 				ei.multiply(factor);
 			}
-			ei.multiply(-1);
+			ei.multiply(BigInteger.ONE.negate());
 			e.add(ei);
 		}
 		return e;
@@ -477,7 +479,7 @@ public class COEEncoder extends OEEncoder {
 	 */
 	private LinearSum simplifyForRCSP(LinearSum e, List<Clause> clss,
 																		int maxlen) throws SugarException {
-		final int esize = e.size() + (e.getB() == 0 ? 0 : 1);
+		final int esize = e.size() + (e.getB().compareTo(BigInteger.ZERO) == 0 ? 0 : 1);
 
 		if (esize <= maxlen) {
 			return e;
@@ -507,7 +509,7 @@ public class COEEncoder extends OEEncoder {
 			if (v2.isConstant()) {
 				ret.setB(v2.getValue());
 			} else {
-				ret.setA(1, v2.getVariable());
+				ret.setA(BigInteger.ONE, v2.getVariable());
 			}
 			return ret;
 		} else {
@@ -523,7 +525,7 @@ public class COEEncoder extends OEEncoder {
 			clss.add(cls1);
 
 			final LinearSum ret = new LinearSum(w0);
-			ret.setA(1, w1);
+			ret.setA(BigInteger.ONE, w1);
 			return ret;
 		}
 	}
@@ -538,8 +540,8 @@ public class COEEncoder extends OEEncoder {
 	}
 
 	private IntegerHolder getHolder(LinearSum e) {
-		assert (e.size() == 1 && e.getB() == 0)
-			|| (e.size() == 0 && e.getB() >= 0);
+		assert (e.size() == 1 && e.getB().compareTo(BigInteger.ZERO) == 0)
+			|| (e.size() == 0 && e.getB().compareTo(BigInteger.ZERO) >= 0);
 		if (e.size() == 1) {
 			return new IntegerHolder(e.getCoef().firstKey());
 		} else {
@@ -552,16 +554,16 @@ public class COEEncoder extends OEEncoder {
 		for (IntegerVariable v : e.getVariables()) {
 			ret.add(new IntegerHolder(v));
 		}
-		if (e.size() == 0 || e.getB() > 0) {
+		if (e.size() == 0 || e.getB().compareTo(BigInteger.ZERO) > 0) {
 			ret.add(new IntegerHolder(e.getB()));
 		}
 		return ret;
 	}
 
 	@Override
-	public long getSatVariablesSize(IntegerVariable v) {
+	public BigInteger getSatVariablesSize(IntegerVariable v) {
 		if (v.getDigits().length >= 2)
-			return 0;
+			return BigInteger.ZERO;
 		return super.getSatVariablesSize(v);
 	}
 }

@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -39,17 +40,17 @@ public class EqMul extends RCSPLiteral {
 				 new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public EqMul(long z, long x, IntegerVariable y) {
+	public EqMul(BigInteger z, BigInteger x, IntegerVariable y) {
 		this(new IntegerHolder(z),
 				 new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public EqMul(IntegerVariable z, long x, IntegerVariable y) {
+	public EqMul(IntegerVariable z, BigInteger x, IntegerVariable y) {
 		this(new IntegerHolder(z),
 				 new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public EqMul(IntegerVariable z, long x, IntegerHolder y) {
+	public EqMul(IntegerVariable z, BigInteger x, IntegerHolder y) {
 		this(new IntegerHolder(z), new IntegerHolder(x), y);
 	}
 
@@ -72,17 +73,17 @@ public class EqMul extends RCSPLiteral {
 													 z.nDigits(b));
 		final List<Clause> ret = new ArrayList<Clause>();
 
-		if (x.isConstant() && x.getValue() < b) {
-			if (x.getValue() == 0) {
+		if (x.isConstant() && x.getValue().compareTo(new BigInteger(Integer.toString(b))) < 0) {
+			if (x.getValue().compareTo(BigInteger.ZERO) == 0) {
 				assert z.isVariable();
-				return (new OpXY(Operator.LE, z.getVariable(), 0)).toCCSP(csp, encoder);
-			} else if (x.getValue() == 1) {
+				return (new OpXY(Operator.LE, z.getVariable(), BigInteger.ZERO)).toCCSP(csp, encoder);
+			} else if (x.getValue().compareTo(BigInteger.ONE) == 0) {
 				return (new OpXY(Operator.EQ, z, y)).toCCSP(csp, encoder);
 			}
 			final IntegerHolder[] v = new IntegerHolder[m];
-			final long a = x.getValue();
+			final BigInteger a = x.getValue();
 			for (int i=0; i<m; i++) {
-				final IntegerDomain d = new IntegerDomain(0, a*y.nth(i).getDomain().getUpperBound());
+				final IntegerDomain d = new IntegerDomain(BigInteger.ZERO, a.multiply(y.nth(i).getDomain().getUpperBound()));
 				final IntegerVariable vi = new IntegerVariable(d);
 				csp.add(vi);
 				final List<IntegerVariable> vdigits = vi.splitToDigits(csp);
@@ -95,12 +96,12 @@ public class EqMul extends RCSPLiteral {
 			}
 
 			for (int i=0; i<m; i++) {
-				ret.add(new Clause(v[i].nth(1).mul(b).add(v[i].nth(0)).le(y.nth(i).mul(a))));
-				ret.add(new Clause(v[i].nth(1).mul(b).add(v[i].nth(0)).ge(y.nth(i).mul(a))));
+				ret.add(new Clause(v[i].nth(1).mul(new BigInteger(Integer.toString(b))).add(v[i].nth(0)).le(y.nth(i).mul(a))));
+				ret.add(new Clause(v[i].nth(1).mul(new BigInteger(Integer.toString(b))).add(v[i].nth(0)).ge(y.nth(i).mul(a))));
 			}
 
 			final IntegerVariable[] c = new IntegerVariable[m];
-			final IntegerDomain d = new IntegerDomain(0, 1);
+			final IntegerDomain d = new IntegerDomain(BigInteger.ZERO, BigInteger.ONE);
 			for (int i=2; i<m; i++) {
 				c[i] = new IntegerVariable(d);
 				csp.add(c[i]);
@@ -111,7 +112,7 @@ public class EqMul extends RCSPLiteral {
 				if (i == 0 || i == m-1) {
 					lhs = z.nth(i);
 				} else {
-					lhs = z.nth(i).add(lle(c[i+1]).mul(b));
+					lhs = z.nth(i).add(lle(c[i+1]).mul(new BigInteger(Integer.toString(b))));
 				}
 
 				LLExpression rhs;
@@ -132,14 +133,14 @@ public class EqMul extends RCSPLiteral {
 		} else {
 			// z = xy
 			final IntegerVariable[] w = new IntegerVariable[m];
-			final long uby = y.getDomain().getUpperBound();
-      long ubz = z.getDomain().getUpperBound();
-			for (int i=0; i<m; i++, ubz /= b) {
+			final BigInteger uby = y.getDomain().getUpperBound();
+      BigInteger ubz = z.getDomain().getUpperBound();
+			for (int i=0; i<m; i++, ubz = ubz.divide(new BigInteger(Integer.toString(b)))) {
 				IntegerDomain d;
 				if (x.isConstant()) {
-					d = new IntegerDomain(0, Math.min(x.nthValue(i)*uby, ubz));
+					d = new IntegerDomain(BigInteger.ZERO, (new BigInteger(Integer.toString(x.nthValue(i)))).multiply(uby).min(ubz));
 				} else {
-					d = new IntegerDomain(0, Math.min((b-1)*uby, ubz));
+					d = new IntegerDomain(BigInteger.ZERO, (new BigInteger(Integer.toString(b-1))).multiply(uby).min(ubz));
 				}
 				w[i] = new IntegerVariable(d);
 				csp.add(w[i]);
@@ -153,12 +154,12 @@ public class EqMul extends RCSPLiteral {
 
 			if (x.isConstant()) {
 				for (int i=0; i<m; i++) {
-					ret.addAll((new EqMul(w[i], x.nthValue(i), y)).toCCSP(csp, encoder));
+					ret.addAll((new EqMul(w[i], new BigInteger(Integer.toString(x.nthValue(i))), y)).toCCSP(csp, encoder));
 				}
 			} else {
 				final IntegerVariable[] ya = new IntegerVariable[b];
 				for (int a=0; a<b; a++) {
-					ya[a] = new IntegerVariable(new IntegerDomain(0, a*uby));
+					ya[a] = new IntegerVariable(new IntegerDomain(BigInteger.ZERO, (new BigInteger(Integer.toString(a))).multiply(uby)));
 					final List<IntegerVariable> vdigits = ya[a].splitToDigits(csp);
 					csp.add(ya[a]);
 					if (vdigits.size() > 1) {
@@ -171,15 +172,15 @@ public class EqMul extends RCSPLiteral {
 				for (int i=0; i<m; i++) {
 					for (int a=0; a<b; a++) {
 						for (Clause c: (new OpXY(Operator.EQ, w[i], ya[a])).toCCSP(csp, encoder)) {
-							c.add(x.nth(i).le(a-1));
-							c.add(x.nth(i).ge(a+1));
+							c.add(x.nth(i).le(new BigInteger(Integer.toString(a-1))));
+							c.add(x.nth(i).ge(new BigInteger(Integer.toString(a+1))));
 							ret.add(c);
 						}
 					}
 				}
 
 				for (int a=0; a<b; a++) {
-					ret.addAll((new EqMul(ya[a], a, y)).toCCSP(csp, encoder));
+					ret.addAll((new EqMul(ya[a], new BigInteger(Integer.toString(a)), y)).toCCSP(csp, encoder));
 				}
 			}
 
@@ -187,7 +188,7 @@ public class EqMul extends RCSPLiteral {
 			final IntegerHolder[] zi = new IntegerHolder[m];
 			zi[m-1] = new IntegerHolder(w[m-1]);
 			for (int i=m-2; i>0; i--) {
-				final IntegerDomain d = new IntegerDomain(0, b*zi[i+1].getDomain().getUpperBound()+w[i].getDomain().getUpperBound());
+				final IntegerDomain d = new IntegerDomain(BigInteger.ZERO, (new BigInteger(Integer.toString(b))).multiply(zi[i+1].getDomain().getUpperBound()).add(w[i].getDomain().getUpperBound()));
 				final IntegerVariable zii = new IntegerVariable(d);
 				final List<IntegerVariable> vdigits = zii.splitToDigits(csp);
 				csp.add(zii);
@@ -227,7 +228,7 @@ public class EqMul extends RCSPLiteral {
 		final List<Clause> ret = new ArrayList<Clause>();
 
 		final IntegerVariable[] c = new IntegerVariable[m];
-		final IntegerDomain d = new IntegerDomain(0, 1);
+		final IntegerDomain d = new IntegerDomain(BigInteger.ZERO, BigInteger.ONE);
 		for (int i=2; i<m; i++) {
 			c[i] = new IntegerVariable(d);
 			csp.add(c[i]);
@@ -238,7 +239,7 @@ public class EqMul extends RCSPLiteral {
 			if (i == 0 || i == m-1) {
 				lhs = u.nth(i);
 			} else {
-				lhs = u.nth(i).add(lle(c[i+1]).mul(b));
+				lhs = u.nth(i).add(lle(c[i+1]).mul(new BigInteger(Integer.toString(b))));
 			}
 
 			LLExpression rhs;
@@ -259,9 +260,8 @@ public class EqMul extends RCSPLiteral {
 	}
 
 	@Override
-	public long getUpperBound() {
-		return Math.max(Math.max(z.getUpperBound(), x.getUpperBound()),
-										y.getUpperBound());
+	public BigInteger getUpperBound() {
+		return z.getUpperBound().max(x.getUpperBound()).max(y.getUpperBound());
 	}
 
 	@Override
@@ -269,11 +269,11 @@ public class EqMul extends RCSPLiteral {
 		final IntegerDomain zd = z.getDomain();
 		final IntegerDomain xd = x.getDomain();
 		final IntegerDomain yd = y.getDomain();
-		if (zd.size() != 1)
+		if (zd.size().compareTo(BigInteger.ONE) != 0)
 			return false;
-		if (xd.size() != 1 && yd.size() != 1)
+		if (xd.size().compareTo(BigInteger.ONE) != 0 && yd.size().compareTo(BigInteger.ONE) != 0)
 			return false;
-		return zd.getUpperBound() == xd.getUpperBound() * yd.getUpperBound();
+		return zd.getUpperBound().compareTo(xd.getUpperBound().multiply(yd.getUpperBound())) == 0;
 	}
 
 	private LLExpression lle(IntegerVariable v) {

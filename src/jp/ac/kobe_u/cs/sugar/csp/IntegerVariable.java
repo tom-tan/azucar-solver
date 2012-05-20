@@ -14,7 +14,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 public class IntegerVariable implements Comparable<IntegerVariable> {
 	private static final String AUX_PRE = "_$I";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
-	private static BigInteger auxIntegerVariablesSize = 0;
+	private static BigInteger auxIntegerVariablesSize = BigInteger.ZERO;
 	private String name;
 	private IntegerDomain domain;
 	private boolean aux;
@@ -22,7 +22,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	private boolean modified = true;
 	private BigInteger code;
 	private BigInteger value;
-	private BigInteger offset;
+	private BigInteger offset = BigInteger.ZERO;
 	private boolean isDigit_;
 	private IntegerVariable[] vs = null;
 
@@ -120,13 +120,13 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		this.modified = modified;
 	}
 
-	public BigInteger bound(BigInteger lb, BigInteger ub) throws SugarException {
+	public long bound(BigInteger lb, BigInteger ub) throws SugarException {
 		IntegerDomain oldDomain = domain;
 		domain = domain.bound(lb, ub);
 		if (! domain.equals(oldDomain)) {
 			modified = true;
 		}
-		return oldDomain.size() - domain.size();
+		return oldDomain.size().subtract(domain.size()).intValue();
 	}
 
 	/**
@@ -187,17 +187,17 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 
 	public List<IntegerVariable> splitToDigits(CSP csp) throws SugarException {
 		BigInteger ub = domain.getUpperBound();
-		long b = csp.getBases()[0];
-		int m = (int)Math.ceil(Math.log(ub.add(BigInteger.ONE)).divide(Math.log(b)));
+		int b = csp.getBases()[0];
+		int m = ub.toString(b).length();
 
 		vs = new IntegerVariable[m];
 		if (m == 1) {
 			vs[0] = this;
 		} else {
-			for (int i=0; i<m; i++, ub /= b) {
-				assert ub > 0;
-				long ubi = (i == m-1) ? ub : b-1;
-				IntegerDomain dom = new IntegerDomain(0, ubi);
+			for (int i=0; i<m; i++, ub = ub.divide(new BigInteger(Integer.toString(b)))) {
+				assert ub.compareTo(BigInteger.ZERO) > 0;
+				BigInteger ubi = (i == m-1) ? ub : new BigInteger(Integer.toString(b-1));
+				IntegerDomain dom = new IntegerDomain(BigInteger.ZERO, ubi);
 				vs[i] = new IntegerVariable(dom);
 				vs[i].isDigit(true);
 				vs[i].setComment(getName() + "["+i+"]");

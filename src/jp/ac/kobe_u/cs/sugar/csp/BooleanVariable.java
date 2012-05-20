@@ -37,8 +37,8 @@ public class BooleanVariable implements Comparable<BooleanVariable> {
 	}
 
 	public BooleanVariable() throws SugarException {
-		this(AUX_NAME_PREFIX + (auxBooleanVariablesSize+BigInteger.ONE));
-		auxBooleanVariablesSize = auxBooleanVariablesSize+BigInteger.ONE;
+		this(AUX_NAME_PREFIX + (auxBooleanVariablesSize.add(BigInteger.ONE)));
+		auxBooleanVariablesSize = auxBooleanVariablesSize.add(BigInteger.ONE);
 		aux = true;
 	}
 

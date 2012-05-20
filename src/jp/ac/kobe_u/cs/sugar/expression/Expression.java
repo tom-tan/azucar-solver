@@ -1,5 +1,6 @@
 package jp.ac.kobe_u.cs.sugar.expression;
 
+import java.math.BigInteger;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -112,9 +113,9 @@ public abstract class Expression implements Comparable<Expression> {
 	public static final Expression NIL =
 		create(SugarConstants.NIL);
 	public static final Expression ZERO =
-		intern(new Atom(0L));
+		intern(new Atom(BigInteger.ZERO));
 	public static final Expression ONE =
-		intern(new Atom(1L));
+		intern(new Atom(BigInteger.ONE));
 	private String comment = null;
 
 	private static Expression intern(Expression x) {
@@ -130,10 +131,10 @@ public abstract class Expression implements Comparable<Expression> {
 		return x;
 	}
 	
-	public static Expression create(long i) {
-		if (i == 0) {
+	public static Expression create(BigInteger i) {
+		if (i.compareTo(BigInteger.ZERO) == 0) {
 			return ZERO;
-		} else if (i == 1) {
+		} else if (i.compareTo(BigInteger.ONE) == 0) {
 			return ONE;
 		} else {
 			return intern(new Atom(i));
@@ -228,7 +229,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return null;
 	}
 
-	public Long integerValue() {
+	public BigInteger integerValue() {
 		return null;
 	}
 
@@ -268,7 +269,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(EQ, this, x);
 	}
 
-	public Expression eq(long x) {
+	public Expression eq(BigInteger x) {
 		return eq(create(x));
 	}
 
@@ -276,7 +277,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(NE, this, x);
 	}
 
-	public Expression ne(long x) {
+	public Expression ne(BigInteger x) {
 		return ne(create(x));
 	}
 
@@ -284,7 +285,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(LE, this, x);
 	}
 
-	public Expression le(long x) {
+	public Expression le(BigInteger x) {
 		return le(create(x));
 	}
 
@@ -292,7 +293,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(LT, this, x);
 	}
 
-	public Expression lt(long x) {
+	public Expression lt(BigInteger x) {
 		return lt(create(x));
 	}
 
@@ -300,7 +301,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(GE, this, x);
 	}
 
-	public Expression ge(long x) {
+	public Expression ge(BigInteger x) {
 		return ge(create(x));
 	}
 
@@ -308,7 +309,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(GT, this, x);
 	}
 
-	public Expression gt(long x) {
+	public Expression gt(BigInteger x) {
 		return gt(create(x));
 	}
 
@@ -324,7 +325,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(ADD, this, x);
 	}
 
-	public Expression add(long x) {
+	public Expression add(BigInteger x) {
 		return add(create(x));
 	}
 
@@ -340,7 +341,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(SUB, this, x);
 	}
 
-	public Expression sub(long x) {
+	public Expression sub(BigInteger x) {
 		return sub(create(x));
 	}
 
@@ -348,7 +349,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MUL, this, x);
 	}
 
-	public Expression mul(long x) {
+	public Expression mul(BigInteger x) {
 		return mul(create(x));
 	}
 
@@ -356,7 +357,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(DIV, this, x);
 	}
 
-	public Expression div(int x) {
+	public Expression div(BigInteger x) {
 		return div(create(x));
 	}
 
@@ -364,7 +365,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MOD, this, x);
 	}
 
-	public Expression mod(long x) {
+	public Expression mod(BigInteger x) {
 		return mod(create(x));
 	}
 
@@ -372,7 +373,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MIN, this, x);
 	}
 
-	public Expression min(long x) {
+	public Expression min(BigInteger x) {
 		return min(create(x));
 	}
 
@@ -380,7 +381,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(MAX, this, x);
 	}
 
-	public Expression max(long x) {
+	public Expression max(BigInteger x) {
 		return max(create(x));
 	}
 
@@ -388,15 +389,15 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(IF, this, x, y);
 	}
 
-	public Expression ifThenElse(long x, Expression y) {
+	public Expression ifThenElse(BigInteger x, Expression y) {
 		return create(IF, this, create(x), y);
 	}
 
-	public Expression ifThenElse(Expression x, long y) {
+	public Expression ifThenElse(Expression x, BigInteger y) {
 		return create(IF, this, x, create(y));
 	}
 
-	public Expression ifThenElse(long x, long y) {
+	public Expression ifThenElse(BigInteger x, BigInteger y) {
 		return create(IF, this, create(x), create(y));
 	}
 
@@ -418,7 +419,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(WEIGHTEDSUM, x, y, z);
 	}
 
-	public static Expression weightedsum(Expression x, Expression y, long z) {
+	public static Expression weightedsum(Expression x, Expression y, BigInteger z) {
 		return create(WEIGHTEDSUM, x, y, create(z));
 	}
 
@@ -444,7 +445,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(CUMULATIVE, x, y);
 	}
 
-	public static Expression cumulative(Expression x, long y) {
+	public static Expression cumulative(Expression x, BigInteger y) {
 		return create(CUMULATIVE, x, create(y));
 	}
 
@@ -496,7 +497,7 @@ public abstract class Expression implements Comparable<Expression> {
 		return create(NVALUE, x, y);
 	}
 
-	public static Expression nvalue(long x, Expression y) {
+	public static Expression nvalue(BigInteger x, Expression y) {
 		return create(NVALUE, create(x), y);
 	}
 
@@ -514,13 +515,13 @@ public abstract class Expression implements Comparable<Expression> {
 	}
 
 	public static Expression global_cardinality_with_costs(Expression x, Expression y,
-			Expression z, long w) {
+			Expression z, BigInteger w) {
 		return create(GLOBAL_CARDINALITY_WITH_COSTS, x, y, z, create(w));
 	}
 
-	public static void appendString(StringBuilder sb, long[] xs) {
+	public static void appendString(StringBuilder sb, BigInteger[] xs) {
 		String delim = "";
-		for (long x : xs) {
+		for (BigInteger x : xs) {
 			sb.append(delim + x);
 			delim = " ";
 		}
