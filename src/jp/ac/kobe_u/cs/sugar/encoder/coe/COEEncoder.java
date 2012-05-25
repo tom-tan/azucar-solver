@@ -122,27 +122,18 @@ public class COEEncoder extends OEEncoder {
 		for (int i=0; i<size; i++) {
 			final Clause c = csp.getClauses().get(i);
 			csp.getClauses().set(i, null);
-			if (c.getArithmeticLiterals().size() == 0) {
-				newClauses.add(c);
-			} else {
-				final Clause cls = new Clause(c.getBooleanLiterals());
-				cls.setComment(c.getComment());
-				for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
-					if (lit instanceof LinearLiteral) {
-						final LinearLiteral ll = (LinearLiteral)lit;
-						if (ll.getLinearExpression().size() <= 3) {
-							cls.add(ll);
-							continue;
-						}
-						final LinearSum ls = simplifyLinearExpression(ll.getLinearExpression(), newClauses);
-						cls.add(new LinearLiteral(ls, ll.getOperator()));
-					} else {
-						assert lit instanceof ProductLiteral;
-						cls.add(lit);
-					}
+			final Clause cls = new Clause(c.getBooleanLiterals());
+			cls.setComment(c.getComment());
+			for (ArithmeticLiteral lit: c.getArithmeticLiterals()) {
+				if (lit instanceof LinearLiteral) {
+					final LinearLiteral ll = (LinearLiteral)lit;
+					final LinearSum ls = simplifyToTernary(ll.getLinearExpression(), newClauses);
+					cls.add(new LinearLiteral(ls, ll.getOperator()));
+				} else {
+					cls.add(lit);
 				}
-				newClauses.add(cls);
 			}
+			newClauses.add(cls);
 		}
 		csp.setClauses(newClauses);
 	}
@@ -389,7 +380,7 @@ public class COEEncoder extends OEEncoder {
 		csp.setClauses(newClauses);
 	}
 
-	private LinearSum simplifyLinearExpression(LinearSum exp, List<Clause> clss) throws SugarException {
+	private LinearSum simplifyToTernary(LinearSum exp, List<Clause> clss) throws SugarException {
 		if (exp.size() <= 3) {
 			return exp;
 		}
@@ -423,7 +414,7 @@ public class COEEncoder extends OEEncoder {
 			if (factor > 1) {
 				ei.divide(factor);
 			}
-			ei = simplifyLinearExpression(ei, clss);
+			ei = simplifyToTernary(ei, clss);
 			if (ei.size() > 1) {
 				final IntegerVariable v = new IntegerVariable(ei.getDomain());
 				v.setComment(v.getName() + " : " + ei);
@@ -448,7 +439,7 @@ public class COEEncoder extends OEEncoder {
 			if (factor > 1) {
 				ei.divide(factor);
 			}
-			ei = simplifyLinearExpression(ei, clss);
+			ei = simplifyToTernary(ei, clss);
 			if (ei.size() > 1) {
 				final IntegerVariable v = new IntegerVariable(ei.getDomain());
 				v.setComment(v.getName() + " : " + ei);

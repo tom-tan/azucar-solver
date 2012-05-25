@@ -22,13 +22,10 @@ import jp.ac.kobe_u.cs.sugar.expression.*;
  */
 public class Converter {
 	public static int MAX_EQUIVMAP_SIZE = 1000;
-	public static long MAX_LINEARSUM_SIZE = 1024L;
 	public static boolean expandABS = true;
 	public static boolean OPT_PIGEON = true;
 	public static boolean INCREMENTAL_PROPAGATE = true;
-	public static boolean ESTIMATE_SATSIZE = false; // bad
 	public static boolean NEW_VARIABLE = true;
-	public static int SPLITS = 2;
 
 	private class EquivMap extends LinkedHashMap<Expression,IntegerVariable> {
 
