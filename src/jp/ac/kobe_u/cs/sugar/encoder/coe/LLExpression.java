@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
-import java.math.BigInteger;
 import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.LinearSum;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerVariable;
@@ -15,7 +14,7 @@ public class LLExpression {
 		linearSum = new LinearSum(v);
 	}
 
-	public LLExpression(BigInteger v) {
+	public LLExpression(long v) {
 		linearSum = new LinearSum(v);
 	}
 
@@ -33,9 +32,9 @@ public class LLExpression {
 		return new LinearLiteral(l, Operator.LE);
 	}
 
-	public LinearLiteral le(BigInteger e) {
+	public LinearLiteral le(long e) {
 		LinearSum l = new LinearSum(linearSum);
-		l.setB(l.getB().subtract(e));
+		l.setB(l.getB()-e);
 		return new LinearLiteral(l, Operator.LE);
 	}
 
@@ -43,16 +42,16 @@ public class LLExpression {
 		return rhs.le(this);
 	}
 
-	public LinearLiteral ge(BigInteger e) {
+	public LinearLiteral ge(long e) {
 		LinearSum l = new LinearSum(linearSum);
-		l.setB(l.getB().subtract(e));
-		l.multiply(BigInteger.ONE.negate());
+		l.setB(l.getB()-e);
+		l.multiply(-1);
 		return new LinearLiteral(l, Operator.LE);
 	}
 
-	public LLExpression add(BigInteger e) {
+	public LLExpression add(long e) {
 		LinearSum l = new LinearSum(linearSum);
-		l.setB(l.getB().add(e));
+		l.setB(l.getB()+e);
 		return new LLExpression(l);
 	}
 
@@ -62,11 +61,11 @@ public class LLExpression {
 		return new LLExpression(l);
 	}
 
-	public LLExpression sub(BigInteger e) {
-		return add(e.negate());
+	public LLExpression sub(long e) {
+		return add(-e);
 	}
 
-	public LLExpression mul(BigInteger c) {
+	public LLExpression mul(long c) {
 		LinearSum l = new LinearSum(linearSum);
 		l.multiply(c);
 		return new LLExpression(l);

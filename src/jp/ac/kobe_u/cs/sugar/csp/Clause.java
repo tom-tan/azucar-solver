@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -158,15 +157,15 @@ public class Clause {
 		return true;
 	}
 
-	public long propagate() throws SugarException {
+	public int propagate() throws SugarException {
 		if (size() == 0)
 			return 0;
-		long count = 0;
+		int count = 0;
 		for (IntegerVariable v : getCommonVariables()) {
 			assert boolLiterals.isEmpty();
-			BigInteger[] bound = null;
+			long[] bound = null;
 			for (ArithmeticLiteral lit : arithLiterals) {
-				BigInteger[] b = lit.getBound(v);
+				long[] b = lit.getBound(v);
 				if (b == null) {
 					bound = null;
 					break;
@@ -175,12 +174,12 @@ public class Clause {
 					if (bound == null) {
 						bound = b;
 					} else {
-						bound[0] = bound[0].min(b[0]);
-						bound[1] = bound[1].max(b[1]);
+						bound[0] = Math.min(bound[0], b[0]);
+						bound[1] = Math.max(bound[1], b[1]);
 					}
 				}
 			}
-			if (bound != null && bound[0].compareTo(bound[1]) <= 0) {
+			if (bound != null && bound[0] <= bound[1]) {
 				// System.out.println("Bound " + v.getName() + " " + bound[0] + " " + bound[1]);
 				count += v.bound(bound[0], bound[1]);
 			}

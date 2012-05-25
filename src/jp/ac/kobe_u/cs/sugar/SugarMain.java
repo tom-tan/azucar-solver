@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -79,7 +78,7 @@ public class SugarMain {
 				Expression.INT_DEFINITION,
 				cost,
 				Expression.ZERO,
-				Expression.create(new BigInteger(Integer.toString(n)))));
+				Expression.create(n)));
 		expressions.add(cost.ge(Expression.create(sum)));
 		expressions.add(Expression.create(
 				Expression.OBJECTIVE_DEFINITION,
@@ -184,7 +183,7 @@ public class SugarMain {
 				ef.setBases(bases);
 			} else if (s[0].equals("bigint")) {
 				final String name = s[1];
-				final BigInteger offset = new BigInteger(s[2]);
+				final long offset = Long.parseLong(s[2]);
 				final String[] digits = new String[s.length-3];
 				for (int i=3, j=0; i<s.length ; i++, j++) {
 					digits[j] = s[i];
@@ -198,33 +197,33 @@ public class SugarMain {
 				}
 			} else if (s[0].equals("int")) {
 				final String name = s[1];
-				final BigInteger offset = new BigInteger(s[2]);
-				final BigInteger code = new BigInteger(s[3]);
+				final long offset = Long.parseLong(s[2]);
+				final long code = Long.parseLong(s[3]);
 				IntegerDomain domain = null;
 				if (s.length == 5) {
-					BigInteger lb;
-					BigInteger ub;
+					long lb;
+					long ub;
 					final int pos = s[4].indexOf("..");
 					if (pos < 0) {
-						lb = ub = new BigInteger(s[4]);
+						lb = ub = Long.parseLong(s[4]);
 					} else {
-						lb = new BigInteger(s[4].substring(0, pos));
-						ub = new BigInteger(s[4].substring(pos+2));
+						lb = Long.parseLong(s[4].substring(0, pos));
+						ub = Long.parseLong(s[4].substring(pos+2));
 					}
 					domain = new IntegerDomain(lb, ub);
 				} else {
-					SortedSet<BigInteger> d = new TreeSet<BigInteger>();
+					SortedSet<Long> d = new TreeSet<Long>();
 					for (int i = 4; i < s.length; i++) {
-						BigInteger lb;
-						BigInteger ub;
+						long lb;
+						long ub;
 						final int pos = s[i].indexOf("..");
 						if (pos < 0) {
-							lb = ub = new BigInteger(s[i]);
+							lb = ub = Long.parseLong(s[i]);
 						} else {
-							lb = new BigInteger(s[i].substring(0, pos));
-							ub = new BigInteger(s[i].substring(pos+2));
+							lb = Long.parseLong(s[i].substring(0, pos));
+							ub = Long.parseLong(s[i].substring(pos+2));
 						}
-						for (BigInteger value = lb; value.compareTo(ub) <= 0; value = value.add(BigInteger.ONE)) {
+						for (long value = lb; value <= ub; value++) {
 							d.add(value);
 						}
 					}
@@ -240,7 +239,7 @@ public class SugarMain {
 			} else if (s[0].equals("bool")) {
 				// TODO
 				final String name = s[1];
-				final BigInteger code = new BigInteger(s[2]);
+				final long code = Long.parseLong(s[2]);
 				final BooleanVariable v = new BooleanVariable(name);
 				v.setCode(code);
 				csp.add(v);
@@ -267,7 +266,7 @@ public class SugarMain {
 			} else {
 				final IntegerVariable obj = csp.getObjectiveVariable();
 				final String name = obj.getName();
-				final BigInteger value = obj.getValue();
+				final long value = obj.getValue();
 				Logger.println("c OBJECTIVE " + name + " " + value);
 				for (IntegerVariable digit : obj.getDigits()) {
 					Logger.println("c DIGITS: "+digit.getName() + " " + digit.getValue());
@@ -342,7 +341,7 @@ public class SugarMain {
 							Converter.SPLITS = Integer.parseInt(opt.substring(n));
 						} else if (opt.matches("domain=(\\d+)")) {
 							final int n = "domain=".length();
-							IntegerDomain.MAX_SET_SIZE = new BigInteger(opt.substring(n));
+							IntegerDomain.MAX_SET_SIZE = Integer.parseInt(opt.substring(n));
 						} else {
 							throw new SugarException("Unknown option " + opt);
 						}

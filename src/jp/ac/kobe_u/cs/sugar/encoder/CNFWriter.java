@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
@@ -26,19 +25,19 @@ public class CNFWriter {
 
 	protected ByteBuffer satByteBuffer;
 
-	private BigInteger satVariablesCount = BigInteger.ZERO;
+	private int satVariablesCount = 0;
 
-	private BigInteger satClausesCount = BigInteger.ZERO;
+	private int satClausesCount = 0;
 
-	private BigInteger satFileSize = BigInteger.ZERO;
+	private long satFileSize = 0;
 
 	private final String satFileName;
 
 	public CNFWriter(String satFileName, boolean incremental) throws IOException {
 		this.satFileName = satFileName;
-		satFileSize = BigInteger.ZERO;
-		satVariablesCount = BigInteger.ZERO;
-		satClausesCount = BigInteger.ZERO;
+		satFileSize = 0;
+		satVariablesCount = 0;
+		satClausesCount = 0;
 		this.incremental = incremental;
 		if (USE_NEWIO) {
 			satFileChannel = (new FileOutputStream(satFileName)).getChannel();
@@ -48,16 +47,16 @@ public class CNFWriter {
 			satStringBuffer = new StringBuilder(SAT_BUFFER_SIZE);
 			satByteArray = new byte[SAT_BUFFER_SIZE];
 		}
-		write(getHeader(BigInteger.ZERO, BigInteger.ZERO));
+		write(getHeader(0, 0));
 	}
 
-	public String getHeader(BigInteger numOfVariables, BigInteger numOfClauses) throws UnsupportedEncodingException {
+	public String getHeader(int numOfVariables, int numOfClauses) throws UnsupportedEncodingException {
 		int n = 64;
 		StringBuilder s = new StringBuilder();
 		s.append("p cnf ");
-		s.append(numOfVariables.toString());
+		s.append(Integer.toString(numOfVariables));
 		s.append(" ");
-		s.append(numOfClauses.toString());
+		s.append(Integer.toString(numOfClauses));
 		while (s.length() < n - 1) {
 			s.append(" ");
 		}
@@ -95,7 +94,7 @@ public class CNFWriter {
 			}
 			satStringBuffer.append(s);
 		}
-		satFileSize = satFileSize.add(new BigInteger(Integer.toString(s.length())));
+		satFileSize += s.length();
 	}
 
 	public void writeComment(String comment) throws IOException {
@@ -104,23 +103,23 @@ public class CNFWriter {
 		}
 	}
 
-	public void writeClause(BigInteger[] clause) throws IOException {
-		for (BigInteger code : clause) {
+	public void writeClause(long[] clause) throws IOException {
+		for (long code : clause) {
 			if (code == Encoder.TRUE_CODE) {
 				return;
 			}
 		}
-		for (BigInteger code : clause) {
+		for (long code : clause) {
 			if (code != Encoder.FALSE_CODE) {
 				write(code + " ");
 			}
 		}
 		write("0\n");
-		satClausesCount = satClausesCount.add(BigInteger.ONE);
+		satClausesCount++;
 	}
 
-	public void writeClause(List<BigInteger> clause0) throws IOException {
-		BigInteger[] clause = new BigInteger[clause0.size()];
+	public void writeClause(List<Long> clause0) throws IOException {
+		long[] clause = new long[clause0.size()];
 		for (int i = 0; i < clause.length; i++) {
 			clause[i] = clause0.get(i);
 		}
@@ -143,24 +142,24 @@ public class CNFWriter {
 		if (true) { //csp.getObjectiveVariable() == null || incremental
 			satFile1.write(getHeader(satVariablesCount, satClausesCount).getBytes());
 		} else {
-			satFile1.write(getHeader(satVariablesCount, satClausesCount.add(BigInteger.ONE)).getBytes());
+			satFile1.write(getHeader(satVariablesCount, satClausesCount+1).getBytes());
 		}
 		satFile1.close();
 	}
 
-	public void addSatVariables(BigInteger nvars) {
-		satVariablesCount = satVariablesCount.add(nvars);
+	public void addSatVariables(long nvars) {
+		satVariablesCount += nvars;
 	}
 
-	public BigInteger getSatVariablesCount() {
+	public int getSatVariablesCount() {
 		return satVariablesCount;
 	}
 
-	public BigInteger getSatClausesCount() {
+	public int getSatClausesCount() {
 		return satClausesCount;
 	}
 
-	public BigInteger getSatFileSize() {
+	public long getSatFileSize() {
 		return satFileSize;
 	}
 }

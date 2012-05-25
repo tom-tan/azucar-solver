@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.StreamTokenizer;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,10 +20,10 @@ public abstract class Decoder {
 		this.csp = csp;
 	}
 
-	public abstract void decode(IntegerVariable v, HashMap<BigInteger, Boolean> satValues);
+	public abstract void decode(IntegerVariable v, HashMap<Long, Boolean> satValues);
 	public abstract void decodeBigInteger(IntegerVariable v) throws SugarException;
 
-	protected void decode(BooleanVariable v, HashMap<BigInteger, Boolean> satValues) {
+	protected void decode(BooleanVariable v, HashMap<Long, Boolean> satValues) {
 		v.setValue(satValues.get(v.getCode()));
 	}
 
@@ -47,7 +46,7 @@ public abstract class Decoder {
 		}
 		st.wordChars('$', '$');
 		st.wordChars(0x000080, 0x10FFFF);
-		st.eolIsSignificant(false);
+		st.eolIsSignificant(true);
 
 		while (result == null) {
 			st.nextToken();
@@ -68,7 +67,7 @@ public abstract class Decoder {
 		}
 		if (result.startsWith("SAT")) {
 			sat = true;
-			final HashMap<BigInteger, Boolean> satValues = new HashMap<BigInteger, Boolean>();
+			final HashMap<Long, Boolean> satValues = new HashMap<Long, Boolean>();
 			while (true) {
 				st.nextToken();
 				if (st.ttype == StreamTokenizer.TT_EOF)
@@ -77,21 +76,21 @@ public abstract class Decoder {
 				case StreamTokenizer.TT_EOL:
 					break;
 				case StreamTokenizer.TT_WORD:
-					if (st.sval.equals("v")) {
-					} else if (st.sval.equals("c")) {
+					final String s = st.sval;
+					if (s.equals("v")) {
+					} else if (s.equals("c")) {
 						do {
 							st.nextToken();
 						} while (st.ttype != StreamTokenizer.TT_EOL);
-					} else if (st.sval.matches("-??[0-9]+")) {
-						final BigInteger value = new BigInteger(st.sval);
-						final BigInteger i = value.abs();
-						if (i.compareTo(BigInteger.ZERO) > 0) {
-							satValues.put(i, value.compareTo(BigInteger.ZERO) > 0);
+					} else if (s.matches("-??[0-9]+")) {
+						final long value = Long.parseLong(s);
+						final long i = Math.abs(value);
+						if (i > 0) {
+							satValues.put(i, value > 0);
 						}
 						break;
-					}
-					else {
-						throw new SugarException("Unknown output " + st.sval);
+					} else {
+						throw new SugarException("Unknown output " + s);
 					}
 					break;
 				default:

@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
@@ -14,11 +13,11 @@ public abstract class RCSPLiteral extends ArithmeticLiteral {
 	public abstract List<Clause> toCCSP(CSP csp, COEEncoder encoder) throws SugarException;
 
 	@Override
-	public BigInteger[] getBound(IntegerVariable v) throws SugarException {
+	public long[] getBound(IntegerVariable v) throws SugarException {
 		throw new SugarException("Not supported.");
 	}
 
-	public abstract BigInteger getUpperBound();
+	public abstract long getUpperBound();
 	public abstract boolean isValid() throws SugarException;
 
 	@Override

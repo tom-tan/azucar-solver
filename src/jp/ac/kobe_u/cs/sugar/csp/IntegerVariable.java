@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -14,15 +13,15 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 public class IntegerVariable implements Comparable<IntegerVariable> {
 	private static final String AUX_PRE = "_$I";
 	private static String AUX_NAME_PREFIX = AUX_PRE;
-	private static BigInteger auxIntegerVariablesSize = BigInteger.ZERO;
+	private static long auxIntegerVariablesSize = 0;
 	private String name;
 	private IntegerDomain domain;
 	private boolean aux;
 	private String comment = null;
 	private boolean modified = true;
-	private BigInteger code;
-	private BigInteger value;
-	private BigInteger offset = BigInteger.ZERO;
+	private long code;
+	private long value;
+	private long offset;
 	private boolean isDigit_;
 	private IntegerVariable[] vs = null;
 
@@ -30,8 +29,8 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		AUX_NAME_PREFIX = AUX_PRE + pre;
 	}
 
-	public static void setIndex(BigInteger index) {
-		auxIntegerVariablesSize = index;
+	public static void setIndex(long index) {
+		auxIntegerVariablesSize = 0;
 	}
 
 	public IntegerVariable(String name, IntegerDomain domain) throws SugarException {
@@ -45,8 +44,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	}
 
 	public IntegerVariable(IntegerDomain domain) throws SugarException {
-		this(AUX_NAME_PREFIX + (auxIntegerVariablesSize.add(BigInteger.ONE)), domain);
-		auxIntegerVariablesSize = auxIntegerVariablesSize.add(BigInteger.ONE);
+		this(AUX_NAME_PREFIX + (++auxIntegerVariablesSize), domain);
 		aux = true;
 	}
 
@@ -82,11 +80,11 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		this.aux = aux;
 	}
 
-	public BigInteger getOffset() {
+	public long getOffset() {
 		return offset;
 	}
 
-	public void setOffset(BigInteger off) {
+	public void setOffset(long off) {
 		offset = off;
 	}
 
@@ -120,20 +118,20 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 		this.modified = modified;
 	}
 
-	public long bound(BigInteger lb, BigInteger ub) throws SugarException {
+	public long bound(long lb, long ub) throws SugarException {
 		IntegerDomain oldDomain = domain;
 		domain = domain.bound(lb, ub);
 		if (! domain.equals(oldDomain)) {
 			modified = true;
 		}
-		return oldDomain.size().subtract(domain.size()).intValue();
+		return oldDomain.size() - domain.size();
 	}
 
 	/**
 	 * Returns the code value in the encoded representation. 
 	 * @return the code value in the encoded representation
 	 */
-	public BigInteger getCode() {
+	public long getCode() {
 		return code;
 	}
 
@@ -141,7 +139,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * Sets the code value in the encoded representation. 
 	 * @param code the code value
 	 */
-	public void setCode(BigInteger code) {
+	public void setCode(long code) {
 		this.code = code;
 	}
 
@@ -149,7 +147,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * Returns the value of the integer variable.
 	 * @return the value
 	 */
-	public BigInteger getValue() {
+	public long getValue() {
 		return value;
 	}
 
@@ -157,7 +155,7 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	 * Sets the value of the integer variable.
 	 * @param value the value to set
 	 */
-	public void setValue(BigInteger value) {
+	public void setValue(long value) {
 		this.value = value;
 	}
 
@@ -186,18 +184,18 @@ public class IntegerVariable implements Comparable<IntegerVariable> {
 	}
 
 	public List<IntegerVariable> splitToDigits(CSP csp) throws SugarException {
-		BigInteger ub = domain.getUpperBound();
-		int b = csp.getBases()[0];
-		int m = ub.toString(b).length();
+		long ub = domain.getUpperBound();
+		long b = csp.getBases()[0];
+		int m = (int)Math.ceil(Math.log(ub+1)/Math.log(b));
 
 		vs = new IntegerVariable[m];
 		if (m == 1) {
 			vs[0] = this;
 		} else {
-			for (int i=0; i<m; i++, ub = ub.divide(new BigInteger(Integer.toString(b)))) {
-				assert ub.compareTo(BigInteger.ZERO) > 0;
-				BigInteger ubi = (i == m-1) ? ub : new BigInteger(Integer.toString(b-1));
-				IntegerDomain dom = new IntegerDomain(BigInteger.ZERO, ubi);
+			for (int i=0; i<m; i++, ub /= b) {
+				assert ub > 0;
+				long ubi = (i == m-1) ? ub : b-1;
+				IntegerDomain dom = new IntegerDomain(0, ubi);
 				vs[i] = new IntegerVariable(dom);
 				vs[i].isDigit(true);
 				vs[i].setComment(getName() + "["+i+"]");

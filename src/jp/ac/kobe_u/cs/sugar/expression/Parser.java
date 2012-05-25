@@ -6,7 +6,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StreamTokenizer;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +40,7 @@ public class Parser {
 		conv.put("/",  Expression.DIV);
 		conv.put("%",  Expression.MOD);
 	}
-	
+
 	private StreamTokenizer st;
 
 	/**
@@ -86,8 +85,12 @@ public class Parser {
 			switch (st.ttype) {
 			case StreamTokenizer.TT_WORD:
 				String s = st.sval;
+				// x = conv.get(s);
+				// if (x == null) {
+				// 	x = Expression.create(s);
+				// }
 				if (s.matches("-??[0-9]+")) {
-					final BigInteger value = new BigInteger(s);
+					final long value = Long.parseLong(s);
 					x = Expression.create(value);
 				} else {
 					x = conv.get(s);

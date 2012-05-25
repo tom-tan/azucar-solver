@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.expression;
 
-import java.math.BigInteger;
 /**
  * This class implements atomic expressions.
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
@@ -29,7 +28,7 @@ public class Atom extends Expression {
 
 	@Override
 	public boolean isInteger() {
-		return atom instanceof BigInteger;
+		return atom instanceof Long;
 	}
 
 	@Override
@@ -38,8 +37,8 @@ public class Atom extends Expression {
 	}
 
 	@Override
-	public BigInteger integerValue() {
-		return (BigInteger)atom;
+	public Long integerValue() {
+		return (Long)atom;
 	}
 
 	@SuppressWarnings("unchecked")
