@@ -34,6 +34,9 @@ import jp.ac.kobe_u.cs.sugar.csp.ProductLiteral;
  */
 public abstract class Encoder {
 	public static boolean simplifyAll = true;
+	public static boolean ESTIMATE_SATSIZE = false; // bad
+	public static long MAX_LINEARSUM_SIZE = 1024L;
+	public static int SPLITS = 2;
 
 	public static final long FALSE_CODE = 0;
 
@@ -42,6 +45,7 @@ public abstract class Encoder {
 	protected final CSP csp;
 
 	protected CNFWriter writer;
+
 
 	public abstract long getCode(LinearLiteral lit) throws SugarException;
 	protected abstract void encode(IntegerVariable v) throws SugarException, IOException;

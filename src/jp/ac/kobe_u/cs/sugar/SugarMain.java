@@ -326,7 +326,7 @@ public class SugarMain {
 						} else if (opt.matches("(no_)?compact")) {
 							//Encoder.OPT_COMPACT = ! opt.startsWith("no_");
 						} else if (opt.matches("(no_)?estimate_satsize")) {
-							Converter.ESTIMATE_SATSIZE = ! opt.startsWith("no_");
+							Encoder.ESTIMATE_SATSIZE = ! opt.startsWith("no_");
 							//Encoder.OPT_COMPACT = ! opt.startsWith("no_");
 						} else if (opt.matches("(no_)?new_variable")) {
 							Converter.NEW_VARIABLE = ! opt.startsWith("no_");
@@ -335,10 +335,10 @@ public class SugarMain {
 							Converter.MAX_EQUIVMAP_SIZE = Integer.parseInt(opt.substring(n));
 						} else if (opt.matches("linearsum=(\\d+)")) {
 							final int n = "linearsum=".length();
-							Converter.MAX_LINEARSUM_SIZE = Long.parseLong(opt.substring(n));
+							Encoder.MAX_LINEARSUM_SIZE = Long.parseLong(opt.substring(n));
 						} else if (opt.matches("split=(\\d+)")) {
 							final int n = "split=".length();
-							Converter.SPLITS = Integer.parseInt(opt.substring(n));
+							Encoder.SPLITS = Integer.parseInt(opt.substring(n));
 						} else if (opt.matches("domain=(\\d+)")) {
 							final int n = "domain=".length();
 							IntegerDomain.MAX_SET_SIZE = Integer.parseInt(opt.substring(n));
