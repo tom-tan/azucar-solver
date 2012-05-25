@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.math.BigInteger;
 import java.util.Set;
 
 import jp.ac.kobe_u.cs.sugar.SugarException;
@@ -20,7 +19,7 @@ public class PowerLiteral extends ArithmeticLiteral {
 	}
 
 	@Override
-	public BigInteger[] getBound(IntegerVariable v) throws SugarException {
+	public long[] getBound(IntegerVariable v) throws SugarException {
 		return null;
 	}
 

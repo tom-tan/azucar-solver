@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.encoder.coe;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +45,7 @@ public class OpXY extends RCSPLiteral {
 		this(op, new IntegerHolder(x), new IntegerHolder(y));
 	}
 
-	public OpXY(Operator op, IntegerVariable x, BigInteger y) {
+	public OpXY(Operator op, IntegerVariable x, long y) {
 		this(op, new IntegerHolder(x), new IntegerHolder(y));
 	}
 
@@ -77,7 +76,7 @@ public class OpXY extends RCSPLiteral {
 				for (int i=0; i<m; i++) {
 					final Clause cls = new Clause(x.nth(i).le(y.nth(i)));
 					for (int j=i+1; j<m; j++) {
-						cls.add(x.nth(j).le(y.nth(j).sub(BigInteger.ONE)));
+						cls.add(x.nth(j).le(y.nth(j).sub(1)));
 					}
 					ret.add(cls);
 				}
@@ -99,13 +98,13 @@ public class OpXY extends RCSPLiteral {
 				// -s(i+1) or (x(i) <= y(i)-1) or s(i) (when 1 <= i < m-1)
 				for (int i=1; i<m-1; i++) {
 					final Clause cls = new Clause(new BooleanLiteral(s[i+1], true));
-					cls.add(x.nth(i).le(y.nth(i).sub(BigInteger.ONE)));
+					cls.add(x.nth(i).le(y.nth(i).sub(1)));
 					cls.add(new BooleanLiteral(s[i], false));
 					ret.add(cls);
 				}
 				if (m > 1) {
 					// (x(i) <= y(i)-1) or s(i) (when i == m-1)
-					final Clause cls0 = new Clause(x.nth(m-1).le(y.nth(m-1).sub(BigInteger.ONE)));
+					final Clause cls0 = new Clause(x.nth(m-1).le(y.nth(m-1).sub(1)));
 					cls0.add(new BooleanLiteral(s[m-1], false));
 					ret.add(cls0);
 				}
@@ -122,8 +121,8 @@ public class OpXY extends RCSPLiteral {
 		case NE:{
 			final Clause cls = new Clause();
 			for (int i=0; i<m; i++) {
-				cls.add(x.nth(i).le(y.nth(i).sub(BigInteger.ONE)));
-				cls.add(x.nth(i).sub(BigInteger.ONE).ge(y.nth(i)));
+				cls.add(x.nth(i).le(y.nth(i).sub(1)));
+				cls.add(x.nth(i).sub(1).ge(y.nth(i)));
 			}
 			ret.addAll(encoder.simplify(cls));
 			break;
@@ -139,8 +138,8 @@ public class OpXY extends RCSPLiteral {
 	}
 
 	@Override
-	public BigInteger getUpperBound() {
-		return x.getUpperBound().max(y.getUpperBound());
+	public long getUpperBound() {
+		return Math.max(x.getUpperBound(), y.getUpperBound());
 	}
 
 	@Override
@@ -149,10 +148,9 @@ public class OpXY extends RCSPLiteral {
 		final IntegerDomain yd = y.getDomain();
 		switch(op) {
 		case EQ:
-			return xd.size().compareTo(BigInteger.ONE) == 0 &&
-        yd.size().compareTo(BigInteger.ONE) == 0 && xd.getUpperBound().compareTo(yd.getUpperBound()) == 0;
+			return xd.size() == 1 && yd.size() == 1 && xd.getUpperBound() == yd.getUpperBound();
 		case LE:
-			return xd.getUpperBound().compareTo(yd.getLowerBound()) <= 0;
+			return xd.getUpperBound() <= yd.getLowerBound();
 		case NE:
 			return xd.cap(yd).isEmpty();
 		}

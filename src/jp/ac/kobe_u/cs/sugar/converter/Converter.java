@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.converter;
 
-import java.math.BigInteger;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,23 +74,23 @@ public class Converter {
 					domain = new IntegerDomain(x.get(0).integerValue(),
 																		 x.get(0).integerValue());
 				} else if (((Sequence)x.get(0)).matches("II")) {
-					BigInteger value0 = ((Sequence)x.get(0)).get(0).integerValue();
-					BigInteger value1 = ((Sequence)x.get(0)).get(1).integerValue();
+					long value0 = ((Sequence)x.get(0)).get(0).integerValue();
+					long value1 = ((Sequence)x.get(0)).get(1).integerValue();
 					domain = new IntegerDomain(value0, value1);
 				} else {
 					throw new SugarException("Bad definition " + seq);
 				}
 			} else {
-				SortedSet<BigInteger> d = new TreeSet<BigInteger>(); 
+				SortedSet<Long> d = new TreeSet<Long>(); 
 				for (int i = 0; i < x.length(); i++) {
 					if (x.get(i).isInteger()) {
 						d.add(x.get(i).integerValue());
 					} else if (x.get(i).isSequence()) {
 						Sequence seq1 = (Sequence)x.get(i);
 						if (seq1.matches("II")) {
-							BigInteger value0 = ((Sequence)x.get(i)).get(0).integerValue();
-							BigInteger value1 = ((Sequence)x.get(i)).get(1).integerValue();
-							for (BigInteger value = value0; value.compareTo(value1) <= 0; value = value.add(BigInteger.ONE)) {
+							long value0 = ((Sequence)x.get(i)).get(0).integerValue();
+							long value1 = ((Sequence)x.get(i)).get(1).integerValue();
+							for (long value = value0; value <= value1; value++) {
 								d.add(value);
 							}
 						} else {
@@ -105,12 +104,12 @@ public class Converter {
 			}
 		} else if (seq.matches("WWII")) {
 			name = seq.get(1).stringValue();
-			BigInteger lb = seq.get(2).integerValue();
-			BigInteger ub = seq.get(3).integerValue();
+			long lb = seq.get(2).integerValue();
+			long ub = seq.get(3).integerValue();
 			domain = new IntegerDomain(lb, ub);
 		} else if (seq.matches("WWI")) {
 			name = seq.get(1).stringValue();
-			BigInteger lb = seq.get(2).integerValue();
+			long lb = seq.get(2).integerValue();
 			domain = new IntegerDomain(lb, lb);
 		} else {
 			throw new SugarException("Bad definition " + seq);
@@ -215,8 +214,8 @@ public class Converter {
 		for (Atom atom: x.getVariables()) {
 			IntegerVariable v = intMap.get(atom.stringValue());
 			if (v == null) throw new SugarException("!!!");
-			BigInteger a = x.getA(atom);
-			if (a.compareTo(BigInteger.ZERO) != 0) {
+			long a = x.getA(atom);
+			if (a != 0) {
 				ls.setA(a, v);
 			}
 		}

@@ -1,6 +1,5 @@
 package jp.ac.kobe_u.cs.sugar.csp;
 
-import java.math.BigInteger;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -45,12 +44,12 @@ public class ProductLiteral extends ArithmeticLiteral {
 	}
 
 	@Override
-	public BigInteger[] getBound(IntegerVariable v) throws SugarException {
+	public long[] getBound(IntegerVariable v) throws SugarException {
 		if (this.v == v) {
 			final IntegerDomain muld = v1.getDomain().mul(v2.getDomain());
-			final BigInteger lb = muld.getLowerBound();
-			final BigInteger ub = muld.getUpperBound();
-			return new BigInteger[] { lb, ub };
+			final long lb = muld.getLowerBound();
+			final long ub = muld.getUpperBound();
+			return new long[] { lb, ub };
 		}
 		final IntegerDomain lhsd = this.v.getDomain();
 		IntegerDomain rhsd = null;
@@ -60,20 +59,19 @@ public class ProductLiteral extends ArithmeticLiteral {
 			assert this.v2 == v;
 			rhsd = v1.getDomain();
 		}
-		if (rhsd.contains(BigInteger.ZERO) || rhsd.isEmpty())
+		if (rhsd.contains(0) || rhsd.isEmpty())
 			return null;
 
 		final IntegerDomain dom = lhsd.div(rhsd);
-		return new BigInteger[] { dom.getLowerBound(), dom.getUpperBound() };
+		return new long[] { dom.getLowerBound(), dom.getUpperBound() };
 	}
 
 	@Override
 	public boolean isValid() throws SugarException {
 		final IntegerDomain d = v.getDomain();
 		final IntegerDomain muld = v1.getDomain().mul(v2.getDomain());
-		return d.size().compareTo(BigInteger.ONE) == 0 &&
-			muld.size().compareTo(BigInteger.ONE) == 0 &&
-			d.getLowerBound().compareTo(muld.getLowerBound()) == 0;
+		return d.size() == 1 && muld.size() == 1 &&
+			d.getLowerBound() == muld.getLowerBound();
 	}
 
 	@Override
