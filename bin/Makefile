@@ -26,7 +26,6 @@ JAVADOC  = javadoc -locale en_US \
 all: javac jar zip # javadoc
 
 javac:
-	mkdir -p ../classes
 	javac -source 5 -Xlint:unchecked \
 		-sourcepath ../src -d ../classes \
 		../src/jp/ac/kobe_u/cs/sugar/*.java \
@@ -57,6 +56,6 @@ install:
 	cp -p $(JAR) $(LIBDIR)
 
 clean:
-	rm -rf ../docs/api ../classes
+	rm -rf ../docs/api ../classes/*
 	rm -rf $(ZIP) $(JAR)
 
