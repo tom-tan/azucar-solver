@@ -19,6 +19,7 @@ public class IntegerDomain {
 	private long lb;
 	private long ub;
 	private SortedSet<Long> domain;
+	private long size_ = -1;
 
 	private static IntegerDomain create(SortedSet<Long> domain) throws SugarException {
 		long lb = domain.first();
@@ -72,11 +73,20 @@ public class IntegerDomain {
 	}
 
 	public long size() {
-		if (domain == null) {
-			return lb <= ub ? ub - lb + 1 : 0;
-		} else {
-			return domain.size();
+		if (size_ != -1) {
+			return size_;
 		}
+		if (domain == null) {
+			size_ = lb <= ub ? ub - lb + 1 : 0;
+		} else if (ub-lb > Integer.MAX_VALUE) {
+			size_ = 0;
+			for(Long v: domain) {
+				size_++;
+			}
+		} else {
+			size_ = domain.size();
+		}
+		return size_;
 	}
 
 	public boolean isContiguous() {
@@ -84,7 +94,7 @@ public class IntegerDomain {
 	}
 
 	public boolean isEmpty() {
-		return size() == 0;
+		return domain.size() == 0;
 	}
 
 	public long getLowerBound() {
@@ -266,8 +276,7 @@ public class IntegerDomain {
 
 	public IntegerDomain mul(long a) throws SugarException {
 		if (domain == null) {
-			// XXX
-			if (false && size() <= MAX_SET_SIZE) {
+			if (size() <= MAX_SET_SIZE) {
 				SortedSet<Long> d = new TreeSet<Long>();
 				for (long value = lb; value <= ub; value++) {
 					d.add(value * a);
@@ -290,7 +299,7 @@ public class IntegerDomain {
 	public IntegerDomain mul(IntegerDomain d) throws SugarException {
 		if (d.size() == 1) {
 			return mul(d.lb);
-		} else 	if (size() == 1) {
+		} else if (size() == 1) {
 			return d.mul(lb);
 		}
 		if (domain == null || d.domain == null
