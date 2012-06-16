@@ -1,4 +1,13 @@
 ================================================================
+Changes with Azucar version 0.2.3
+
+* Azucar with "-encoding oe" option uses the almost same
+  reduction strategy as Sugar.
+* Add examples/arithm-sat_coe_azucar.csp.
+* Fix Makefile for Java 5.
+* Fix email address.
+
+================================================================
 Changes with Azucar version 0.2.2
 
 * Bug fix: (int x (13)) should be accepted.
