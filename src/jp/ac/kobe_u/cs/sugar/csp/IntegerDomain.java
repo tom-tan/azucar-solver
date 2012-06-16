@@ -94,7 +94,7 @@ public class IntegerDomain {
 	}
 
 	public boolean isEmpty() {
-		return domain.size() == 0;
+		return size() == 0;
 	}
 
 	public long getLowerBound() {
