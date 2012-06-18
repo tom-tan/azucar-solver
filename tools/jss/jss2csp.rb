@@ -53,7 +53,7 @@ if $0 == __FILE__
 
   ops = open(input) { |io|
     m, n = io.gets.split.map{ |s| s.to_i }
-    ops = io.readlines.each_with_index.map{ |line, i|
+    io.readlines.each_with_index.map{ |line, i|
       line.split.map{ |s| s.to_i }.each_slice(2).each_with_index.map{ |num_ptime, j|
         Operation.new("s_#{i}_#{j}", num_ptime[1], num_ptime[0])
       }
