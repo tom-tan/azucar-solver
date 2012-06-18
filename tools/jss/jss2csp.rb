@@ -30,14 +30,14 @@ end
 
 
 if $0 == __FILE__
-  output = '/dev/stdout'
+  out = STDOUT
   makespan = nil
   isCOP = true
 
   opt = ARGV.options{ |o|
     o.banner = "Usage: #{File.basename $0} [options] jss"
-    o.on('-o OUTPUT', 'Output file name (Default: stdout)', String) { |out|
-      output = out
+    o.on('-o OUTPUT', 'Output file name (Default: stdout)', String) { |out_|
+      out = out_
     }
     o.on('-m Makespan', 'Set Makespan to makespan', Integer) { |m|
       makespan = m
@@ -69,21 +69,20 @@ if $0 == __FILE__
   lb = calc_lower_bound(ops, jobn)
   ub = makespan.nil? ? calc_upper_bound(input) : makespan
 
-  open(output, 'w') { |out|
-    out.puts "(int makespan #{lb} #{ub})"
-    out.puts "(objective minimize makespan)" if isCOP
-    ops.each{ |ops_per_jobs|
-      ops_per_jobs.each{ |o|
-        out.puts "(int #{o.stime} 0 #{ub})"
-      }
-      (ops_per_jobs+[Operation.new('makespan', nil, nil)]).each_cons(2) { |o1, o2|
-        out.puts "(<= (+ #{o1.stime} #{o1.ptime}) #{o2.stime})"
-      }
+  out = (out == STDOUT) ? STDOUT : open(out, 'w')
+  out.puts "(int makespan #{lb} #{ub})"
+  out.puts "(objective minimize makespan)" if isCOP
+  ops.each{ |ops_per_jobs|
+    ops_per_jobs.each{ |o|
+      out.puts "(int #{o.stime} 0 #{ub})"
     }
-    jobn.each_value{ |os|
-      os.combination(2)  { |o1, o2|
-        out.puts "(or (<= (+ #{o1.stime} #{o1.ptime}) #{o2.stime}) (<= (+ #{o2.stime} #{o2.ptime}) #{o1.stime}))"
-      }
+    (ops_per_jobs+[Operation.new('makespan', nil, nil)]).each_cons(2) { |o1, o2|
+      out.puts "(<= (+ #{o1.stime} #{o1.ptime}) #{o2.stime})"
+    }
+  }
+  jobn.each_value{ |os|
+    os.combination(2)  { |o1, o2|
+      out.puts "(or (<= (+ #{o1.stime} #{o1.ptime}) #{o2.stime}) (<= (+ #{o2.stime} #{o2.ptime}) #{o1.stime}))"
     }
   }
 end
