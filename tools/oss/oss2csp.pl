@@ -19,7 +19,7 @@ use vars qw($opt_h $opt_c $opt_b $opt_x $opt_m);
 &getopts("hcbxm:");
 
 if ($opt_h) {
-    print "Usage: $0 file.oss >file.csp\n";
+    print "Usage: $0 [-m makespan] file.oss >file.csp\n";
     exit(1);
 }
 
