@@ -10,6 +10,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 import jp.ac.kobe_u.cs.sugar.csp.ArithmeticLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.BooleanVariable;
+import jp.ac.kobe_u.cs.sugar.csp.ProductLiteral;
 import jp.ac.kobe_u.cs.sugar.csp.Clause;
 import jp.ac.kobe_u.cs.sugar.csp.CSP;
 import jp.ac.kobe_u.cs.sugar.csp.IntegerDomain;
@@ -202,6 +203,7 @@ public class OEEncoder extends Encoder {
 			if (b >= 0) {
 				c = b/a;
 			} else {
+				System.out.println(a+"*"+v.getName()+"<="+b);
 				c = (b-a+1)/a;
 			}
 			code = getCodeLE(v, c);
@@ -306,6 +308,7 @@ public class OEEncoder extends Encoder {
 		split();
 		simplify();
 		toLinearLe();
+		// System.out.println("CSP: "+ csp);
 		Logger.info("CSP : " + csp.summary());
 	}
 
@@ -398,45 +401,93 @@ public class OEEncoder extends Encoder {
 				newClauses.add(c);
 			} else {
 				assert c.size() == simpleSize(c)+1;
-				final LinearLiteral ll = (LinearLiteral)c.getArithmeticLiterals().get(0);
+				ArithmeticLiteral al = c.getArithmeticLiterals().get(0);
 				final List<BooleanLiteral> bls = c.getBooleanLiterals();
-				switch(ll.getOperator()) {
-				case LE:{
-					newClauses.add(c);
-					break;
-				}
-				case EQ:{
-					final Clause c1 = new Clause(bls);
-					c1.add(new LinearLiteral(ll.getLinearExpression(),
-					                         Operator.LE));
-					newClauses.add(c1);
-					final Clause c2 = new Clause(bls);
-					final LinearSum ls = new LinearSum(ll.getLinearExpression());
-					ls.multiply(-1);
-					c2.add(new LinearLiteral(ls, Operator.LE));
-					newClauses.add(c2);
-					break;
-				}
-				case NE:{
-					final Clause c1 = new Clause(bls);
-
-					final LinearSum ls1 = new LinearSum(ll.getLinearExpression());
-					ls1.setB(ls1.getB()+1);
-					c1.add(new LinearLiteral(ls1, Operator.LE));
-
-					final LinearSum ls2 = new LinearSum(ll.getLinearExpression());
-					ls2.multiply(-1);
-					ls2.setB(ls2.getB()+1);
-					c1.add(new LinearLiteral(ls2, Operator.LE));
-
-					newClauses.addAll(simplify(c1));
-					break;
-				}
-				default: new SugarException("Internal Error");
+				if (al instanceof ProductLiteral) {
+					final ProductLiteral pl = (ProductLiteral)al;
+					for (Clause le : toLinearLe((ProductLiteral)al)) {
+						for (BooleanLiteral bl: bls) {
+							le.add(bl);
+						}
+						newClauses.add(le);
+					}
+				} else if (al instanceof LinearLiteral) {
+					for (Clause le : toLinearLe((LinearLiteral)al)) {
+						for (BooleanLiteral bl: bls) {
+							le.add(bl);
+						}
+						newClauses.add(le);
+					}
+				} else {
+					throw new SugarException("Internal Error");
 				}
 			}
 		}
 		csp.setClauses(newClauses);
+	}
+
+	private List<Clause> toLinearLe(LinearLiteral ll) throws SugarException {
+		final List<Clause> newClauses = new ArrayList<Clause>();
+		switch(ll.getOperator()) {
+		case LE:
+			newClauses.add(new Clause(ll));
+		case EQ:{
+			final Clause c1 = new Clause(new LinearLiteral(ll.getLinearExpression(),
+																										 Operator.LE));
+			newClauses.add(c1);
+			final LinearSum ls = new LinearSum(ll.getLinearExpression());
+			ls.multiply(-1);
+			final Clause c2 = new Clause(new LinearLiteral(ls, Operator.LE));
+			newClauses.add(c2);
+		}
+		case NE:{
+			final LinearSum ls1 = new LinearSum(ll.getLinearExpression());
+			ls1.setB(ls1.getB()+1);
+			final Clause c1 = new Clause(new LinearLiteral(ls1, Operator.LE));
+
+			final LinearSum ls2 = new LinearSum(ll.getLinearExpression());
+			ls2.multiply(-1);
+			ls2.setB(ls2.getB()+1);
+			c1.add(new LinearLiteral(ls2, Operator.LE));
+
+			newClauses.addAll(simplify(c1));
+		}
+		default: new SugarException("Internal Error");
+		}
+		return newClauses;
+	}
+
+	private List<Clause> toLinearLe(ProductLiteral l) throws SugarException {
+		List<Clause> ret = new ArrayList<Clause>();
+		final IntegerVariable v = l.getV();
+		final IntegerVariable v1 = l.getV1();
+		final IntegerVariable v2 = l.getV2();
+		final IntegerVariable sv = v1.getDomain().size() <= v2.getDomain().size() ?
+															 v1 : v2;
+		final IntegerVariable lv = sv == v1 ? v2 : v1;
+
+		for (long a: sv.getDomain()) {
+			final LinearLiteral xlea = new LinearLiteral(new LinearSum(1, sv, -a+1),
+																									 Operator.LE);
+			final LinearLiteral xgea = new LinearLiteral(new LinearSum(-1, sv, a+1),
+																									 Operator.LE);
+			final LinearSum ls1 = new LinearSum(-1, v, 0);
+			ls1.setA(a, lv);
+			final Clause c1 = new Clause(new LinearLiteral(ls1, Operator.LE));
+			c1.setComment(sv.getName() + " = " +a+ " =>" + v.getName() + "= "
+										+a+"*"+lv.getName());
+			c1.add(xlea);
+			c1.add(xgea);
+			ret.add(c1);
+
+			final LinearSum ls2 = new LinearSum(v);
+			ls2.setA(-a, lv);
+			final Clause c2 = new Clause(new LinearLiteral(ls2, Operator.LE));
+			c2.add(xlea);
+			c2.add(xgea);
+			ret.add(c2);
+		}
+		return ret;
 	}
 
 	@Override
