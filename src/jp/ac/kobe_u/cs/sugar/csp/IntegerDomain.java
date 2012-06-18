@@ -14,7 +14,7 @@ import jp.ac.kobe_u.cs.sugar.expression.Expression;
  * @see CSP
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
-public class IntegerDomain {
+public class IntegerDomain implements Iterable<Long> {
 	public static long MAX_SET_SIZE = 128;
 	private long lb;
 	private long ub;
@@ -168,6 +168,10 @@ public class IntegerDomain {
 
 	public Iterator<Long> values() {
 		return values(lb, ub);
+	}
+
+	public Iterator<Long> iterator() {
+		return values();
 	}
 
 	public IntegerDomain cup(IntegerDomain d1) throws SugarException {

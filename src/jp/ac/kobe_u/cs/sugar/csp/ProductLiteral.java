@@ -8,6 +8,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 /**
  * NOT IMPLEMENTED YET.
  * This class implements a literal for arithmetic product.
+ * v = v1*v2
  * @see CSP
  * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
  */
