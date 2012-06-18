@@ -12,7 +12,7 @@ import jp.ac.kobe_u.cs.sugar.expression.Expression;
 /**
  * This class implements an integer domain class.
  * @see CSP
- * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
+ * @author Tomoya (tanjo@nii.ac.jp)
  */
 public class IntegerDomain implements Iterable<Long> {
 	public static long MAX_SET_SIZE = 128;

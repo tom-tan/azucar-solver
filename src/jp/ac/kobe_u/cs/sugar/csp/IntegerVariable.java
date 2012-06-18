@@ -8,7 +8,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
 /**
  * This class implements an integer variable of CSP.
  * @see CSP
- * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
+ * @author Tomoya Tanjo (tanjo@nii.ac.jp)
  */
 public class IntegerVariable implements Comparable<IntegerVariable> {
 	private static final String AUX_PRE = "_$I";
