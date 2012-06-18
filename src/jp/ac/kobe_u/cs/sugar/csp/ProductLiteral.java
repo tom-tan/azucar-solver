@@ -10,7 +10,7 @@ import jp.ac.kobe_u.cs.sugar.SugarException;
  * This class implements a literal for arithmetic product.
  * v = v1*v2
  * @see CSP
- * @author Naoyuki Tamura (tamura@kobe-u.ac.jp)
+ * @author Tomoya Tanjo (tanjo@nii.ac.jp)
  */
 public class ProductLiteral extends ArithmeticLiteral {
 	private IntegerVariable v;

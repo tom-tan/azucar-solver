@@ -304,10 +304,13 @@ public class OEEncoder extends Encoder {
 	 **/
 	@Override
 	public void reduce() throws SugarException {
+		// System.out.println("SPLIT: "+ csp);
 		split();
+		// System.out.println("SPLIT: "+ csp);
 		simplify();
+		// System.out.println("SIMPLIFIED: "+ csp);
 		toLinearLe();
-		// System.out.println("CSP: "+ csp);
+		// System.out.println("LE: "+ csp);
 		Logger.info("CSP : " + csp.summary());
 	}
 
@@ -400,24 +403,20 @@ public class OEEncoder extends Encoder {
 			} else {
 				assert c.size() == simpleSize(c)+1;
 				ArithmeticLiteral al = c.getArithmeticLiterals().get(0);
-				final List<BooleanLiteral> bls = c.getBooleanLiterals();
+				List<Clause> cs;
 				if (al instanceof ProductLiteral) {
-					final ProductLiteral pl = (ProductLiteral)al;
-					for (Clause le : toLinearLe((ProductLiteral)al)) {
-						for (BooleanLiteral bl: bls) {
-							le.add(bl);
-						}
-						newClauses.add(le);
-					}
+					cs = toLinearLe((ProductLiteral)al);
 				} else if (al instanceof LinearLiteral) {
-					for (Clause le : toLinearLe((LinearLiteral)al)) {
-						for (BooleanLiteral bl: bls) {
-							le.add(bl);
-						}
-						newClauses.add(le);
-					}
+					cs = toLinearLe((LinearLiteral)al);
 				} else {
 					throw new SugarException("Internal Error");
+				}
+				final List<BooleanLiteral> bls = c.getBooleanLiterals();
+				for (Clause le : cs) {
+					for (BooleanLiteral bl : bls) {
+						le.add(bl);
+					}
+					newClauses.add(le);
 				}
 			}
 		}
@@ -429,6 +428,7 @@ public class OEEncoder extends Encoder {
 		switch(ll.getOperator()) {
 		case LE:
 			newClauses.add(new Clause(ll));
+			break;
 		case EQ:{
 			final Clause c1 = new Clause(new LinearLiteral(ll.getLinearExpression(),
 																										 Operator.LE));
@@ -437,6 +437,7 @@ public class OEEncoder extends Encoder {
 			ls.multiply(-1);
 			final Clause c2 = new Clause(new LinearLiteral(ls, Operator.LE));
 			newClauses.add(c2);
+			break;
 		}
 		case NE:{
 			final LinearSum ls1 = new LinearSum(ll.getLinearExpression());
@@ -449,6 +450,7 @@ public class OEEncoder extends Encoder {
 			c1.add(new LinearLiteral(ls2, Operator.LE));
 
 			newClauses.addAll(simplify(c1));
+			break;
 		}
 		default: new SugarException("Internal Error");
 		}
