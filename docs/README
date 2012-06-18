@@ -90,7 +90,7 @@ uses Java programs and SAT solver in the following way.
 
 * Encoding CSP to SAT
 
-  $ java -jar azucar-v0.2.2.jar -encode file.csp file.cnf file.map
+  $ java -jar azucar-v0.2.3.jar -encode file.csp file.cnf file.map
 
 * Solving SAT
 
@@ -98,7 +98,7 @@ uses Java programs and SAT solver in the following way.
 
 * Decoding SAT output
 
-  $ java -jar azucar-v0.2.2.jar [-competition] -decode file.out file.map
+  $ java -jar azucar-v0.2.3.jar [-competition] -decode file.out file.map
 
 * By default, Azucar divides each integer into two digits.
   For larger domain CSPs (e.g. over 1,000,000), it might be better to
@@ -151,6 +151,12 @@ PUBLICATIONS
   2011.
   http://sysrun.haifa.il.ibm.com/hrl/cspsat2011/papers/tanjo_tamura_banbara%20.pdf
 
+* Tomoya Tanjo, Naoyuki Tamura, Mutsunori Banbara:
+  Azucar: A SAT-based CSP solver using the compact order encoding (Tool Presentation),
+  in Proceedings of the Fifteenth International Conference on Theory and
+  Applications of Satisfiability Testing (SAT 2012), LNCS 7317,
+  pp.456-462, 2012.
+
 ================
 LICENSE
 
@@ -167,7 +173,7 @@ Transdisciplinary Research Integration Center
 2-1-2 Hitotsubashi, Chiyoda-ku, Tokyo 101-8430, Japan
 E-mail: tanjo @ nii.ac.jp
 
-Naoyuki Tamura, and Mutsunori Banbara
+Naoyuki Tamura and Mutsunori Banbara
 Information Science and Technology Center, Kobe University
 1-1 Rokkodai, Nada, Kobe 657-8501 Japan
 E-mail: tamura @ kobe-u.ac.jp, banbara @ kobe-u.ac.jp
