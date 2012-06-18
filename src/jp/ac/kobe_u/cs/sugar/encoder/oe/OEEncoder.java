@@ -203,7 +203,6 @@ public class OEEncoder extends Encoder {
 			if (b >= 0) {
 				c = b/a;
 			} else {
-				System.out.println(a+"*"+v.getName()+"<="+b);
 				c = (b-a+1)/a;
 			}
 			code = getCodeLE(v, c);
@@ -321,7 +320,6 @@ public class OEEncoder extends Encoder {
 		BooleanVariable.setIndex(0);
 		IntegerVariable.setPrefix(AUX_PREFIX);
 		IntegerVariable.setIndex(0);
-		// TODO
 		final List<Clause> newClauses = new ArrayList<Clause>();
 		final int size = csp.getClauses().size();
 		for(int i=0; i<size; i++) {
