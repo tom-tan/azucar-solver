@@ -37,13 +37,13 @@ exit 0;
 
 sub read_oss {
     chomp($_ = <>);
-    split;
+    @_ = split;
     @pt = ();
     if (@_ == 2 && $_[0] == $_[1]) {
 	$n = $_[0];
 	while (<>) {
 	    tr/\r\n//d;
-	    split;
+	    @_ = split;
 	    my $m = shift(@_);
 	    if ($m == 0) {
 		last;
