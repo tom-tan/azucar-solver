@@ -1,5 +1,5 @@
 ================================================================
-README for Azucar version 0.2.3
+README for Azucar version 0.2.4
 
 Azucar: A SAT-based Constraint Solver
 
@@ -47,7 +47,7 @@ INSTALLATION
   execution environment.
 
   - $java   : Java command path
-  - $jar    : Full path of the azucar-v0.2.3.jar file in the same directory
+  - $jar    : Full path of the azucar-v0.2.4.jar file in the same directory
   - $solver : Path of the SAT solver (e.g. MiniSat)
   - $tmp    : Path prefix for temporally created files
 
@@ -80,7 +80,7 @@ uses Java programs and SAT solver in the following way.
 
 * XCSP to CSP conversion
 
-  $ java -cp azucar-v0.2.3.jar jp.ac.kobe_u.cs.sugar.XML2CSP file.xml file.csp
+  $ java -cp azucar-v0.2.4.jar jp.ac.kobe_u.cs.sugar.XML2CSP file.xml file.csp
 
   or
 
@@ -90,7 +90,7 @@ uses Java programs and SAT solver in the following way.
 
 * Encoding CSP to SAT
 
-  $ java -jar azucar-v0.2.3.jar -encode file.csp file.cnf file.map
+  $ java -jar azucar-v0.2.4.jar -encode file.csp file.cnf file.map
 
 * Solving SAT
 
@@ -98,7 +98,7 @@ uses Java programs and SAT solver in the following way.
 
 * Decoding SAT output
 
-  $ java -jar azucar-v0.2.3.jar [-competition] -decode file.out file.map
+  $ java -jar azucar-v0.2.4.jar [-competition] -decode file.out file.map
 
 * By default, Azucar divides each integer into two digits.
   For larger domain CSPs (e.g. over 1,000,000), it might be better to

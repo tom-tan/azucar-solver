@@ -1,4 +1,10 @@
 ================================================================
+Changes with Azucar version 0.2.4
+
+* Bug fix: Azucar with "-encoding oe" option can not solve non-linear CSP.
+* Add a reference of a tool presentation paper.
+
+================================================================
 Changes with Azucar version 0.2.3
 
 * Azucar with "-encoding oe" option uses the almost same
