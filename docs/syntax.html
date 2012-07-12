@@ -197,7 +197,7 @@
 
     <h3>Examples</h3>
     <pre class="program">
-(predicate (p0 x1 x2) (&lt;= x1 (+ x2 1))  ; (p0 x1 x2) &hArr; x1 &le; x2+1
+(predicate (p0 x1 x2) (&lt;= x1 (+ x2 1)))  ; (p0 x1 x2) &hArr; x1 &le; x2+1
 </pre>
 
     <!-- ================================================================ -->
@@ -247,7 +247,7 @@
 
     <h3>Examples</h3>
     <pre class="program">
-(or p0 (r0 x4 x5) (&gt;= x0 (+ x0 1))
+(or p0 (r0 x4 x5) (&gt;= x0 (+ x0 1)))
 </pre>
 
     <!-- ================================================================ -->
@@ -303,7 +303,7 @@
     <h3>Syntax</h3>
     <pre class="definition">
 <i>CumulativeConstraint</i> ::=
-    <tt>(cumulative</tt> <tt>(</tt><i>Task</i>*<tt>)</tt> <i>Limit</i><tt>)</tt> |
+    <tt>(cumulative</tt> <tt>(</tt><i>Task</i>*<tt>)</tt> <i>Limit</i><tt>)</tt>
 <i>Task</i> ::=
     <tt>(</tt><i>Origin</i> <i>Duration</i> <i>End</i> <i>Height</i><tt>)</tt>
 <i>Origin</i> ::=
