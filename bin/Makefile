@@ -26,6 +26,7 @@ JAVADOC  = javadoc -locale en_US \
 all: javac jar zip # javadoc
 
 javac:
+	mkdir -p ../classes
 	javac -source 5 -target 5 -Xlint:unchecked \
 		-sourcepath ../src -d ../classes \
 		../src/jp/ac/kobe_u/cs/sugar/*.java \
