@@ -108,7 +108,7 @@ my $xml_file;
 &setup(@ARGV);
 
 my ($java_pid, $solver_pid, $result, $objective_value, $objective_offset);
-my ($objective, $objective_var);
+my ($objective, $objective_var, $objective_ub);
 my (@objective_digits);
 my ($objd_var, $objd_code, $objd_value, @objd_values);
 
@@ -490,6 +490,7 @@ sub load_map {
 		shift(@_);
 		shift(@_);
 		$objective_offset = shift(@_);
+		$objective_ub = shift(@_);
 		push @objective_digits, @_;
 		&log("OBJECTIVE $objective $objective_var");
 	    }

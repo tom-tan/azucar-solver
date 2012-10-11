@@ -368,7 +368,7 @@ public abstract class Encoder {
 		for (IntegerVariable v : csp.getIntegerVariables()) {
 			if (v.getDigits().length >= 2 && !v.isAux()) {
 				final StringBuilder sb = new StringBuilder();
-				sb.append("bigint " + v.getName() + " " + v.getOffset());
+				sb.append("bigint " + v.getName() + " " + v.getOffset() + " " + v.getDomain().getUpperBound());
 				for (IntegerVariable digit : v.getDigits()) {
 					sb.append(" "+digit.getName());
 				}
