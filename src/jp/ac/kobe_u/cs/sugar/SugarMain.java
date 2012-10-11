@@ -184,8 +184,8 @@ public class SugarMain {
 			} else if (s[0].equals("bigint")) {
 				final String name = s[1];
 				final long offset = Long.parseLong(s[2]);
-				final String[] digits = new String[s.length-3];
-				for (int i=3, j=0; i<s.length ; i++, j++) {
+				final String[] digits = new String[s.length-4];
+				for (int i=4, j=0; i<s.length ; i++, j++) {
 					digits[j] = s[i];
 				}
 				final IntegerVariable v = new IntegerVariable(name);
