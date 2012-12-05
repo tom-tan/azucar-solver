@@ -114,8 +114,8 @@ my ($objd_var, $objd_code, $objd_value, @objd_values);
 
 my $time0 = time;
 
-# $ENV{'LANG'} = "C";
-# setpgrp($$, $$);
+$ENV{'LANG'} = "C";
+setpgrp($$, $$);
 
 &main();
 exit 0;
